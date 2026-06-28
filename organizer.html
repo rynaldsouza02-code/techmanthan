@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Manthan 6.0 | Organizer Panel</title>
+    <link rel="stylesheet" href="style.css?v=2.9">
+    <script>
+        // Check session before loading page
+        if (!localStorage.getItem("organizerUsername")) {
+            window.location.href = "login.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="cyber-crt-overlay"></div>
+    <div class="cyber-vignette"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="TC1.png" alt="Tech Manthan Logo">
+            <span>TECH MANTHAN 6.0 | ORGANIZER</span>
+        </div>
+        <div class="nav-user">
+            <span class="user-badge" id="orgUserBadge">Loading...</span>
+            <button class="btn-logout" id="btnLogout">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container" style="margin-top: 30px;">
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <h2 id="assignedEventTitle">Event Coordinator Portal</h2>
+                <p id="assignedEventSubtitle">Loading event assignment information...</p>
+            </div>
+        </div>
+
+        <div id="noEventMessage" style="display: none; text-align: center; padding: 60px; background: var(--card-bg); border: 1px solid var(--neon-red); border-radius: 16px; margin: 40px 0;">
+            <h3 style="color: var(--neon-red); font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 15px;">NO ASSIGNED EVENT</h3>
+            <p style="color: var(--text-sub);">You are currently not mapped to any event in the system. Please contact the administrator to assign you an event.</p>
+        </div>
+
+        <div id="portalContent" style="display: flex; gap: 30px; flex-wrap: wrap;">
+            <!-- Column 1: Event Details Form & Winner input -->
+            <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 30px;">
+                <!-- Event Photos & Media Card -->
+                <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0; border: 1px solid var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.15);">
+                    <h3 class="form-title" style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif;">Event Photos & Media</h3>
+                    <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 15px; font-family: monospace;">[MEDIA NODE ACTIVE] // Upload posters and manage event photos for the showcase gallery.</p>
+                    <button type="button" class="cyber-btn" id="btnGoToMedia" style="width: 100%; background: rgba(188, 19, 254, 0.15); border-color: var(--neon-purple); color: #fff; box-shadow: 0 0 10px rgba(188, 19, 254, 0.1);">Manage Photos & Poster</button>
+                </div>
+
+                <!-- Edit Event Details Form -->
+                <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0;">
+                    <h3 class="form-title">Edit Event Settings</h3>
+                    <form id="orgEventForm">
+                        <div class="form-group">
+                            <label for="eventTitle">Event Title</label>
+                            <input type="text" id="eventTitle" required placeholder="Event Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="eventDescription">Event Description</label>
+                            <textarea id="eventDescription" required placeholder="Describe what the event is about..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventDate">Event Date</label>
+                                <input type="date" id="eventDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="eventRegCloseDate">Registration Close Date</label>
+                                <input type="date" id="eventRegCloseDate" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventTime">Time</label>
+                                <input type="text" id="eventTime" required placeholder="e.g. 11:30 AM">
+                            </div>
+                            <div class="form-group">
+                                <label for="eventVenue">Venue</label>
+                                <input type="text" id="eventVenue" required placeholder="e.g. Lab 2">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventCoordinator">Coordinator Info</label>
+                            <input type="text" id="eventCoordinator" required placeholder="e.g. Mr. Mahesh Kumar">
+                        </div>
+                        <div class="form-group">
+                            <label for="eventRules">Rules & Guidelines (One per line)</label>
+                            <textarea id="eventRules" style="min-height: 120px;" placeholder="1. Rule one&#10;2. Rule two"></textarea>
+                        </div>
+                        <button type="submit" class="cyber-btn" style="width: 100%;">Update Event Info</button>
+                    </form>
+                </div>
+
+                <!-- Record Winners Form -->
+                <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0;">
+                    <h3 class="form-title">Announce Event Winners</h3>
+                    <form id="resultsForm">
+                        <div class="form-group">
+                            <label for="winnerFirst">🥇 1st Place (Winner)</label>
+                            <select id="winnerFirst">
+                                <option value="">-- Select Winner --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="winnerSecond">🥈 2nd Place (Runner Up)</label>
+                            <select id="winnerSecond">
+                                <option value="">-- Select Winner --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="winnerThird">🥉 3rd Place (Second Runner Up)</label>
+                            <select id="winnerThird">
+                                <option value="">-- Select Winner --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="cyber-btn cyber-btn-purple" style="width: 100%;">Lock & Submit Results</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Column 2: Registrations list and Attendance check-in -->
+            <div style="flex: 1.2; min-width: 280px;">
+                <div class="form-panel cyber-corners" style="max-width: 100%; height: 100%; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 class="form-title" style="margin-bottom: 0;">Registrants Directory</h3>
+                        <button id="btnDownloadAttendance" class="cyber-btn" style="font-size: 0.8rem; padding: 6px 12px; background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan);">Download Attendance PDF</button>
+                    </div>
+                    <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 25px;">Track registrations and mark student check-in status at the venue.</p>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <span id="registeredCount" style="font-weight: 600; color: var(--neon-cyan); font-size: 0.95rem;">Total Registrations: 0</span>
+                        <span id="checkedInCount" style="font-weight: 600; color: var(--neon-green); font-size: 0.95rem;">Checked-in: 0</span>
+                    </div>
+
+                    <div class="table-container" style="flex: 1; margin-bottom: 0; overflow-y: auto; max-height: 500px;">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Reg No</th>
+                                    <th>Student Name</th>
+                                    <th>Check-in Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registrantsTableBody">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: var(--text-sub);">Loading registrants list...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Judging & Marks Sheet -->
+        <div style="width: 100%; margin-top: 30px;" id="judgingSection">
+            <div class="form-panel cyber-corners" style="max-width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <h3 class="form-title" style="margin-bottom: 5px;">Judging & Marks Sheet</h3>
+                        <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0;">
+                            <strong>Allotted Judges:</strong> <span id="judgesLabel" style="color: var(--neon-cyan);">None</span> | 
+                            <strong>Criteria:</strong> <span id="criteriaLabel" style="color: var(--neon-cyan);">None</span>
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="cyber-btn" id="btnSaveMarks" style="background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan); padding: 8px 16px; font-size: 0.85rem;">Save Marks Sheet</button>
+                        <button type="button" class="cyber-btn cyber-btn-purple" id="btnAutomateWinners" style="padding: 8px 16px; font-size: 0.85rem;">Automate Winners Announcement</button>
+                    </div>
+                </div>
+
+                <div class="table-container" style="overflow-x: auto;">
+                    <table class="cyber-table" id="marksTable" style="width: 100%;">
+                        <thead>
+                            <tr id="marksTableHeaderRow">
+                                <th style="width: 80px; text-align: center;">Sl No</th>
+                                <th style="width: 150px;">Reg No</th>
+                                <th>Student Name</th>
+                                <!-- Dynamic criteria columns inserted here -->
+                                <th style="width: 150px; text-align: center;">Total Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="marksTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-sub);">Loading registrants and judging parameters...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="organizer.js?v=2.9"></script>
+    <script src="cyber-bg.js"></script>
+</body>
+</html>

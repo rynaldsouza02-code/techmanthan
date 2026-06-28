@@ -1,0 +1,99 @@
+/* Container for the cards */
+.selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+/* Base Card Style */
+.selectable-card {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #00f2ff;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+}
+
+.selectable-card h3 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+.selectable-card p {
+    font-size: 0.7rem;
+    color: #00f2ff;
+}
+
+/* Active/Selected State */
+.selectable-card.selected {
+    background: #00f2ff;
+    box-shadow: 0 0 15px #00f2ff;
+}
+
+.selectable-card.selected h3, 
+.selectable-card.selected p {
+    color: #000;
+}
+
+.wide-panel {
+    max-width: 800px !important;
+}
+
+.instruction-text {
+    color: #00f2ff;
+    font-family: 'Rajdhani';
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+}
+/* The base card style (ensure it has a transition) */
+.selectable-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* The "Selected" state with glow */
+.selectable-card.selected {
+    border-color: #00f3ff;
+    background: rgba(0, 243, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), 
+                inset 0 0 10px rgba(0, 243, 255, 0.2);
+    transform: translateY(-5px);
+}
+
+/* Optional: Add a checkmark or indicator using pseudo-elements */
+.selectable-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #00f3ff;
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif;
+}
+.selectable-card {
+    position: relative;
+    cursor: pointer;
+    transition: 0.3s;
+    /* add your glassmorphism styles here */
+}
+
+.selectable-card.selected {
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+}
+
+.event-checkbox {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    pointer-events: none; /* Let the card click handle the toggle */
+}

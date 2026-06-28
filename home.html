@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECH MANTHAN 6.0 | Dashboard</title>
+    <link rel="stylesheet" href="style.css?v=2.6">
+</head>
+<body>
+    <div class="cyber-crt-overlay"></div>
+    <div class="cyber-vignette"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="TC1.png" alt="Tech Manthan Logo">
+            <span>TECH MANTHAN 6.0</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="explore.html" class="nav-link-gallery" style="color: var(--neon-cyan); text-decoration: none; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.5px; border: 1px solid rgba(0, 243, 255, 0.3); padding: 6px 16px; border-radius: 20px; background: rgba(0, 243, 255, 0.05); box-shadow: 0 0 10px rgba(0, 243, 255, 0.1); transition: all 0.3s;" onmouseover="this.style.background='var(--neon-cyan)'; this.style.color='#000'; this.style.boxShadow='0 0 15px var(--neon-cyan)';" onmouseout="this.style.background='rgba(0, 243, 255, 0.05)'; this.style.color='var(--neon-cyan)'; this.style.boxShadow='0 0 10px rgba(0, 243, 255, 0.1)';">Explore Events & Photos</a>
+            <div class="nav-user" id="navUserArea">
+                <!-- Dynamically populated via JS -->
+                <a href="login.html" class="cyber-btn" style="padding: 6px 20px; font-size: 0.85rem;">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Hero Section for Guest / Home view -->
+        <header class="hero" id="heroSection">
+            <div class="hero-card">
+                <div class="college-badge">
+                    <img src="Dr BBHC.png?v=2" class="college-logo-img" alt="College Logo">
+                    <span>Dr. B.B Hegde First Grade College Kundapura</span>
+                </div>
+                <div class="hero-logo-wrapper">
+                    <div class="logo-glow-ring outer"></div>
+                    <div class="logo-glow-ring inner"></div>
+                    <div class="logo-pulse-circle"></div>
+                    <div class="circuit-ripple"></div>
+                    <div class="circuit-ripple d2"></div>
+                    <div class="circuit-ripple d3"></div>
+                    <img src="TC1.png" class="event-logo-hero" alt="Tech Manthan Logo">
+                </div>
+                <h1 class="glitch-title">TECH MANTHAN 6.0</h1>
+                <p class="hero-subtitle">DIVIDED BY ZERO, UNITED BY ONE</p>
+                <div class="hero-actions" id="heroActions">
+                    <a href="explore.html" class="cyber-btn cyber-btn-glow">Explore Events & Photos</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Events Catalog Section -->
+        <section id="events" class="events-section">
+            <div class="dashboard-header" style="margin-bottom: 25px;">
+                <div class="dashboard-title">
+                    <h2 id="catalogTitle">Events Directory</h2>
+                    <p id="catalogSubtitle">Discover and register for various tech events.</p>
+                </div>
+            </div>
+
+            <!-- Filter and Search controls -->
+            <div class="filter-bar">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search events by name...">
+                <div style="display: flex; gap: 10px;" id="filterToggles">
+                    <button class="tab-btn active" id="btnAllEvents">All Events</button>
+                    <!-- "My Registrations" button dynamically added if logged in -->
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div class="event-grid" id="eventGrid">
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-sub);">
+                    Initializing system... Loading events...
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Event Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <h3 class="modal-title" id="modalTitle">Event Title</h3>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports and Dashboard logic -->
+    <script type="module" src="home.js?v=2.8"></script>
+    <script src="cyber-bg.js"></script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Manthan 6.0 | Admin Panel</title>
+    <link rel="stylesheet" href="style.css?v=2.9">
+    <script>
+        // Inline auth check before page load to prevent flash of content
+        if (localStorage.getItem("adminUser") !== "admin") {
+            window.location.href = "login.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="cyber-crt-overlay"></div>
+    <div class="cyber-vignette"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="TC1.png" alt="Tech Manthan Logo">
+            <span>TECH MANTHAN 6.0 | ADMIN</span>
+        </div>
+        <div class="nav-user">
+            <span class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple);">System Administrator</span>
+            <button class="btn-logout" id="btnLogout">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container" style="margin-top: 30px;">
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <h2>Admin Control Center</h2>
+                <p>Manage events, student databases, and organizer accounts.</p>
+            </div>
+        </div>
+
+        <!-- Dashboard Tabs Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" id="tabBtnOverview">Overview</button>
+            <button class="tab-btn" id="tabBtnEvents">Manage Events</button>
+            <button class="tab-btn" id="tabBtnStudents">Manage Students</button>
+            <button class="tab-btn" id="tabBtnOrganizers">Manage Organizers</button>
+            <button class="tab-btn" id="tabBtnRegistrations">View Registrations</button>
+            <button class="tab-btn" id="tabBtnJudges">Manage Judges</button>
+        </div>
+
+        <!-- OVERVIEW PANEL -->
+        <div class="tab-panel active" id="panelOverview">
+            <div class="stats-grid">
+                <div class="stat-card cyber-card-scan cyber-corners">
+                    <div class="stat-number" id="statTotalEvents">0</div>
+                    <div class="stat-label">Total Events</div>
+                </div>
+                <div class="stat-card cyber-card-scan cyber-corners">
+                    <div class="stat-number" id="statTotalStudents">0</div>
+                    <div class="stat-label">Registered Students</div>
+                </div>
+                <div class="stat-card cyber-card-scan cyber-corners">
+                    <div class="stat-number" id="statTotalRegistrations">0</div>
+                    <div class="stat-label">Event Registrations</div>
+                </div>
+            </div>
+            
+            <div class="form-panel cyber-corners" style="max-width: 100%;">
+                <h3 class="form-title">Recent Event Activities</h3>
+                <div class="table-container" style="margin-bottom: 0;">
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th>Event Title</th>
+                                <th>Date/Time</th>
+                                <th>Venue</th>
+                                <th>Coordinators</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overviewEventsTable">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-sub);">Loading overview data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- EVENTS PANEL -->
+        <div class="tab-panel" id="panelEvents">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                <!-- Event Creation/Edit Form -->
+                <div class="form-panel cyber-corners" style="flex: 1; min-width: 280px;">
+                    <h3 class="form-title" id="eventFormTitle">Add New Event</h3>
+                    <form id="eventForm">
+                        <input type="hidden" id="eventFormMode" value="create">
+                        <div class="form-group">
+                            <label for="eventId">Event ID (Unique slug, e.g. coding-battle)</label>
+                            <input type="text" id="eventId" required placeholder="e.g. coding-battle">
+                        </div>
+                        <div class="form-group">
+                            <label for="eventTitle">Event Title</label>
+                            <input type="text" id="eventTitle" required placeholder="e.g. Coding Battle">
+                        </div>
+                        <div class="form-group">
+                            <label for="eventDescription">Description</label>
+                            <textarea id="eventDescription" required placeholder="Brief summary of the event..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventDate">Event Date</label>
+                                <input type="date" id="eventDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="eventRegCloseDate">Registration Close Date</label>
+                                <input type="date" id="eventRegCloseDate" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventTime">Time</label>
+                                <input type="text" id="eventTime" required placeholder="e.g. 10:00 AM">
+                            </div>
+                            <div class="form-group">
+                                <label for="eventVenue">Venue</label>
+                                <input type="text" id="eventVenue" required placeholder="e.g. Lab 3">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventCoordinator">Coordinator Contact</label>
+                            <input type="text" id="eventCoordinator" required placeholder="e.g. Prof. Kumar (9876543210)">
+                        </div>
+                        <div class="form-group">
+                            <label for="eventRules">Rules & Regulations (One per line)</label>
+                            <textarea id="eventRules" placeholder="1. Rule one&#10;2. Rule two" style="min-height: 120px;"></textarea>
+                        </div>
+
+                        <!-- Winner Announcement Fields (Optional) -->
+                        <div style="border-top: 1px dashed rgba(255, 255, 255, 0.15); margin-top: 20px; padding-top: 20px;">
+                            <h4 style="margin-bottom: 12px; color: var(--neon-purple); font-family: 'Orbitron', sans-serif; font-size: 0.95rem;">Announce Winners (Optional)</h4>
+                            <div class="form-group">
+                                <label for="winnerFirst">🥇 1st Place</label>
+                                <input type="text" id="winnerFirst" placeholder="Name or Registration Number">
+                            </div>
+                            <div class="form-group">
+                                <label for="winnerSecond">🥈 2nd Place</label>
+                                <input type="text" id="winnerSecond" placeholder="Name or Registration Number">
+                            </div>
+                            <div class="form-group">
+                                <label for="winnerThird">🥉 3rd Place</label>
+                                <input type="text" id="winnerThird" placeholder="Name or Registration Number">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="cyber-btn" id="btnSubmitEvent" style="flex: 1;">Save Event</button>
+                            <button type="button" class="btn-action" id="btnCancelEditEvent" style="display: none;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Events List Table -->
+                <div style="flex: 1.5; min-width: 280px;">
+                    <div class="table-container">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date/Time</th>
+                                    <th>Venue</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventsListTable">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-sub);">Loading events database...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENTS PANEL -->
+        <div class="tab-panel" id="panelStudents">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                <!-- Student Creation Form -->
+                <div class="form-panel cyber-corners" style="flex: 1; min-width: 280px;">
+                    <h3 class="form-title">Add Student Record</h3>
+                    <form id="studentForm">
+                        <div class="form-group">
+                            <label for="studentRegNo">Registration Number (Username, e.g. BCA24079)</label>
+                            <input type="text" id="studentRegNo" required placeholder="e.g. BCA24079">
+                        </div>
+                        <div class="form-group">
+                            <label for="studentName">Student Name</label>
+                            <input type="text" id="studentName" required placeholder="e.g. Ranjith Kumar">
+                        </div>
+                        <div class="form-group">
+                            <label for="studentDOB">Date of Birth (Password, DD-MM-YYYY)</label>
+                            <input type="text" id="studentDOB" required placeholder="e.g. 15-08-2004">
+                        </div>
+                        <button type="submit" class="cyber-btn" style="width: 100%;">Add Student to System</button>
+                    </form>
+                </div>
+
+                <!-- Students Directory Table -->
+                <div style="flex: 1.5; min-width: 280px;">
+                    <div class="filter-bar" style="margin-bottom: 20px;">
+                        <input type="text" id="studentSearchInput" class="search-input" placeholder="Search student by Name or Reg No...">
+                    </div>
+                    <div class="table-container">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Reg No</th>
+                                    <th>Name</th>
+                                    <th>DOB</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsListTable">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-sub);">Loading student directory...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORGANIZERS PANEL -->
+        <div class="tab-panel" id="panelOrganizers">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                <!-- Organizer Creation Form -->
+                <div class="form-panel cyber-corners" style="flex: 1; min-width: 280px;">
+                    <h3 class="form-title">Register Event Organizer</h3>
+                    <form id="organizerForm">
+                        <div class="form-group">
+                            <label for="orgUsername">Username (Lowercase, e.g. org_coding)</label>
+                            <input type="text" id="orgUsername" required placeholder="e.g. org_coding">
+                        </div>
+                        <div class="form-group">
+                            <label for="orgName">Organizer Display Name</label>
+                            <input type="text" id="orgName" required placeholder="e.g. Prof. Jyothi K.">
+                        </div>
+                        <div class="form-group">
+                            <label for="orgPassword">Access Password</label>
+                            <input type="password" id="orgPassword" required placeholder="Secure password">
+                        </div>
+                        <div class="form-group">
+                            <label for="orgEvent">Assigned Event</label>
+                            <select id="orgEvent" required>
+                                <option value="">-- Select Event --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="cyber-btn" style="width: 100%;">Register Organizer</button>
+                    </form>
+                </div>
+
+                <!-- Organizers Directory Table -->
+                <div style="flex: 1.5; min-width: 280px;">
+                    <div class="table-container">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Assigned Event</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="organizersListTable">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-sub);">Loading organizers database...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REGISTRATIONS PANEL -->
+        <div class="tab-panel" id="panelRegistrations">
+            <div class="filter-bar" style="margin-bottom: 25px;">
+                <div class="form-group" style="margin-bottom: 0; min-width: 250px;">
+                    <label for="regEventFilter">Filter Registrations By Event</label>
+                    <select id="regEventFilter" style="margin-bottom: 0;">
+                        <option value="">-- Select Event --</option>
+                    </select>
+                </div>
+                <button class="cyber-btn cyber-btn-purple" id="btnPrintRegistrations" style="padding: 10px 20px; font-size: 0.85rem;">Print List</button>
+            </div>
+
+            <div class="table-container" id="printableArea">
+                <div id="printHeader" style="display: none; padding: 20px; text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; color: #000;">
+                    <h2 style="font-family: sans-serif; font-size: 24px; margin-bottom: 5px;">TECH MANTHAN 6.0</h2>
+                    <h3 style="font-family: sans-serif; font-size: 18px;" id="printEventTitle">Event Registration List</h3>
+                </div>
+                <table class="cyber-table" id="registrationsTable">
+                    <thead>
+                        <tr>
+                            <th>Reg No</th>
+                            <th>Student Name</th>
+                            <th>Email Address</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrationsListTable">
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--text-sub);">Select an event from the filter to view registrations.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MANAGE JUDGES PANEL -->
+        <div class="tab-panel" id="panelJudges">
+            <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 25px;">Define judging criteria and assign judges for each active event.</p>
+            <div class="table-container">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Event ID</th>
+                            <th style="width: 25%;">Event Title</th>
+                            <th style="width: 25%;">Allotted Judges</th>
+                            <th style="width: 25%;">Judging Criteria</th>
+                            <th style="width: 10%; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="judgesEventsTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-sub);">Loading events...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Judging Modal -->
+    <div class="modal-overlay" id="judgingModal">
+        <div class="modal-content">
+            <button class="modal-close" id="judgingModalCloseBtn">&times;</button>
+            <h3 class="modal-title" id="judgingModalTitle">Allot Judges & Criteria</h3>
+            <form id="judgingForm">
+                <input type="hidden" id="judgingEventId">
+                <div class="form-group">
+                    <label for="judgingEventTitle">Event Title</label>
+                    <input type="text" id="judgingEventTitle" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label for="judgingAllottedJudges">Allotted Judges (Comma-separated names)</label>
+                    <input type="text" id="judgingAllottedJudges" placeholder="e.g. Dr. Swathi, Mr. Kiran">
+                </div>
+                <div class="form-group">
+                    <label for="judgingCriteria">Judging Criteria (Comma-separated names)</label>
+                    <input type="text" id="judgingCriteria" placeholder="e.g. Creativity, Technical execution, QA">
+                </div>
+                <button type="submit" class="cyber-btn cyber-btn-purple" style="width: 100%; margin-top: 15px;">Save Judging Parameters</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports and Admin Dashboard Logic -->
+    <script type="module" src="admin.js?v=2.9"></script>
+    <script src="cyber-bg.js"></script>
+</body>
+</html>

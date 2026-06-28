@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Manthan 6.0 | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2.6">
+    
+    <style>
+        :root {
+            /* Frosty light glassmorphism variables with high transparency */
+            --card-bg: rgba(255, 255, 255, 0.08); /* Highly transparent white tint to merge with background */
+            --border-color: rgba(255, 255, 255, 0.22); /* Glowing white border */
+            --primary-text: #ffffff; /* Pure white text for high contrast */
+            --secondary-text: rgba(255, 255, 255, 0.65); /* Soft translucent white */
+            --input-bg: rgba(255, 255, 255, 0.06); /* Translucent input backgrounds */
+            --input-border: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            /* === BACKGROUND IMAGE CONFIGURATION === */
+            /* You can modify the URL below to change your login page background image. */
+            background-image: url("hacker-bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            /* ====================================== */
+            
+            background-color: #030712; /* Fallback dark grey background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle dark overlay over background image to ensure card stands out and text is highly legible */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(3, 7, 18, 0.85), rgba(3, 7, 18, 0.9));
+            z-index: -3;
+            pointer-events: none;
+        }
+
+        /* Tech canvas override */
+        #cyber-canvas {
+            z-index: -1 !important;
+            opacity: 0.25 !important; /* high visibility tech effect */
+        }
+
+        /* 3D animated cyber grid */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                linear-gradient(rgba(0, 243, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+            transform: perspective(800px) rotateX(60deg);
+            animation: gridMove 20s linear infinite;
+            transform-origin: top;
+        }
+
+        @keyframes gridMove { 
+            0% { transform: perspective(800px) rotateX(60deg) translateY(0); } 
+            100% { transform: perspective(800px) rotateX(60deg) translateY(40px); } 
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tech Scanner Animation */
+        .scanner-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 15%, #00f3ff 50%, transparent 85%);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.7), 0 0 20px rgba(0, 243, 255, 0.4);
+            animation: scan 6s ease-in-out infinite;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            5% { opacity: 1; }
+            95% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* HUD Corners */
+        .login-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #00f3ff;
+            border-style: solid;
+            border-width: 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .login-corner.top-left {
+            top: -1px; left: -1px;
+            border-top-width: 3px;
+            border-left-width: 3px;
+            border-top-left-radius: 24px;
+            box-shadow: -2px -2px 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .login-corner.top-right {
+            top: -1px; right: -1px;
+            border-top-width: 3px;
+            border-right-width: 3px;
+            border-top-right-radius: 24px;
+            box-shadow: 2px -2px 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .login-corner.bottom-left {
+            bottom: -1px; left: -1px;
+            border-bottom-width: 3px;
+            border-left-width: 3px;
+            border-bottom-left-radius: 24px;
+            box-shadow: -2px 2px 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .login-corner.bottom-right {
+            bottom: -1px; right: -1px;
+            border-bottom-width: 3px;
+            border-right-width: 3px;
+            border-bottom-right-radius: 24px;
+            box-shadow: 2px 2px 10px rgba(0, 243, 255, 0.5);
+        }
+
+        /* Status & Labels */
+        .sys-status {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: monospace;
+            font-size: 10px;
+            color: #39ff14;
+            letter-spacing: 1px;
+            z-index: 3;
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #39ff14;
+            box-shadow: 0 0 8px #39ff14;
+            animation: dotPulse 1.2s infinite alternate;
+        }
+
+        @keyframes dotPulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .terminal-version {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: monospace;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 2px;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* Main Container - Single Panel Glassmorphism Card */
+        .login-container {
+            width: 100%;
+            max-width: 460px;
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 30px 40px 22px 40px;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.4s ease;
+            animation: cardAppear 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px 20px;
+                border-radius: 16px;
+            }
+            .login-header h1 {
+                font-size: 24px;
+            }
+            .role-btn {
+                font-size: 12px;
+                padding: 8px 0;
+            }
+        }
+
+        /* Logo styling */
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-text);
+            margin-bottom: 35px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary-text);
+            letter-spacing: -0.5px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: var(--secondary-text);
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* Role Toggle */
+        .role-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 10px 0;
+            text-align: center;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--secondary-text);
+        }
+
+        .role-btn.active {
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            color: #ffffff;
+        }
+
+        .role-btn:not(.active):hover {
+            color: #ffffff;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border-radius: 30px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            font-size: 14px;
+            color: var(--primary-text);
+            outline: none;
+            transition: all 0.25s ease;
+            font-weight: 500;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .form-group input:focus {
+            border-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--secondary-text);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.25s ease;
+        }
+
+        .form-group input:focus + .input-icon,
+        .form-group input:focus ~ .input-icon {
+            stroke: #ffffff;
+        }
+
+        .eye-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--secondary-text);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .eye-icon:hover {
+            stroke: #ffffff;
+        }
+
+        .helper-text {
+            font-size: 11px;
+            color: var(--secondary-text);
+            margin-left: 20px;
+            margin-top: -8px;
+            margin-bottom: 12px;
+            display: block;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-submit:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-guest {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        .btn-guest:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .terms {
+            font-size: 11px;
+            color: var(--secondary-text);
+            text-decoration: none;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 10px;
+            display: block;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .terms:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        /* Glowing Logo Wrapper */
+        .login-logo-wrapper {
+            position: relative;
+            width: 180px;
+            height: 120px;
+            margin: 0 auto 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-pulse-circle {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 243, 255, 0.35) 0%, transparent 70%);
+            animation: pulseGlow 3s infinite alternate;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .event-logo-login {
+            width: 110px;
+            height: auto;
+            z-index: 2;
+            filter: drop-shadow(0 0 12px rgba(0, 243, 255, 0.75));
+            animation: floatLogo 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { opacity: 0.6; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Dynamic role-based colors for the login card */
+        .login-container.theme-student {
+            --primary-glow: var(--neon-cyan);
+            border-color: rgba(0, 243, 255, 0.3);
+        }
+        .login-container.theme-organizer {
+            --primary-glow: var(--neon-green);
+            border-color: rgba(57, 255, 20, 0.3);
+        }
+        .login-container.theme-admin {
+            --primary-glow: var(--neon-purple);
+            border-color: rgba(188, 19, 254, 0.3);
+        }
+
+        .login-container {
+            --primary-glow: var(--neon-cyan); /* default */
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* Make corners and scanner-line match the current theme color */
+        .login-corner {
+            border-color: var(--primary-glow) !important;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .login-corner.top-left { box-shadow: -2px -2px 10px var(--primary-glow); }
+        .login-corner.top-right { box-shadow: 2px -2px 10px var(--primary-glow); }
+        .login-corner.bottom-left { box-shadow: -2px 2px 10px var(--primary-glow); }
+        .login-corner.bottom-right { box-shadow: 2px 2px 10px var(--primary-glow); }
+
+        .scanner-line {
+            background: linear-gradient(90deg, transparent 15%, var(--primary-glow) 50%, transparent 85%);
+            box-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow);
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 0 12px var(--primary-glow) !important;
+        }
+
+        .form-group input:focus + .input-icon,
+        .form-group input:focus ~ .input-icon {
+            stroke: var(--primary-glow) !important;
+        }
+
+        /* Pulsing indicator */
+        .pulse-dot {
+            background-color: var(--primary-glow) !important;
+            box-shadow: 0 0 8px var(--primary-glow) !important;
+        }
+        .sys-status {
+            color: var(--primary-glow) !important;
+        }
+
+        .btn-submit {
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 0 10px var(--primary-glow) !important;
+        }
+        .btn-submit:hover {
+            background-color: var(--primary-glow) !important;
+            color: #000000 !important;
+            box-shadow: 0 0 20px var(--primary-glow) !important;
+        }
+        
+        .role-btn.active {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 0 10px var(--primary-glow) !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-crt-overlay"></div>
+    <div class="cyber-vignette"></div>
+    <div class="cyber-grid"></div>
+
+    <div class="login-container theme-student">
+        <!-- Tech HUD Elements -->
+        <div class="login-corner top-left"></div>
+        <div class="login-corner top-right"></div>
+        <div class="login-corner bottom-left"></div>
+        <div class="login-corner bottom-right"></div>
+        <div class="scanner-line"></div>
+        <div class="sys-status">
+            <span class="pulse-dot"></span>
+            <span>SYS_ACTIVE</span>
+        </div>
+        <div class="terminal-version">PORTAL PROTOCOL v2.5 // SECURE</div>
+        
+        <div class="login-logo-wrapper">
+            <div class="logo-pulse-circle"></div>
+            <img src="TC1.png" class="event-logo-login" alt="Tech Manthan Logo">
+        </div>
+        
+        <div class="login-header">
+            <h1 class="cyber-glitch-text" data-text="LOGIN">LOGIN</h1>
+            <p>Secure login for existing accounts.<br>Select your role.</p>
+        </div>
+
+        <div class="role-toggle">
+            <div class="role-btn active" id="userRoleBtn">Student</div>
+            <div class="role-btn" id="organizerRoleBtn">Organizer</div>
+            <div class="role-btn" id="adminRoleBtn">Admin</div>
+        </div>
+
+        <form action="#" method="POST" id="loginForm">
+            
+            <div class="form-group">
+                <input type="text" placeholder="Username" required id="usernameInput">
+                <svg class="input-icon" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+
+            <div class="form-group">
+                <input type="password" placeholder="Password" required id="passwordInput">
+                <svg class="input-icon" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <svg class="eye-icon" viewBox="0 0 24 24" id="eyeIcon">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <line x1="1" y1="1" x2="23" y2="23" id="eyeSlash"></line> 
+                </svg>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 8px;">
+                <input type="email" placeholder="Notification Email" id="emailInput">
+                <svg class="input-icon" viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </div>
+            <span class="helper-text">For event notifications only</span>
+
+            <button type="submit" class="btn btn-submit" id="submitBtn">Submit</button>
+            <button type="button" class="btn btn-guest" id="guestBtn">View as Guest</button>
+        </form>
+
+        <div class="terms">Terms & Conditions</div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Role Selection Toggle
+            const roleBtns = document.querySelectorAll('.role-btn');
+            const headerSub = document.querySelector('.login-header p');
+            const submitBtn = document.getElementById('submitBtn');
+            const emailGroup = document.getElementById('emailInput').parentElement;
+            const helperText = document.querySelector('.helper-text');
+            const usernameInput = document.getElementById('usernameInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginContainer = document.querySelector('.login-container');
+            
+            roleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.classList.contains('active')) return;
+                    
+                    roleBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    loginContainer.classList.remove('theme-student', 'theme-organizer', 'theme-admin');
+                    
+                    if (btn.id === 'adminRoleBtn') {
+                        loginContainer.classList.add('theme-admin');
+                        headerSub.innerHTML = 'Secure login for administrators.<br>Enter your root credentials.';
+                        submitBtn.innerHTML = 'Initialize Admin Protocol';
+                        emailGroup.style.display = 'none';
+                        helperText.style.display = 'none';
+                        usernameInput.placeholder = "Username";
+                        passwordInput.placeholder = "Password";
+                    } else if (btn.id === 'organizerRoleBtn') {
+                        loginContainer.classList.add('theme-organizer');
+                        headerSub.innerHTML = 'Secure login for event organizers.<br>Enter your Name and Faculty ID.';
+                        submitBtn.innerHTML = 'Initialize Organizer Protocol';
+                        emailGroup.style.display = 'none';
+                        helperText.style.display = 'none';
+                        usernameInput.placeholder = "Full Name";
+                        passwordInput.placeholder = "Faculty ID";
+                    } else {
+                        loginContainer.classList.add('theme-student');
+                        headerSub.innerHTML = 'Secure login for existing accounts.<br>Select your role.';
+                        submitBtn.innerHTML = 'Submit';
+                        emailGroup.style.display = 'block';
+                        helperText.style.display = 'block';
+                        usernameInput.placeholder = "Username";
+                        passwordInput.placeholder = "Password";
+                    }
+                });
+            });
+
+            // Password Visibility Toggle
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeSlash = document.getElementById('eyeSlash');
+
+            eyeIcon.addEventListener('click', () => {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                if (isPassword) {
+                    passwordInput.setAttribute('type', 'text');
+                    eyeSlash.style.display = 'none';
+                } else {
+                    passwordInput.setAttribute('type', 'password');
+                    eyeSlash.style.display = 'block';
+                }
+            });
+
+            // Guest Navigation
+            const guestBtn = document.getElementById('guestBtn');
+            guestBtn.addEventListener('click', () => {
+                guestBtn.disabled = true;
+                guestBtn.style.cursor = 'not-allowed';
+                guestBtn.innerHTML = 'Loading Guest Terminal...';
+                
+                const container = document.querySelector('.login-container');
+                container.style.boxShadow = '0 20px 40px rgba(255, 255, 255, 0.15)';
+                container.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+
+                setTimeout(() => {
+                    window.location.href = "home.html";
+                }, 800);
+            });
+        });
+   </script>
+
+    <script type="module" src="login.js?v=2.7"></script>
+    <script src="cyber-bg.js"></script>
+
+</body>
+</html>

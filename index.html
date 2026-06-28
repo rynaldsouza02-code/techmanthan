@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Manthan 6.0</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #030712; /* Clean deep dark background */
+        overflow: hidden;
+        position: relative;
+        transition: opacity 0.6s ease;
+    }
+
+    /* Radial background glow behind the logo */
+    body::before {
+        content: "";
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 243, 255, 0.08) 0%, transparent 70%);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .logo-container {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 320px;
+        height: 320px;
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+
+    .event-logo {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        opacity: 0;
+        transform: scale(0.3);
+        animation: logoPopupZoom 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+                   logoBreathe 2.5s ease-in-out infinite alternate 1.4s;
+    }
+
+    @keyframes logoPopupZoom {
+        0% {
+            opacity: 0;
+            transform: scale(0.3) rotate(-10deg);
+            filter: drop-shadow(0 0 0 rgba(0, 243, 255, 0));
+        }
+        75% {
+            opacity: 1;
+            transform: scale(1.08) rotate(3deg);
+            filter: drop-shadow(0 0 45px rgba(0, 243, 255, 0.85));
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+            filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.6));
+        }
+    }
+
+    @keyframes logoBreathe {
+        0% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.6));
+        }
+        100% {
+            transform: scale(1.03);
+            filter: drop-shadow(0 0 40px rgba(0, 243, 255, 0.95));
+        }
+    }
+</style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <img src="TC1.png" class="event-logo" alt="Tech Manthan Logo">
+    </div>
+
+    <script>
+        // Smooth transition and redirect to login page
+        setTimeout(() => {
+            document.body.style.opacity = "0";
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 600);
+        }, 2200); // 2.2 seconds display + 0.6 seconds fadeout
+    </script>
+
+</body>
+</html>

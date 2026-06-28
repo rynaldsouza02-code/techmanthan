@@ -1,0 +1,104 @@
+/* --- Master Background Container --- */
+body {
+    margin: 0;
+    padding: 0;
+    background: #020b13; /* Deep midnight blue */
+    overflow-x: hidden;
+    min-height: 100vh;
+    font-family: 'Rajdhani', sans-serif;
+    color: #e0fbfb;
+}
+
+/* Layer 1: The Perspective Floor Grid */
+.cyber-grid {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(0deg, transparent 24%, rgba(0, 255, 204, 0.1) 25%, rgba(0, 255, 204, 0.1) 26%, transparent 27%, transparent 74%, rgba(0, 255, 204, 0.1) 75%, rgba(0, 255, 204, 0.1) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(0, 255, 204, 0.1) 25%, rgba(0, 255, 204, 0.1) 26%, transparent 27%, transparent 74%, rgba(0, 255, 204, 0.1) 75%, rgba(0, 255, 204, 0.1) 76%, transparent 77%, transparent);
+    background-size: 60px 60px;
+    transform: perspective(500px) rotateX(60deg);
+    transform-origin: center bottom;
+    animation: grid-drift 10s linear infinite;
+    z-index: -2;
+}
+
+/* Layer 2: Glowing Particles (Pseudo-Elements) */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(2px 2px at 20px 30px, #00ffcc, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 50px 160px, #00ffcc, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0));
+    background-size: 200px 200px;
+    animation: particles-float 20s linear infinite;
+    opacity: 0.4;
+    z-index: -1;
+}
+
+/* Layer 3: The Radial HUD Glow */
+body::after {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 150vw;
+    height: 150vh;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, transparent 30%, #020b13 70%),
+                radial-gradient(circle, rgba(0, 255, 204, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* --- Animations --- */
+
+/* Makes the grid look like it's moving forward */
+@keyframes grid-drift {
+    from { background-position: 0 0; }
+    to { background-position: 0 60px; }
+}
+
+/* Subtle floating movement for particles */
+@keyframes particles-float {
+    from { transform: translateY(0); }
+    to { transform: translateY(-200px); }
+}
+
+/* --- Glass Panel Enhancement --- */
+.glass-panel {
+    background: rgba(10, 25, 41, 0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 
+                inset 0 0 20px rgba(0, 255, 204, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Corner Accents for that "Tech" look */
+.glass-panel::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 20px; height: 20px;
+    border-top: 2px solid #00ffcc;
+    border-left: 2px solid #00ffcc;
+}
+
+.glass-panel::after {
+    content: "";
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 20px; height: 20px;
+    border-bottom: 2px solid #00ffcc;
+    border-right: 2px solid #00ffcc;
+}

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECH MANTHAN 6.0 | Explore Events & Media</title>
+    <link rel="stylesheet" href="style.css?v=2.6">
+</head>
+<body>
+    <!-- CRT Monitor Overlays -->
+    <div class="cyber-crt-overlay"></div>
+    <div class="cyber-vignette"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand" style="cursor: pointer;" onclick="window.location.href='home.html'">
+            <img src="TC1.png" alt="Tech Manthan Logo">
+            <span>TECH MANTHAN 6.0</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="home.html" class="nav-link-gallery" style="color: var(--neon-cyan); text-decoration: none; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.5px; border: 1px solid rgba(0, 243, 255, 0.3); padding: 6px 16px; border-radius: 20px; background: rgba(0, 243, 255, 0.05); box-shadow: 0 0 10px rgba(0, 243, 255, 0.1); transition: all 0.3s;" onmouseover="this.style.background='var(--neon-cyan)'; this.style.color='#000'; this.style.boxShadow='0 0 15px var(--neon-cyan)';" onmouseout="this.style.background='rgba(0, 243, 255, 0.05)'; this.style.color='var(--neon-cyan)'; this.style.boxShadow='0 0 10px rgba(0, 243, 255, 0.1)';">Back to Home</a>
+            <div class="nav-user" id="navUserArea">
+                <a href="login.html" class="cyber-btn" style="padding: 6px 20px; font-size: 0.85rem;">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container" style="margin-top: 30px;">
+        <div class="dashboard-header" style="margin-bottom: 25px;">
+            <div class="dashboard-title">
+                <h2>Explore Channels & Media</h2>
+                <p>Browse event protocols, view media archives, and register for fests.</p>
+            </div>
+            <div id="connectionStatus" style="font-family: monospace; font-size: 0.75rem; color: var(--neon-cyan); letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+                <span class="user-badge" style="box-shadow: 0 0 5px var(--neon-cyan);">LINK_ONLINE</span>
+            </div>
+        </div>
+
+        <!-- Filter and Search controls -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search events by name, description or rules...">
+            <div style="display: flex; gap: 10px;" id="filterToggles">
+                <button class="tab-btn active" id="btnAllEvents">All Events</button>
+            </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="event-grid" id="eventGrid">
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-sub); font-family: monospace;">
+                [INITIALIZING DATABASE TUNNELS...] Loading events catalog...
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: EVENT RULES & DETAILS -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-content cyber-corners">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <h3 class="modal-title" id="modalTitle">Event Title</h3>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: HIGH-TECH SLIDESHOW CAROUSEL GALLERY -->
+    <div class="modal-overlay" id="galleryModal">
+        <div class="modal-content cyber-corners" style="max-width: 680px;">
+            <button class="modal-close" id="galleryCloseBtn">&times;</button>
+            <h3 class="modal-title" id="galleryTitle">Event Gallery</h3>
+            <div class="modal-body">
+                <div class="carousel-viewport" id="carouselViewport">
+                    <!-- Dynamic slideshow items -->
+                    <div class="empty-gallery-msg">[NO PHOTO DATA REGISTERED IN FIRESTORE NODES]</div>
+                </div>
+                <div class="carousel-dots" id="carouselDots">
+                    <!-- Dots indicators -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ORGANIZER MEDIA MANAGEMENT & FILE UPLOAD -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content cyber-corners" style="max-width: 600px;">
+            <button class="modal-close" id="uploadCloseBtn">&times;</button>
+            <h3 class="modal-title" id="uploadTitle">Manage Event Media</h3>
+            <div class="modal-body">
+                <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px; font-family: monospace;">
+                    [DATABASE ID: <span id="uploadEventIdText">None</span>] // Compress & sync media files directly to Firestore.
+                </p>
+
+                <!-- SECTION A: CARD POSTER -->
+                <h4 style="margin-top: 0; margin-bottom: 8px; color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem;">1. Event Card Cover Poster</h4>
+                <div class="media-upload-zone" id="posterUploadZone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <p>Drag poster file here or click to select</p>
+                    <input type="file" id="posterFileInput" accept="image/*" style="display: none;">
+                </div>
+                <!-- Poster preview slot -->
+                <div style="margin-bottom: 25px; text-align: center;" id="posterPreviewContainer">
+                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Poster Preview:</div>
+                    <img id="posterPreviewImg" src="" style="max-width: 100%; max-height: 120px; border-radius: 8px; border: 1px solid var(--card-border); display: none;">
+                    <div id="noPosterText" style="font-size: 0.8rem; color: var(--neon-red); font-family: monospace;">No poster uploaded yet</div>
+                </div>
+
+                <!-- SECTION B: GALLERY PHOTOS -->
+                <h4 style="margin-bottom: 8px; color: var(--neon-purple); font-family: 'Orbitron'; font-size: 0.9rem;">2. Event Photos Gallery (Max 8 Photos)</h4>
+                <div class="media-upload-zone" id="photosUploadZone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>Drag photos here or click to select multiple</p>
+                    <input type="file" id="photosFileInput" accept="image/*" multiple style="display: none;">
+                </div>
+                
+                <!-- Thumbnails preview slot -->
+                <div id="photosPreviewArea">
+                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Uploaded Photos (<span id="photoCountText">0</span>/8):</div>
+                    <div class="media-preview-grid" id="photosPreviewGrid">
+                        <!-- Preview images list -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button class="cyber-btn" id="btnSaveMedia" style="flex: 1;">Sync Media To Database</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase and Explore Logic module -->
+    <script type="module" src="explore.js?v=2.8"></script>
+    <script src="cyber-bg.js"></script>
+</body>
+</html>
