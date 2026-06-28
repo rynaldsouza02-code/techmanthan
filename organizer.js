@@ -497,6 +497,91 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Email Broadcast Announcement Submission
+  const announcementForm = document.getElementById("announcementEmailForm");
+  const announcementSubject = document.getElementById("announcementSubject");
+  const announcementMessage = document.getElementById("announcementMessage");
+  const btnSendAnnouncement = document.getElementById("btnSendAnnouncement");
+
+  if (announcementForm) {
+    announcementForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (registeredStudents.length === 0) {
+        alert("No students registered for this event.");
+        return;
+      }
+
+      const emails = registeredStudents.map(st => st.email).filter(Boolean);
+      if (emails.length === 0) {
+        alert("None of the registered students have provided an email address.");
+        return;
+      }
+
+      const subject = announcementSubject.value.trim();
+      const messageBody = announcementMessage.value.trim();
+
+      if (!confirm(`Are you sure you want to broadcast this announcement email to ${emails.length} registered students?`)) {
+        return;
+      }
+
+      btnSendAnnouncement.disabled = true;
+      btnSendAnnouncement.innerText = "Sending...";
+
+      // Format the announcement body professionally
+      const html = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+          <div style="background-color: #0f172a; padding: 25px; text-align: center; border-bottom: 3px solid #06b6d4;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">TECH MANTHAN 6.0</h1>
+            <p style="color: #06b6d4; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">Dr. B.B Hegde First Grade College, Kundapura</p>
+          </div>
+          
+          <div style="padding: 30px; color: #334155; line-height: 1.6;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 18px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">${subject}</h2>
+            
+            <p style="white-space: pre-line; margin-top: 20px; color: #334155;">${messageBody}</p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 13px; color: #64748b;">
+              <p style="margin: 0;"><strong>Event context:</strong> ${eventData ? eventData.title : 'Tech Manthan 6.0 Event'}</p>
+              <p style="margin: 4px 0 0 0;"><strong>Coordinator:</strong> ${localStorage.getItem("organizerName") || 'Event Team'}</p>
+            </div>
+          </div>
+          
+          <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            This email was sent to registered participants of Tech Manthan 6.0.
+          </div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bcc: emails.join(', '),
+            subject: `[Announcement] ${subject} - Tech Manthan 6.0`,
+            html: html
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("Announcement emails broadcasted successfully!");
+          announcementSubject.value = "";
+          announcementMessage.value = "";
+        } else {
+          alert("Failed to send email. " + (data.warning || data.error));
+        }
+      } catch (err) {
+        console.error("Announcement dispatch error:", err);
+        alert("An error occurred while broadcasting emails.");
+      } finally {
+        btnSendAnnouncement.disabled = false;
+        btnSendAnnouncement.innerText = "Send Announcement Email";
+      }
+    });
+  }
 }
 
 function renderMarksSheet() {

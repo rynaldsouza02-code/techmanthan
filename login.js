@@ -170,6 +170,7 @@ loginForm.addEventListener("submit", async (e) => {
     // Store normalized uppercase username
     localStorage.setItem("username", studentDocId);
     localStorage.setItem("name", studentData.name || "");
+    localStorage.setItem("email", email || studentData.email || "");
 
     submitBtn.innerHTML = "ACCESS GRANTED";
 

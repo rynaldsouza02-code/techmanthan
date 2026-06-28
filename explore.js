@@ -371,12 +371,89 @@ window.registerEvent = async function(eventId) {
     });
     registeredEventsIds.push(eventId);
     renderEvents();
+    
+    // Dispatch confirmation email
+    if (ev) {
+      sendRegistrationEmail(ev);
+    }
   } catch (error) {
     console.error("Firestore register error:", error);
     alert("Fail to write registration. Please try again.");
     renderEvents();
   }
 };
+
+async function sendRegistrationEmail(ev) {
+  const email = localStorage.getItem("email");
+  const name = localStorage.getItem("name") || "Student";
+  if (!email) {
+    console.log("No student email address in localStorage, skipping confirmation email.");
+    return;
+  }
+
+  const subject = `Registration Confirmed: ${ev.title} - Tech Manthan 6.0`;
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #0f172a; padding: 25px; text-align: center; border-bottom: 3px solid #06b6d4;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">TECH MANTHAN 6.0</h1>
+        <p style="color: #06b6d4; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">Dr. B.B Hegde First Grade College, Kundapura</p>
+      </div>
+      
+      <div style="padding: 30px; color: #334155; line-height: 1.6;">
+        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Registration Confirmed!</h2>
+        <p>Dear <strong>${name}</strong>,</p>
+        <p>Congratulations! You have successfully registered for the following event at Tech Manthan 6.0. Below is your event ticket detail:</p>
+        
+        <div style="margin: 25px 0; padding: 20px; background-color: #f8fafc; border-left: 4px solid #06b6d4; border-radius: 4px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 6px 0; width: 120px; font-weight: bold; color: #475569;">🏆 Event Name:</td>
+              <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${ev.title}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📅 Event Date:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.date || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">🕒 Event Time:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.time || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📍 Venue:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.venue || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">👤 Coordinator:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.coordinator || "N/A"}</td>
+            </tr>
+          </table>
+        </div>
+        
+        ${ev.description ? `<p><strong>Description:</strong> ${ev.description}</p>` : ""}
+        
+        <p style="margin-top: 25px;">Please report at the venue at least 15 minutes before the start timing. Make sure to bring your student ID and registration number: <strong>${username}</strong>.</p>
+        
+        <p style="margin-bottom: 0;">Best regards,<br><strong>Tech Manthan 6.0 Organizing Committee</strong></p>
+      </div>
+      
+      <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        This is an automated confirmation notification. Please do not reply directly to this email.
+      </div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: email, subject, html })
+    });
+    const resData = await res.json();
+    console.log("Email dispatch status:", resData);
+  } catch (error) {
+    console.error("Failed to dispatch registration confirmation email:", error);
+  }
+}
 
 // Student leave action
 window.unregisterEvent = async function(eventId) {
