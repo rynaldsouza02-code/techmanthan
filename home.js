@@ -139,6 +139,12 @@ async function loadUserData() {
     if (studentSnap.exists()) {
       const data = studentSnap.data();
       registeredEventsIds = data.registeredEvents || [];
+      if (data.email) {
+        localStorage.setItem("email", data.email);
+      }
+      if (data.name) {
+        localStorage.setItem("name", data.name);
+      }
     }
   } catch (error) {
     console.error("Error loading user data:", error);

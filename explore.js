@@ -126,6 +126,12 @@ async function loadStudentRegisteredEvents() {
     if (studentSnap.exists()) {
       const data = studentSnap.data();
       registeredEventsIds = data.registeredEvents || [];
+      if (data.email) {
+        localStorage.setItem("email", data.email);
+      }
+      if (data.name) {
+        localStorage.setItem("name", data.name);
+      }
       renderEvents();
     }
   } catch (error) {
