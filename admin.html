@@ -45,6 +45,7 @@
             <button class="tab-btn" id="tabBtnOrganizers">Manage Organizers</button>
             <button class="tab-btn" id="tabBtnRegistrations">View Registrations</button>
             <button class="tab-btn" id="tabBtnJudges">Manage Judges</button>
+            <button class="tab-btn" id="tabBtnEmail">Email Config</button>
         </div>
 
         <!-- OVERVIEW PANEL -->
@@ -342,6 +343,41 @@
         </div>
     </div>
 
+    <!-- EMAIL CONFIG PANEL -->
+    <div class="panel" id="panelEmail">
+        <div class="panel-header">
+            <h3>Global Email Settings</h3>
+            <p>Configure the SMTP credentials for transactional registrations and coordinator announcements.</p>
+        </div>
+        
+        <div class="form-panel cyber-corners" style="max-width: 600px; margin: 0 auto;">
+            <h3 class="form-title" style="color: var(--neon-cyan);">SMTP Mail Server Credentials</h3>
+            <form id="emailConfigForm">
+                <div class="form-group">
+                    <label for="emailConfigUser">SMTP Username (Sender Email Address)</label>
+                    <input type="email" id="emailConfigUser" required placeholder="e.g. techmanthan@college.com">
+                </div>
+                <div class="form-group">
+                    <label for="emailConfigPass">SMTP Password (App Password)</label>
+                    <input type="password" id="emailConfigPass" required placeholder="Enter SMTP account app password">
+                </div>
+                <div class="form-group">
+                    <label for="emailConfigHost">SMTP Host Server</label>
+                    <input type="text" id="emailConfigHost" required placeholder="e.g. smtp.gmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="emailConfigPort">SMTP Port Number</label>
+                    <input type="number" id="emailConfigPort" required placeholder="e.g. 587">
+                </div>
+                <div class="form-group">
+                    <label for="emailConfigFrom">Sender Header Name ("From")</label>
+                    <input type="text" id="emailConfigFrom" required placeholder='e.g. "Tech Manthan" &lt;techmanthan@college.com&gt;'>
+                </div>
+                <button type="submit" class="cyber-btn cyber-btn-cyan" style="width: 100%; margin-top: 15px;">Save Email Configuration</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Judging Modal -->
     <div class="modal-overlay" id="judgingModal">
         <div class="modal-content">
@@ -367,7 +403,7 @@
     </div>
 
     <!-- Firebase SDK Imports and Admin Dashboard Logic -->
-    <script type="module" src="admin.js?v=2.9"></script>
+    <script type="module" src="admin.js?v=2.11"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>

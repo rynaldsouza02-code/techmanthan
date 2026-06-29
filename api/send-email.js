@@ -1,4 +1,19 @@
 const nodemailer = require('nodemailer');
+const { initializeApp } = require('firebase/app');
+const { getFirestore, doc, getDoc } = require('firebase/firestore');
+
+// Initialize Firebase client SDK inside Vercel Serverless environment
+const firebaseConfig = {
+  apiKey: "AIzaSyC2maKwjtoad-DSd3_wQLSKPZbKmigqh1Q",
+  authDomain: "techmanthana.firebaseapp.com",
+  projectId: "techmanthana",
+  storageBucket: "techmanthana.firebasestorage.app",
+  messagingSenderId: "840190662351",
+  appId: "1:840190662351:web:9f7fbf05da27636216c9ba"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 module.exports = async (req, res) => {
   // CORS Headers
@@ -35,11 +50,30 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing required parameters: to or bcc, subject, html' });
   }
 
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = parseInt(process.env.SMTP_PORT || '587');
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || `"Tech Manthan 6.0" <noreply@techmanthan.org>`;
+  let host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  let port = parseInt(process.env.SMTP_PORT || '587');
+  let user = process.env.SMTP_USER;
+  let pass = process.env.SMTP_PASS;
+  let from = process.env.SMTP_FROM || `"Tech Manthan 6.0" <noreply@techmanthan.org>`;
+
+  // Try to load credentials from Firestore first
+  try {
+    const configRef = doc(db, "settings", "emailConfig");
+    const configSnap = await getDoc(configRef);
+    if (configSnap.exists()) {
+      const data = configSnap.data();
+      if (data.user) user = data.user;
+      if (data.pass) pass = data.pass;
+      if (data.host) host = data.host;
+      if (data.port) port = parseInt(data.port);
+      if (data.from) from = data.from;
+      console.log('Using SMTP configuration from Firestore database.');
+    } else {
+      console.log('No SMTP configuration found in Firestore settings/emailConfig, falling back to environment variables.');
+    }
+  } catch (dbError) {
+    console.error('Error fetching email configuration from Firestore:', dbError);
+  }
 
   if (!user || !pass) {
     console.warn('SMTP credentials not configured. Logging email to console.');
@@ -48,7 +82,7 @@ module.exports = async (req, res) => {
     console.log('SUBJECT:', subject);
     return res.status(200).json({ 
       success: true, 
-      warning: 'SMTP credentials not configured in Vercel env. Email logged to server console.',
+      warning: 'SMTP credentials not configured in Firestore settings/emailConfig or environment variables. Email logged to server console.',
       loggedEmail: { to, bcc, subject } 
     });
   }
