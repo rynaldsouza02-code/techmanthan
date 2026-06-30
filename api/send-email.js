@@ -1,19 +1,4 @@
 const nodemailer = require('nodemailer');
-const { initializeApp } = require('firebase/app');
-const { getFirestore, doc, getDoc } = require('firebase/firestore');
-
-// Initialize Firebase client SDK inside Vercel Serverless environment
-const firebaseConfig = {
-  apiKey: "AIzaSyC2maKwjtoad-DSd3_wQLSKPZbKmigqh1Q",
-  authDomain: "techmanthana.firebaseapp.com",
-  projectId: "techmanthana",
-  storageBucket: "techmanthana.firebasestorage.app",
-  messagingSenderId: "840190662351",
-  appId: "1:840190662351:web:9f7fbf05da27636216c9ba"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 module.exports = async (req, res) => {
   // CORS Headers
@@ -56,23 +41,28 @@ module.exports = async (req, res) => {
   let pass = process.env.SMTP_PASS;
   let from = process.env.SMTP_FROM || `"Tech Manthan 6.0" <noreply@techmanthan.org>`;
 
-  // Try to load credentials from Firestore first
+  // Try to load credentials from Firestore REST API
   try {
-    const configRef = doc(db, "settings", "emailConfig");
-    const configSnap = await getDoc(configRef);
-    if (configSnap.exists()) {
-      const data = configSnap.data();
-      if (data.user) user = data.user;
-      if (data.pass) pass = data.pass;
-      if (data.host) host = data.host;
-      if (data.port) port = parseInt(data.port);
-      if (data.from) from = data.from;
-      console.log('Using SMTP configuration from Firestore database.');
+    const url = 'https://firestore.googleapis.com/v1/projects/techmanthana/databases/(default)/documents/settings/emailConfig';
+    const dbRes = await fetch(url);
+    if (dbRes.ok) {
+      const dbData = await dbRes.json();
+      if (dbData.fields) {
+        const fields = dbData.fields;
+        if (fields.user && fields.user.stringValue) user = fields.user.stringValue;
+        if (fields.pass && fields.pass.stringValue) pass = fields.pass.stringValue;
+        if (fields.host && fields.host.stringValue) host = fields.host.stringValue;
+        if (fields.port) {
+          port = parseInt(fields.port.integerValue || fields.port.stringValue || '587');
+        }
+        if (fields.from && fields.from.stringValue) from = fields.from.stringValue;
+        console.log('Using SMTP configuration from Firestore database.');
+      }
     } else {
       console.log('No SMTP configuration found in Firestore settings/emailConfig, falling back to environment variables.');
     }
   } catch (dbError) {
-    console.error('Error fetching email configuration from Firestore:', dbError);
+    console.error('Error fetching email configuration from Firestore REST API:', dbError);
   }
 
   if (!user || !pass) {
