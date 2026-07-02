@@ -1,106 +1,505 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tech Manthan 6.0</title>
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #030712; /* Clean deep dark background */
-        overflow: hidden;
-        position: relative;
-        transition: opacity 0.6s ease;
-    }
-
-    /* Radial background glow behind the logo */
-    body::before {
-        content: "";
-        position: absolute;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(0, 243, 255, 0.08) 0%, transparent 70%);
-        z-index: 1;
-        pointer-events: none;
-    }
-
-    .logo-container {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 320px;
-        height: 320px;
-        max-width: 90vw;
-        max-height: 90vh;
-    }
-
-    .event-logo {
-        width: 100%;
-        height: auto;
-        object-fit: contain;
-        opacity: 0;
-        transform: scale(0.3);
-        animation: logoPopupZoom 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
-                   logoBreathe 2.5s ease-in-out infinite alternate 1.4s;
-    }
-
-    @keyframes logoPopupZoom {
-        0% {
-            opacity: 0;
-            transform: scale(0.3) rotate(-10deg);
-            filter: drop-shadow(0 0 0 rgba(0, 243, 255, 0));
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Manthan 6.0 | Dr. B.B. Hegde College</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-red: #ff0055;
+            --bg-dark: #030712;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
         }
-        75% {
-            opacity: 1;
-            transform: scale(1.08) rotate(3deg);
-            filter: drop-shadow(0 0 45px rgba(0, 243, 255, 0.85));
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
-            filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.6));
-        }
-    }
 
-    @keyframes logoBreathe {
-        0% {
-            transform: scale(1);
-            filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.6));
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        100% {
-            transform: scale(1.03);
-            filter: drop-shadow(0 0 40px rgba(0, 243, 255, 0.95));
+
+        html, body {
+            height: 100%;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            scroll-behavior: smooth;
         }
-    }
-</style>
+
+        /* Hide scrollbars but keep functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Core Section Grid */
+        .section {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            scroll-snap-align: start;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 3D CRT Cyber Background lines */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .cyber-grid::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 20%, rgba(3, 7, 18, 0.8) 80%);
+            pointer-events: none;
+        }
+
+        /* Section 1: Hero Section with Mouse Parallax */
+        #hero-section {
+            perspective: 1000px;
+        }
+
+        .parallax-bg {
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            top: -5%;
+            left: -5%;
+            background-image: 
+                radial-gradient(rgba(0, 243, 255, 0.08) 1px, transparent 1px),
+                radial-gradient(rgba(188, 19, 254, 0.06) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            transform: translate3d(0,0,0);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-container {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .college-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+            transform: translateZ(50px);
+        }
+
+        .college-badge img {
+            height: 24px;
+            width: auto;
+            border-radius: 50%;
+        }
+
+        .college-badge span {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .logo-3d-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin-bottom: 30px;
+            transform-style: preserve-3d;
+            transform: translateZ(80px);
+        }
+
+        .logo-3d-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.4));
+            animation: floatLogo 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .glitch-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fff 30%, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(188, 19, 254, 0.2);
+            transform: translateZ(60px);
+        }
+
+        .glitch-subtitle {
+            font-size: 1rem;
+            letter-spacing: 8px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 30px;
+            transform: translateZ(40px);
+        }
+
+        /* Cyber Buttons */
+        .cyber-btn {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            padding: 14px 35px;
+            background: rgba(0, 243, 255, 0.06);
+            border: 1px solid var(--neon-cyan);
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            position: relative;
+            transform: translateZ(70px);
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px var(--neon-cyan);
+            transform: translateZ(70px) scale(1.05);
+        }
+
+        /* Section 2: Info Cards with 3D Tilt */
+        #info-section {
+            background: linear-gradient(180deg, var(--bg-dark), #090514);
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 1100px;
+            width: 90%;
+            perspective: 1000px;
+            z-index: 5;
+        }
+
+        .tilt-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tilt-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            background: linear-gradient(135deg, transparent, rgba(0, 243, 255, 0.05));
+            pointer-events: none;
+        }
+
+        .tilt-card:hover {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 30px rgba(188, 19, 254, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            transform: translateZ(30px);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 15px;
+            transform: translateZ(40px);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+            transform: translateZ(20px);
+        }
+
+        /* Section 3: Portal gateway */
+        #portal-section {
+            background: #090514;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            z-index: 5;
+        }
+
+        .portal-gate {
+            position: relative;
+            width: 450px;
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid rgba(188, 19, 254, 0.3);
+            border-radius: 20px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(188, 19, 254, 0.1);
+        }
+
+        .portal-gate::before {
+            content: "";
+            position: absolute;
+            top: -1px; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+        }
+
+        .portal-gate h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .portal-gate p {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+        }
+
+        /* Indicator arrow */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: var(--text-sub);
+            z-index: 10;
+            animation: bounceIndicator 2s infinite;
+        }
+
+        @keyframes bounceIndicator {
+            0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
+            40% { transform: translate(-50%, -8px); }
+            60% { transform: translate(-50%, -4px); }
+        }
+
+        .scroll-indicator svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--neon-cyan);
+            fill: none;
+            stroke-width: 2;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="logo-container">
-        <img src="TC1.png" class="event-logo" alt="Tech Manthan Logo">
+    <!-- Static CRT & Vignette overlay -->
+    <div class="cyber-grid"></div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <span>SCROLL DOWN</span>
+        <svg viewBox="0 0 24 24">
+            <polyline points="7 13 12 18 17 13"></polyline>
+            <polyline points="7 6 12 11 17 6"></polyline>
+        </svg>
     </div>
 
-    <script>
-        // Smooth transition and redirect to login page
-        setTimeout(() => {
-            document.body.style.opacity = "0";
-            setTimeout(() => {
-                window.location.href = "login.html";
-            }, 600);
-        }, 2200); // 2.2 seconds display + 0.6 seconds fadeout
-    </script>
+    <!-- SECTION 1: HERO -->
+    <section class="section" id="hero-section">
+        <div class="parallax-bg" id="bg-1"></div>
+        <div class="hero-container" id="hero-container">
+            <div class="college-badge">
+                <img src="Dr BBHC.png?v=2" alt="College Logo">
+                <span>Dr. B.B. Hegde First Grade College, Kundapura</span>
+            </div>
+            <div class="logo-3d-wrapper">
+                <img src="TC1.png" alt="Tech Manthan Logo">
+            </div>
+            <h1 class="glitch-title">TECH MANTHAN 6.0</h1>
+            <p class="glitch-subtitle">Divided by Zero, United by One</p>
+            <a href="login.html" class="cyber-btn">Enter Portal</a>
+        </div>
+    </section>
 
+    <!-- SECTION 2: EVENT CATALOG CARDS -->
+    <section class="section" id="info-section">
+        <div class="cards-container">
+            <!-- Card 1 -->
+            <div class="tilt-card" data-tilt>
+                <div class="card-icon">⚡</div>
+                <h3 class="card-title">12 Technical Events</h3>
+                <p class="card-desc">Compete across speed typing, coding, web designing, videography, gaming and IT survival fests.</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="tilt-card" data-tilt>
+                <div class="card-icon">🛡️</div>
+                <h3 class="card-title">Judged Leaderboard</h3>
+                <p class="card-desc">Transparent scoring based on strict criteria defined by fests coordinators and verified by judges.</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="tilt-card" data-tilt>
+                <div class="card-icon">🎟️</div>
+                <h3 class="card-title">Automated Tickets</h3>
+                <p class="card-desc">Get instant transaction ticket emails upon registration detailing event timings, date, venue and coordinators.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: SYSTEM GATEWAY -->
+    <section class="section" id="portal-section">
+        <div class="portal-gate">
+            <h2>ACCESS PROTOCOL</h2>
+            <p>Establish secure terminal link to fests registry databases.</p>
+            <a href="login.html" class="cyber-btn" style="background: rgba(188, 19, 254, 0.1); border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.2);">Launch Terminal</a>
+        </div>
+    </section>
+
+    <!-- GSAP Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        // Register ScrollTrigger plugin
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 1. Mouse Move 3D Parallax on Section 1
+        const heroSection = document.getElementById('hero-section');
+        const heroContainer = document.getElementById('hero-container');
+        const bg1 = document.getElementById('bg-1');
+
+        heroSection.addEventListener('mousemove', (e) => {
+            const rect = heroSection.getBoundingClientRect();
+            const x = e.clientX - rect.left - (rect.width / 2);
+            const y = e.clientY - rect.top - (rect.height / 2);
+
+            // Rotate main container
+            const rotateX = -y / 25;
+            const rotateY = x / 25;
+            heroContainer.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+            // Move background slightly opposite
+            const moveX = -x / 40;
+            const moveY = -y / 40;
+            bg1.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+        });
+
+        heroSection.addEventListener('mouseleave', () => {
+            heroContainer.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            bg1.style.transform = `translate3d(0, 0, 0)`;
+        });
+
+        // 2. 3D Tilt Effect on Cards
+        const cards = document.querySelectorAll('.tilt-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left - (rect.width / 2);
+                const y = e.clientY - rect.top - (rect.height / 2);
+
+                const rotateX = -y / 10;
+                const rotateY = x / 10;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            });
+        });
+
+        // 3. GSAP Animations on scroll
+        // Section 2 scroll animation
+        gsap.from('#info-section .tilt-card', {
+            scrollTrigger: {
+                trigger: '#info-section',
+                start: 'top 80%',
+                toggleActions: 'play none none reverse'
+            },
+            opacity: 0,
+            y: 50,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'power3.out'
+        });
+
+        // Section 3 gateway zoom
+        gsap.from('#portal-section .portal-gate', {
+            scrollTrigger: {
+                trigger: '#portal-section',
+                start: 'top 80%',
+                toggleActions: 'play none none reverse'
+            },
+            opacity: 0,
+            scale: 0.85,
+            duration: 1,
+            ease: 'back.out(1.7)'
+        });
+
+        // Hide scroll indicator on last section
+        window.addEventListener('scroll', () => {
+            const indicator = document.querySelector('.scroll-indicator');
+            if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50) {
+                indicator.style.opacity = '0';
+                indicator.style.pointerEvents = 'none';
+            } else {
+                indicator.style.opacity = '1';
+                indicator.style.pointerEvents = 'auto';
+            }
+        });
+    </script>
 </body>
-</html>
+</html>
