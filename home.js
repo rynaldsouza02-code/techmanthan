@@ -214,9 +214,15 @@ function renderEvents() {
       ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> ${ev.registrationCloseDate} ${isClosed ? '(Closed)' : ''}</div>`
       : "";
 
+    let posterHTML = `<div class="event-card-poster-fallback"><span>No Poster</span></div>`;
+    if (ev.poster) {
+      posterHTML = `<img src="${ev.poster}" class="event-card-poster" alt="${ev.title} poster">`;
+    }
+
     return `
       <div class="event-card cyber-card-scan cyber-corners" id="card-${ev.id}">
         <div>
+          ${posterHTML}
           <div class="event-header">
             <h3>${ev.title}</h3>
             ${isRegistered ? `<span class="reg-badge">Registered</span>` : ""}
