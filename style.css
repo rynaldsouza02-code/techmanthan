@@ -1285,12 +1285,12 @@ body::before {
 .media-upload-zone {
     border: 2px dashed rgba(0, 243, 255, 0.3);
     background: rgba(0, 0, 0, 0.4);
-    padding: 30px 20px;
-    border-radius: 12px;
+    padding: 15px 10px;
+    border-radius: 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     position: relative;
 }
 
@@ -1301,20 +1301,20 @@ body::before {
 }
 
 .media-upload-zone svg {
-    width: 45px;
-    height: 45px;
+    width: 32px;
+    height: 32px;
     stroke: var(--neon-cyan);
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     transition: all 0.3s;
 }
 
 .media-upload-zone:hover svg {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     filter: drop-shadow(0 0 5px var(--neon-cyan));
 }
 
 .media-upload-zone p {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--text-sub);
     font-weight: 500;
 }

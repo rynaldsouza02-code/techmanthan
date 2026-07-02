@@ -83,16 +83,16 @@
 
     <!-- MODAL 3: ORGANIZER MEDIA MANAGEMENT & FILE UPLOAD -->
     <div class="modal-overlay" id="uploadModal">
-        <div class="modal-content cyber-corners" style="max-width: 600px;">
+        <div class="modal-content cyber-corners" style="max-width: 450px; padding: 25px 20px;">
             <button class="modal-close" id="uploadCloseBtn">&times;</button>
-            <h3 class="modal-title" id="uploadTitle">Manage Event Media</h3>
+            <h3 class="modal-title" id="uploadTitle" style="font-size: 1.25rem;">Manage Event Media</h3>
             <div class="modal-body">
-                <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px; font-family: monospace;">
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-bottom: 12px; font-family: monospace;">
                     [DATABASE ID: <span id="uploadEventIdText">None</span>] // Compress & sync media files directly to Firestore.
                 </p>
 
                 <!-- SECTION A: CARD POSTER -->
-                <h4 style="margin-top: 0; margin-bottom: 8px; color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem;">1. Event Card Cover Poster</h4>
+                <h4 style="margin-top: 0; margin-bottom: 6px; color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.85rem;">1. Event Card Cover Poster</h4>
                 <div class="media-upload-zone" id="posterUploadZone">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -103,14 +103,14 @@
                     <input type="file" id="posterFileInput" accept="image/*" style="display: none;">
                 </div>
                 <!-- Poster preview slot -->
-                <div style="margin-bottom: 25px; text-align: center;" id="posterPreviewContainer">
-                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Poster Preview:</div>
-                    <img id="posterPreviewImg" src="" style="max-width: 100%; max-height: 120px; border-radius: 8px; border: 1px solid var(--card-border); display: none;">
-                    <div id="noPosterText" style="font-size: 0.8rem; color: var(--neon-red); font-family: monospace;">No poster uploaded yet</div>
+                <div style="margin-bottom: 12px; text-align: center;" id="posterPreviewContainer">
+                    <div style="font-size: 0.7rem; color: var(--text-sub); margin-bottom: 5px;">Poster Preview:</div>
+                    <img id="posterPreviewImg" src="" style="max-width: 100%; max-height: 100px; border-radius: 8px; border: 1px solid var(--card-border); display: none;">
+                    <div id="noPosterText" style="font-size: 0.75rem; color: var(--neon-red); font-family: monospace;">No poster uploaded yet</div>
                 </div>
 
                 <!-- SECTION B: GALLERY PHOTOS -->
-                <h4 style="margin-bottom: 8px; color: var(--neon-purple); font-family: 'Orbitron'; font-size: 0.9rem;">2. Event Photos Gallery (Max 8 Photos)</h4>
+                <h4 style="margin-bottom: 6px; color: var(--neon-purple); font-family: 'Orbitron'; font-size: 0.85rem;">2. Event Photos Gallery (Max 8 Photos)</h4>
                 <div class="media-upload-zone" id="photosUploadZone">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -123,13 +123,13 @@
                 
                 <!-- Thumbnails preview slot -->
                 <div id="photosPreviewArea">
-                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Uploaded Photos (<span id="photoCountText">0</span>/8):</div>
+                    <div style="font-size: 0.7rem; color: var(--text-sub); margin-bottom: 5px;">Uploaded Photos (<span id="photoCountText">0</span>/8):</div>
                     <div class="media-preview-grid" id="photosPreviewGrid">
                         <!-- Preview images list -->
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
                     <button class="cyber-btn" id="btnSaveMedia" style="flex: 1;">Sync Media To Database</button>
                 </div>
             </div>
