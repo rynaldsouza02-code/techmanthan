@@ -156,15 +156,18 @@ loginForm.addEventListener("submit", async (e) => {
       return;
     }
 
-    // Save latest notification email if provided
+    // Save latest notification email & class details if provided
+    const classVal = document.getElementById("classInput") ? document.getElementById("classInput").value.trim() : "";
+    const updateData = {};
     if (email !== "") {
-      await setDoc(
-        studentRef,
-        {
-          email: email
-        },
-        { merge: true }
-      );
+      updateData.email = email;
+    }
+    if (classVal !== "") {
+      updateData.class = classVal;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await setDoc(studentRef, updateData, { merge: true });
     }
 
     // Store normalized uppercase username

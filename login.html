@@ -609,7 +609,14 @@
                     <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
             </div>
-            <span class="helper-text">For event notifications only</span>
+
+            <div class="form-group" id="classGroup" style="margin-bottom: 8px;">
+                <input type="text" placeholder="Class (e.g. III BCA, I BCOM)" id="classInput">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+            <span class="helper-text">For event notifications & registration details</span>
 
             <button type="submit" class="btn btn-submit" id="submitBtn">Submit</button>
             <button type="button" class="btn btn-guest" id="guestBtn">View as Guest</button>
@@ -626,6 +633,7 @@
             const headerSub = document.querySelector('.login-header p');
             const submitBtn = document.getElementById('submitBtn');
             const emailGroup = document.getElementById('emailInput').parentElement;
+            const classGroup = document.getElementById('classInput').parentElement;
             const helperText = document.querySelector('.helper-text');
             const usernameInput = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
@@ -645,6 +653,7 @@
                         headerSub.innerHTML = 'Secure login for administrators.<br>Enter your root credentials.';
                         submitBtn.innerHTML = 'Initialize Admin Protocol';
                         emailGroup.style.display = 'none';
+                        classGroup.style.display = 'none';
                         helperText.style.display = 'none';
                         usernameInput.placeholder = "Username";
                         passwordInput.placeholder = "Password";
@@ -653,6 +662,7 @@
                         headerSub.innerHTML = 'Secure login for event organizers.<br>Enter your Name and Faculty ID.';
                         submitBtn.innerHTML = 'Initialize Organizer Protocol';
                         emailGroup.style.display = 'none';
+                        classGroup.style.display = 'none';
                         helperText.style.display = 'none';
                         usernameInput.placeholder = "Full Name";
                         passwordInput.placeholder = "Faculty ID";
@@ -661,6 +671,7 @@
                         headerSub.innerHTML = 'Secure login for existing accounts.<br>Select your role.';
                         submitBtn.innerHTML = 'Submit';
                         emailGroup.style.display = 'block';
+                        classGroup.style.display = 'block';
                         helperText.style.display = 'block';
                         usernameInput.placeholder = "Username";
                         passwordInput.placeholder = "Password";
