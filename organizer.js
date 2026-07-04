@@ -153,7 +153,7 @@ async function loadRegistrants() {
     renderMarksSheet();
   } catch (error) {
     console.error("Error loading registrants:", error);
-    registrantsTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--neon-red);">Failed to load registrants.</td></tr>`;
+    registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--neon-red);">Failed to load registrants.</td></tr>`;
   }
 }
 
@@ -162,7 +162,7 @@ function renderRegistrants() {
   checkedInCount.innerText = `Checked-in: ${checkedInStudentIds.length}`;
 
   if (registeredStudents.length === 0) {
-    registrantsTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-sub);">No students registered for this event.</td></tr>`;
+    registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub);">No students registered for this event.</td></tr>`;
     return;
   }
 
@@ -172,6 +172,8 @@ function renderRegistrants() {
       <tr>
         <td><strong>${st.regNo}</strong></td>
         <td>${st.name || "N/A"}</td>
+        <td>${st.class || "N/A"}</td>
+        <td>${st.email || '<span style="opacity: 0.5;">No email</span>'}</td>
         <td style="text-align: center;">
           <input type="checkbox" style="transform: scale(1.3); cursor: pointer;" 
             ${isCheckedIn ? "checked" : ""} 
@@ -289,7 +291,7 @@ function setupEventListeners() {
       // Build registrations table for print preview
       let rowsHTML = "";
       if (registeredStudents.length === 0) {
-        rowsHTML = `<tr><td colspan="5" style="text-align: center; color: #555;">No students registered for this event.</td></tr>`;
+        rowsHTML = `<tr><td colspan="7" style="text-align: center; color: #555;">No students registered for this event.</td></tr>`;
       } else {
         rowsHTML = registeredStudents.map((st, index) => {
           const isCheckedIn = checkedInStudentIds.includes(st.regNo);
@@ -301,8 +303,10 @@ function setupEventListeners() {
               <td style="text-align: center;">${index + 1}</td>
               <td><strong>${st.regNo}</strong></td>
               <td>${st.name || "N/A"}</td>
+              <td>${st.class || "N/A"}</td>
+              <td>${st.email || '<span style="opacity: 0.5; font-size: 11px;">No email</span>'}</td>
               <td style="text-align: center; font-weight: bold; color: ${statusColor};">${statusText}</td>
-              <td style="width: 180px; text-align: center; font-size: 11px; color: #888;">[ &nbsp; ] Present &nbsp; [ &nbsp; ] Absent</td>
+              <td style="width: 150px; text-align: center; font-size: 11px; color: #888;">[ &nbsp; ] Present &nbsp; [ &nbsp; ] Absent</td>
             </tr>
           `;
         }).join("");
@@ -359,7 +363,9 @@ function setupEventListeners() {
                   <th style="width: 50px; text-align: center;">Sl No</th>
                   <th style="width: 120px;">Reg No</th>
                   <th>Student Name</th>
-                  <th style="width: 180px; text-align: center;">App Check-in Status</th>
+                  <th>Class</th>
+                  <th>Email Address</th>
+                  <th style="width: 150px; text-align: center;">App Check-in Status</th>
                   <th style="width: 180px; text-align: center;">Manual Attendance Signature</th>
                 </tr>
               </thead>

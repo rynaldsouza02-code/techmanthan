@@ -393,11 +393,11 @@ function renderStudents() {
     studentsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center;">No students found.</td></tr>`;
     return;
   }
-
   studentsListTable.innerHTML = filtered.map(st => `
     <tr>
       <td><strong>${st.regNo}</strong></td>
       <td>${st.name || "N/A"}</td>
+      <td>${st.class || "N/A"}</td>
       <td>🔑 ${st.dob || "N/A"}</td>
       <td>
         <button class="btn-action btn-danger" onclick="deleteStudent('${st.regNo}')">Delete Record</button>
@@ -412,6 +412,7 @@ function setupStudentForm() {
 
     const regNo = studentRegNoInput.value.trim().toUpperCase();
     const name = studentNameInput.value.trim();
+    const classVal = document.getElementById("studentClass").value.trim();
     const dob = studentDOBInput.value.trim();
 
     // Verify DOB matches format
@@ -431,12 +432,14 @@ function setupStudentForm() {
       await setDoc(docRef, {
         name: name,
         dob: dob,
+        class: classVal,
         registeredEvents: []
       });
 
       alert("Student added successfully!");
       studentRegNoInput.value = "";
       studentNameInput.value = "";
+      document.getElementById("studentClass").value = "";
       studentDOBInput.value = "";
 
       await loadAllData();
@@ -558,11 +561,11 @@ function setupRegistrationsTab() {
   regEventFilter.addEventListener("change", async () => {
     const eventId = regEventFilter.value;
     if (!eventId) {
-      registrationsListTable.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-sub);">Select an event from the filter to view registrations.</td></tr>`;
+      registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub);">Select an event from the filter to view registrations.</td></tr>`;
       return;
     }
 
-    registrationsListTable.innerHTML = `<tr><td colspan="3" style="text-align: center;">Querying database registrations...</td></tr>`;
+    registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center;">Querying database registrations...</td></tr>`;
 
     try {
       const q = query(collection(db, "students"), where("registeredEvents", "array-contains", eventId));
@@ -574,7 +577,7 @@ function setupRegistrationsTab() {
       });
 
       if (registrants.length === 0) {
-        registrationsListTable.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-sub);">No students registered for this event yet.</td></tr>`;
+        registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub);">No students registered for this event yet.</td></tr>`;
         return;
       }
 
@@ -582,16 +585,16 @@ function setupRegistrationsTab() {
         <tr>
           <td><strong>${st.regNo}</strong></td>
           <td>${st.name || "N/A"}</td>
+          <td>${st.class || "N/A"}</td>
           <td>${st.email || '<span style="opacity: 0.5;">No email provided</span>'}</td>
         </tr>
       `).join("");
 
     } catch (error) {
       console.error("Error loading event registrations:", error);
-      registrationsListTable.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--neon-red);">Failed to load registrations.</td></tr>`;
+      registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--neon-red);">Failed to load registrations.</td></tr>`;
     }
   });
-
   btnPrintRegistrations.addEventListener("click", () => {
     const eventId = regEventFilter.value;
     if (!eventId) {
