@@ -1240,7 +1240,8 @@ body::before {
 /* Event Card Poster Image */
 .event-card-poster {
     width: 100%;
-    height: 160px;
+    height: auto;
+    aspect-ratio: 3 / 4;
     object-fit: cover;
     border-radius: 12px;
     margin-bottom: 15px;
@@ -1254,7 +1255,8 @@ body::before {
 /* Fallback grid header if poster is missing */
 .event-card-poster-fallback {
     width: 100%;
-    height: 160px;
+    height: auto;
+    aspect-ratio: 3 / 4;
     background: linear-gradient(135deg, rgba(3, 7, 18, 0.95), rgba(188, 19, 254, 0.1));
     border-radius: 12px;
     margin-bottom: 15px;
