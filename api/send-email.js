@@ -35,44 +35,21 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing required parameters: to or bcc, subject, html' });
   }
 
-  let host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  let port = parseInt(process.env.SMTP_PORT || '587');
-  let user = process.env.SMTP_USER;
-  let pass = process.env.SMTP_PASS;
-  let from = process.env.SMTP_FROM || `"Tech Manthan 6.0" <noreply@techmanthan.org>`;
+  // Hardcoded Gmail SMTP settings
+  const host = 'smtp.gmail.com';
+  const port = 587;
+  const user = 'rynaldsouza02@gmail.com';
+  const pass = process.env.SMTP_PASS; 
+  const from = '"Tech Manthan 6.0" <rynaldsouza02@gmail.com>';
 
-  // Try to load credentials from Firestore REST API
-  try {
-    const url = 'https://firestore.googleapis.com/v1/projects/techmanthana/databases/(default)/documents/settings/emailConfig';
-    const dbRes = await fetch(url);
-    if (dbRes.ok) {
-      const dbData = await dbRes.json();
-      if (dbData.fields) {
-        const fields = dbData.fields;
-        if (fields.user && fields.user.stringValue) user = fields.user.stringValue;
-        if (fields.pass && fields.pass.stringValue) pass = fields.pass.stringValue;
-        if (fields.host && fields.host.stringValue) host = fields.host.stringValue;
-        if (fields.port) {
-          port = parseInt(fields.port.integerValue || fields.port.stringValue || '587');
-        }
-        if (fields.from && fields.from.stringValue) from = fields.from.stringValue;
-        console.log('Using SMTP configuration from Firestore database.');
-      }
-    } else {
-      console.log('No SMTP configuration found in Firestore settings/emailConfig, falling back to environment variables.');
-    }
-  } catch (dbError) {
-    console.error('Error fetching email configuration from Firestore REST API:', dbError);
-  }
-
-  if (!user || !pass) {
-    console.warn('SMTP credentials not configured. Logging email to console.');
+  if (!pass) {
+    console.warn('SMTP App Password (SMTP_PASS) not configured in Vercel environment variables. Logging email to console.');
     console.log('TO:', to || 'BCC list');
     console.log('BCC:', bcc);
     console.log('SUBJECT:', subject);
     return res.status(200).json({ 
       success: true, 
-      warning: 'SMTP credentials not configured in Firestore settings/emailConfig or environment variables. Email logged to server console.',
+      warning: 'SMTP_PASS environment variable is not configured. Email logged to server console.',
       loggedEmail: { to, bcc, subject } 
     });
   }
@@ -81,7 +58,7 @@ module.exports = async (req, res) => {
     const transporter = nodemailer.createTransport({
       host,
       port,
-      secure: port === 465,
+      secure: false, // 587 uses TLS/STARTTLS
       auth: { user, pass }
     });
 

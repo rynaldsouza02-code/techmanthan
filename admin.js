@@ -23,7 +23,6 @@ const tabBtnStudents = document.getElementById("tabBtnStudents");
 const tabBtnOrganizers = document.getElementById("tabBtnOrganizers");
 const tabBtnRegistrations = document.getElementById("tabBtnRegistrations");
 const tabBtnJudges = document.getElementById("tabBtnJudges");
-const tabBtnEmail = document.getElementById("tabBtnEmail");
 
 const panelOverview = document.getElementById("panelOverview");
 const panelEvents = document.getElementById("panelEvents");
@@ -31,10 +30,9 @@ const panelStudents = document.getElementById("panelStudents");
 const panelOrganizers = document.getElementById("panelOrganizers");
 const panelRegistrations = document.getElementById("panelRegistrations");
 const panelJudges = document.getElementById("panelJudges");
-const panelEmail = document.getElementById("panelEmail");
 
-const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelEmail];
-const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnEmail];
+const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges];
+const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges];
 
 // Overview Stats Elements
 const statTotalEvents = document.getElementById("statTotalEvents");
@@ -90,13 +88,7 @@ const judgingEventTitleInput = document.getElementById("judgingEventTitle");
 const judgingAllottedJudgesInput = document.getElementById("judgingAllottedJudges");
 const judgingCriteriaInput = document.getElementById("judgingCriteria");
 
-// Email Config Elements
-const emailConfigForm = document.getElementById("emailConfigForm");
-const emailConfigUserInput = document.getElementById("emailConfigUser");
-const emailConfigPassInput = document.getElementById("emailConfigPass");
-const emailConfigHostInput = document.getElementById("emailConfigHost");
-const emailConfigPortInput = document.getElementById("emailConfigPort");
-const emailConfigFromInput = document.getElementById("emailConfigFrom");
+
 
 // Global states
 let allEvents = [];
@@ -113,7 +105,6 @@ async function init() {
   setupOrganizerForm();
   setupRegistrationsTab();
   setupJudgingForm();
-  setupEmailConfigForm();
 }
 
 // Switch between panels
@@ -149,10 +140,6 @@ function setupTabs() {
   tabBtnJudges.addEventListener("click", () => {
     switchTab(tabBtnJudges, panelJudges);
     renderJudges();
-  });
-  tabBtnEmail.addEventListener("click", () => {
-    switchTab(tabBtnEmail, panelEmail);
-    loadEmailConfig();
   });
 }
 
@@ -734,48 +721,6 @@ function setupJudgingForm() {
     } catch (error) {
       console.error("Error updating judging info:", error);
       alert("Failed to save judging parameters.");
-    }
-  });
-}
-
-async function loadEmailConfig() {
-  try {
-    const configRef = doc(db, "settings", "emailConfig");
-    const configSnap = await getDoc(configRef);
-    if (configSnap.exists()) {
-      const data = configSnap.data();
-      emailConfigUserInput.value = data.user || "";
-      emailConfigPassInput.value = data.pass || "";
-      emailConfigHostInput.value = data.host || "smtp.gmail.com";
-      emailConfigPortInput.value = data.port || 587;
-      emailConfigFromInput.value = data.from || "";
-    }
-  } catch (error) {
-    console.error("Error loading email configuration:", error);
-  }
-}
-
-function setupEmailConfigForm() {
-  if (!emailConfigForm) return;
-
-  emailConfigForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const configData = {
-      user: emailConfigUserInput.value.trim(),
-      pass: emailConfigPassInput.value.trim(),
-      host: emailConfigHostInput.value.trim(),
-      port: parseInt(emailConfigPortInput.value) || 587,
-      from: emailConfigFromInput.value.trim()
-    };
-
-    try {
-      const configRef = doc(db, "settings", "emailConfig");
-      await setDoc(configRef, configData, { merge: true });
-      alert("Global email settings saved successfully!");
-    } catch (error) {
-      console.error("Error saving email configuration:", error);
-      alert("Failed to save email configuration. " + error.message);
     }
   });
 }
