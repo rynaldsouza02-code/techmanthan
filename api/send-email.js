@@ -43,14 +43,9 @@ module.exports = async (req, res) => {
   const from = process.env.SMTP_FROM || '"Tech Manthan 6.0" <rynaldsouza02@gmail.com>';
 
   if (!pass) {
-    console.warn('SMTP App Password (SMTP_PASS) not configured in Vercel environment variables. Logging email to console.');
-    console.log('TO:', to || 'BCC list');
-    console.log('BCC:', bcc);
-    console.log('SUBJECT:', subject);
-    return res.status(200).json({ 
-      success: true, 
-      warning: 'SMTP_PASS environment variable is not configured. Email logged to server console.',
-      loggedEmail: { to, bcc, subject } 
+    console.error('SMTP App Password (SMTP_PASS) not configured in Vercel environment variables.');
+    return res.status(500).json({ 
+      error: 'SMTP_PASS environment variable is not configured on Vercel. Please set it in your Vercel Project Settings.' 
     });
   }
 
