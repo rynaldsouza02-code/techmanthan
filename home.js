@@ -192,6 +192,7 @@ function renderEvents() {
 
   eventGrid.innerHTML = filtered.map(ev => {
     const isRegistered = registeredEventsIds.includes(ev.id);
+    const isStarted = ev.status === "started";
     const hasResults = ev.results && (ev.results.first || ev.results.second || ev.results.third);
     
     let resultHTML = "";
@@ -225,7 +226,10 @@ function renderEvents() {
           ${posterHTML}
           <div class="event-header">
             <h3>${ev.title}</h3>
-            ${isRegistered ? `<span class="reg-badge">Registered</span>` : ""}
+            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+              ${isRegistered ? `<span class="reg-badge">Registered</span>` : ""}
+              ${isStarted ? `<span class="reg-badge" style="background: rgba(34, 197, 94, 0.2); border: 1px solid var(--neon-green); color: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); text-shadow: 0 0 5px var(--neon-green);">LIVE</span>` : ""}
+            </div>
           </div>
           <p class="event-desc">${ev.description}</p>
         </div>

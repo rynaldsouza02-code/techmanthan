@@ -57,6 +57,10 @@ const btnAutomateWinners = document.getElementById("btnAutomateWinners");
 const marksTableHeaderRow = document.getElementById("marksTableHeaderRow");
 const marksTableBody = document.getElementById("marksTableBody");
 
+// Event Status Elements
+const currentStatusBadge = document.getElementById("currentStatusBadge");
+const btnStartEvent = document.getElementById("btnStartEvent");
+
 // State variables
 let eventData = null;
 let registeredStudents = [];
@@ -108,6 +112,31 @@ async function loadEventData() {
 
     eventData = eventSnap.data();
     checkedInStudentIds = eventData.checkedInStudents || [];
+
+    // Update Status Badge UI
+    if (currentStatusBadge) {
+      const isStarted = eventData.status === "started";
+      currentStatusBadge.innerText = isStarted ? "LIVE / STARTED" : "Not Started";
+      currentStatusBadge.style.color = isStarted ? "var(--neon-green)" : "#888";
+      
+      if (btnStartEvent) {
+        if (isStarted) {
+          btnStartEvent.innerText = "Event is Live";
+          btnStartEvent.disabled = true;
+          btnStartEvent.style.opacity = "0.5";
+          btnStartEvent.style.cursor = "not-allowed";
+          btnStartEvent.style.borderColor = "var(--text-sub)";
+          btnStartEvent.style.background = "transparent";
+        } else {
+          btnStartEvent.innerText = "Start Event & Notify Students";
+          btnStartEvent.disabled = false;
+          btnStartEvent.style.opacity = "1";
+          btnStartEvent.style.cursor = "pointer";
+          btnStartEvent.style.borderColor = "var(--neon-green)";
+          btnStartEvent.style.background = "rgba(34, 197, 94, 0.15)";
+        }
+      }
+    }
 
     // Title setup
     assignedEventTitle.innerText = `Dashboard: ${eventData.title}`;
@@ -280,6 +309,102 @@ function setupEventListeners() {
       alert("Failed to publish event results.");
     }
   });
+
+  // Start Event Action
+  if (btnStartEvent) {
+    btnStartEvent.addEventListener("click", async () => {
+      if (!eventData) return;
+      
+      if (!confirm(`Are you sure you want to start the event "${eventData.title}"? This will update the event status to Live and notify all registered students via email.`)) {
+        return;
+      }
+      
+      btnStartEvent.disabled = true;
+      btnStartEvent.innerText = "Starting...";
+      
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, {
+          status: "started"
+        });
+        
+        // Notify students via email
+        const emails = registeredStudents.map(st => st.email).filter(Boolean);
+        if (emails.length > 0) {
+          const subject = `[LIVE] ${eventData.title} has started! - Tech Manthan 6.0`;
+          
+          const html = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+              <div style="background-color: #0f172a; padding: 25px; text-align: center; border-bottom: 3px solid #06b6d4;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">TECH MANTHAN 6.0</h1>
+                <p style="color: #06b6d4; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">Dr. B.B Hegde First Grade College, Kundapura</p>
+              </div>
+              
+              <div style="padding: 30px; color: #334155; line-height: 1.6;">
+                <h2 style="color: #16a34a; margin-top: 0; font-size: 20px;">⚡ Event Started!</h2>
+                <p>Dear Participant,</p>
+                <p>This is to inform you that the event <strong>${eventData.title}</strong> has officially started! Please proceed to the venue immediately.</p>
+                
+                <div style="margin: 25px 0; padding: 20px; background-color: #f8fafc; border-left: 4px solid #16a34a; border-radius: 4px;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                      <td style="padding: 6px 0; width: 120px; font-weight: bold; color: #475569;">🏆 Event Name:</td>
+                      <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${eventData.title}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: bold; color: #475569;">📍 Venue:</td>
+                      <td style="padding: 6px 0; color: #0f172a;">${eventData.venue || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: bold; color: #475569;">🕒 Start Time:</td>
+                      <td style="padding: 6px 0; color: #0f172a;">${eventData.time || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: bold; color: #475569;">👤 Coordinator:</td>
+                      <td style="padding: 6px 0; color: #0f172a;">${eventData.coordinator || "N/A"}</td>
+                    </tr>
+                  </table>
+                </div>
+                
+                <p>Please report to the coordinator at the venue immediately. Bring your student ID and registration details.</p>
+                <p style="margin-top: 25px; font-size: 13px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                  This is an automated live notification. Please do not reply directly to this email.
+                </p>
+                <p style="margin-bottom: 0;">Best regards,<br><strong>Tech Manthan 6.0 Organizing Committee</strong></p>
+              </div>
+            </div>
+          `;
+          
+          const res = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bcc: emails.join(', '),
+              subject: subject,
+              html: html
+            })
+          });
+          
+          const resData = await res.json();
+          console.log("Start event email broadcast status:", resData);
+          if (resData.success) {
+            alert("Event marked as Started and participants notified successfully!");
+          } else {
+            alert("Event status updated, but failed to send email notifications: " + (resData.warning || resData.error));
+          }
+        } else {
+          alert("Event started successfully! (No registered participants to notify)");
+        }
+        
+        await loadEventData();
+      } catch (error) {
+        console.error("Error starting event:", error);
+        alert("Failed to start event. Please check the logs.");
+        btnStartEvent.disabled = false;
+        btnStartEvent.innerText = "Start Event & Notify Students";
+      }
+    });
+  }
 
   const btnDownloadAttendance = document.getElementById("btnDownloadAttendance");
   if (btnDownloadAttendance) {

@@ -35,12 +35,12 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing required parameters: to or bcc, subject, html' });
   }
 
-  // Hardcoded Gmail SMTP settings
-  const host = 'smtp.gmail.com';
-  const port = 587;
-  const user = 'rynaldsouza02@gmail.com';
+  // Read SMTP settings from environment variables with fallbacks
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = parseInt(process.env.SMTP_PORT || '587');
+  const user = process.env.SMTP_USER || 'rynaldsouza02@gmail.com';
   const pass = process.env.SMTP_PASS; 
-  const from = '"Tech Manthan 6.0" <rynaldsouza02@gmail.com>';
+  const from = process.env.SMTP_FROM || '"Tech Manthan 6.0" <rynaldsouza02@gmail.com>';
 
   if (!pass) {
     console.warn('SMTP App Password (SMTP_PASS) not configured in Vercel environment variables. Logging email to console.');
