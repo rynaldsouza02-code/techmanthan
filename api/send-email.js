@@ -38,9 +38,9 @@ module.exports = async (req, res) => {
   // Read SMTP settings from environment variables with fallbacks
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '587');
-  const user = process.env.SMTP_USER || 'rynaldsouza02@gmail.com';
+  const user = process.env.SMTP_USER || 'techmanthan6.0@gmail.com';
   const pass = process.env.SMTP_PASS; 
-  const from = process.env.SMTP_FROM || '"Tech Manthan 6.0" <rynaldsouza02@gmail.com>';
+  const from = process.env.SMTP_FROM || '"Tech Manthan 6.0" <techmanthan6.0@gmail.com>';
 
   if (!pass) {
     console.error('SMTP App Password (SMTP_PASS) not configured in Vercel environment variables.');
