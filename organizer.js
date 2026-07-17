@@ -53,6 +53,7 @@ const checkedInCount = document.getElementById("checkedInCount");
 const judgesLabel = document.getElementById("judgesLabel");
 const criteriaLabel = document.getElementById("criteriaLabel");
 const btnSaveMarks = document.getElementById("btnSaveMarks");
+const btnShareJudging = document.getElementById("btnShareJudging");
 const btnAutomateWinners = document.getElementById("btnAutomateWinners");
 const marksTableHeaderRow = document.getElementById("marksTableHeaderRow");
 const marksTableBody = document.getElementById("marksTableBody");
@@ -545,6 +546,28 @@ function setupEventListeners() {
         const regNo = e.target.dataset.reg;
         calculateStudentTotal(regNo);
       }
+    });
+  }
+
+  // Copy Shareable Judging Link
+  if (btnShareJudging) {
+    btnShareJudging.addEventListener("click", () => {
+      if (!assignedEventId) return;
+      const shareUrl = `${window.location.origin}/judge.html?event=${assignedEventId}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        const prevText = btnShareJudging.innerText;
+        btnShareJudging.innerText = "Link Copied ✓";
+        btnShareJudging.style.borderColor = "var(--neon-green)";
+        btnShareJudging.style.color = "var(--neon-green)";
+        setTimeout(() => {
+          btnShareJudging.innerText = prevText;
+          btnShareJudging.style.borderColor = "";
+          btnShareJudging.style.color = "";
+        }, 2000);
+      }).catch(err => {
+        console.error("Clipboard copy failed:", err);
+        alert("Please copy this link: " + shareUrl);
+      });
     });
   }
 

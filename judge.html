@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Manthan 6.0 | Judging Console</title>
+    <link rel="stylesheet" href="style.css?v=2.9">
+</head>
+<body>
+    <div class="cyber-crt-overlay"></div>
+    <div class="cyber-vignette"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="TC1.png" alt="Tech Manthan Logo">
+            <span>TECH MANTHAN 6.0 | JUDGING CONSOLE</span>
+        </div>
+    </nav>
+
+    <div class="dashboard-container" style="margin-top: 30px;">
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <h2 id="assignedEventTitle">Judging Console</h2>
+                <p id="assignedEventSubtitle">Loading event scoring system...</p>
+            </div>
+        </div>
+
+        <!-- No Event / Invalid Link Message -->
+        <div id="noEventMessage" style="display: none; text-align: center; padding: 60px; background: var(--card-bg); border: 1px solid var(--neon-red); border-radius: 16px; margin: 40px 0;">
+            <h3 style="color: var(--neon-red); font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 15px;">INVALID JUDGING LINK</h3>
+            <p style="color: var(--text-sub);">Please use a direct event judging link provided by the administrator or coordinator (e.g. <code>judge.html?event=speed-typing</code>).</p>
+        </div>
+
+        <!-- Main Scoring Panel -->
+        <div id="portalContent" style="display: none;">
+            <div class="form-panel cyber-corners" style="width: 100%; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <h3 class="form-title" style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; margin-bottom: 0;">Evaluation Sheet (Checked-In Students)</h3>
+                    <div style="font-size: 0.9rem; color: var(--text-sub); background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <span id="criteriaInfo">Loading criteria...</span>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="registrations-table">
+                        <thead>
+                            <tr id="tableHeaders">
+                                <th>Reg No</th>
+                                <th>Student Name</th>
+                                <th>Class</th>
+                                <!-- Dynamic criteria headers will be inserted here -->
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoringTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-sub);">Loading checked-in students list...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="judge.js?v=3.0"></script>
+</body>
+</html>
