@@ -142,6 +142,7 @@ function renderScoringSheet() {
                  value="${score}" 
                  placeholder="0" 
                  min="0"
+                 max="50"
                  style="width: 70px; text-align: center;"
           >
         </td>
@@ -199,15 +200,22 @@ async function saveStudentScore(regNo, saveBtn) {
   saveBtn.disabled = true;
   saveBtn.innerText = "Saving...";
 
-  const fields = document.querySelectorAll(`.score-field-${regNo}`);
-  const scores = {};
-  let total = 0;
-
+  let invalidScore = false;
   fields.forEach(field => {
     const score = parseFloat(field.value) || 0;
+    if (score > 50) {
+      invalidScore = true;
+    }
     scores[field.dataset.criteria] = score;
     total += score;
   });
+
+  if (invalidScore) {
+    alert("Validation failed: Marks for each criterion cannot exceed 50.");
+    saveBtn.disabled = false;
+    saveBtn.innerText = "Save";
+    return;
+  }
 
   try {
     const eventRef = doc(db, "events", eventId);

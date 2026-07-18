@@ -594,17 +594,28 @@ function setupEventListeners() {
       btnSaveMarks.innerText = "Saving...";
 
       const marksSheet = {};
+      let invalidScore = false;
       registeredStudents.forEach(st => {
         const scores = {};
         let total = 0;
         const inputs = document.querySelectorAll(`input.marks-input[data-reg="${st.regNo}"]`);
         inputs.forEach(input => {
           const score = parseFloat(input.value) || 0;
+          if (score > 50) {
+            invalidScore = true;
+          }
           scores[input.dataset.criteria] = score;
           total += score;
         });
         marksSheet[st.regNo] = { scores, total };
       });
+
+      if (invalidScore) {
+        alert("Failed to save: Marks for each criterion cannot exceed 50.");
+        btnSaveMarks.disabled = false;
+        btnSaveMarks.innerText = "Save Marks Sheet";
+        return;
+      }
 
       try {
         const eventRef = doc(db, "events", assignedEventId);
@@ -893,7 +904,7 @@ function renderMarksSheet() {
         <td style="text-align: center;">
           <input type="number" class="marks-input" 
             style="width: 80px; text-align: center; padding: 6px; border: 1px solid rgba(0, 243, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: #fff; font-family: monospace; border-radius: 4px;"
-            min="0" max="100" step="any" value="${scoreVal}" 
+            min="0" max="50" step="any" value="${scoreVal}" 
             data-reg="${st.regNo}" data-criteria="${c}">
         </td>
       `;
