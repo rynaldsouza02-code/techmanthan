@@ -199,11 +199,28 @@
                             <strong>Criteria:</strong> <span id="criteriaLabel" style="color: var(--neon-cyan);">None</span>
                         </p>
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="cyber-btn" id="btnToggleJudgingConfig" style="background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan); padding: 8px 16px; font-size: 0.85rem;">Setup Criteria & Judges</button>
                         <button type="button" class="cyber-btn" id="btnShareJudging" style="background: rgba(188, 19, 254, 0.1); border-color: var(--neon-purple); color: var(--neon-purple); padding: 8px 16px; font-size: 0.85rem;">Share Judging Link</button>
                         <button type="button" class="cyber-btn" id="btnSaveMarks" style="background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan); padding: 8px 16px; font-size: 0.85rem;">Save Marks Sheet</button>
                         <button type="button" class="cyber-btn cyber-btn-purple" id="btnAutomateWinners" style="padding: 8px 16px; font-size: 0.85rem;">Automate Winners Announcement</button>
                     </div>
+                </div>
+
+                <!-- Configure Judging Form (Toggled via button) -->
+                <div id="judgingConfigPanel" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                    <h4 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; margin-bottom: 15px;">Configure Judging Parameters</h4>
+                    <form id="orgJudgingForm" style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+                        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                            <label for="orgAllottedJudges" style="margin-bottom: 6px;">Allotted Judges (Comma-separated)</label>
+                            <input type="text" id="orgAllottedJudges" placeholder="e.g. Dr. Swathi, Mr. Kiran" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                            <label for="orgCriteria" style="margin-bottom: 6px;">Judging Criteria (Comma-separated)</label>
+                            <input type="text" id="orgCriteria" placeholder="e.g. Creativity, Coding skill, Design" style="width: 100%;">
+                        </div>
+                        <button type="submit" class="cyber-btn cyber-btn-purple" style="height: 42px; padding: 0 24px;">Save Configuration</button>
+                    </form>
                 </div>
 
                 <div class="table-container" style="overflow-x: auto;">

@@ -58,6 +58,13 @@ const btnAutomateWinners = document.getElementById("btnAutomateWinners");
 const marksTableHeaderRow = document.getElementById("marksTableHeaderRow");
 const marksTableBody = document.getElementById("marksTableBody");
 
+// Coordinator Judging Config Elements
+const btnToggleJudgingConfig = document.getElementById("btnToggleJudgingConfig");
+const judgingConfigPanel = document.getElementById("judgingConfigPanel");
+const orgJudgingForm = document.getElementById("orgJudgingForm");
+const orgAllottedJudges = document.getElementById("orgAllottedJudges");
+const orgCriteria = document.getElementById("orgCriteria");
+
 // Event Status Elements
 const currentStatusBadge = document.getElementById("currentStatusBadge");
 const btnStartEvent = document.getElementById("btnStartEvent");
@@ -160,6 +167,13 @@ async function loadEventData() {
     }
     if (criteriaLabel) {
       criteriaLabel.innerText = eventData.criteria && eventData.criteria.length > 0 ? eventData.criteria.join(", ") : "None Configured";
+    }
+
+    if (orgAllottedJudges) {
+      orgAllottedJudges.value = eventData.judges && eventData.judges.length > 0 ? eventData.judges.join(", ") : "";
+    }
+    if (orgCriteria) {
+      orgCriteria.value = eventData.criteria && eventData.criteria.length > 0 ? eventData.criteria.join(", ") : "";
     }
 
   } catch (error) {
@@ -761,6 +775,56 @@ function setupEventListeners() {
       } finally {
         btnSendAnnouncement.disabled = false;
         btnSendAnnouncement.innerText = "Send Announcement Email";
+      }
+    });
+  }
+
+  // Toggle Judging Config Panel
+  if (btnToggleJudgingConfig && judgingConfigPanel) {
+    btnToggleJudgingConfig.addEventListener("click", () => {
+      const isHidden = judgingConfigPanel.style.display === "none" || !judgingConfigPanel.style.display;
+      judgingConfigPanel.style.display = isHidden ? "block" : "none";
+    });
+  }
+
+  // Handle Judging Config Form Submission
+  if (orgJudgingForm) {
+    orgJudgingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const judgesInput = orgAllottedJudges.value.trim();
+      const criteriaInput = orgCriteria.value.trim();
+
+      const judgesList = judgesInput ? judgesInput.split(",").map(j => j.trim()).filter(Boolean) : [];
+      const criteriaList = criteriaInput ? criteriaInput.split(",").map(c => c.trim()).filter(Boolean) : [];
+
+      if (criteriaList.length === 0) {
+        alert("Please set at least one judging criterion.");
+        return;
+      }
+
+      const submitBtn = orgJudgingForm.querySelector("button[type='submit']");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Saving...";
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, {
+          judges: judgesList,
+          criteria: criteriaList
+        });
+
+        alert("Judging parameters configured successfully!");
+        judgingConfigPanel.style.display = "none";
+        
+        await loadEventData();
+        renderMarksSheet();
+      } catch (error) {
+        console.error("Error setting judging parameters:", error);
+        alert("Failed to save judging configuration.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Save Configuration";
       }
     });
   }
