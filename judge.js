@@ -102,9 +102,9 @@ function renderHeaders() {
     <th>Reg No</th>
     <th>Student Name</th>
     <th>Class</th>
-    ${criteria.map(c => `<th>${c}</th>`).join("")}
-    <th style="color: var(--neon-blue);">Total</th>
-    <th>Action</th>
+    ${criteria.map(c => `<th style="text-align: center;">${c}</th>`).join("")}
+    <th style="color: var(--neon-blue); text-align: center;">Total</th>
+    <th style="text-align: center;">Action</th>
   `;
 }
 
@@ -152,7 +152,7 @@ function renderScoringSheet() {
     const criteriaInputsHTML = criteria.map(crit => {
       const score = studentMarks.scores[crit] !== undefined ? studentMarks.scores[crit] : "";
       return `
-        <td>
+        <td style="text-align: center;">
           <input type="number" 
                  class="marks-input score-field-${st.regNo}" 
                  data-reg="${st.regNo}" 
@@ -161,7 +161,7 @@ function renderScoringSheet() {
                  placeholder="0" 
                  min="0"
                  max="50"
-                 style="width: 70px; text-align: center;"
+                 style="width: 80px; text-align: center; padding: 8px; border: 1px solid rgba(0, 243, 255, 0.25); background: rgba(0, 0, 0, 0.4); color: #fff; font-family: monospace; border-radius: 6px; outline: none;"
           >
         </td>
       `;
@@ -173,11 +173,11 @@ function renderScoringSheet() {
         <td>${st.name || "N/A"}</td>
         <td>${st.class || "N/A"}</td>
         ${criteriaInputsHTML}
-        <td><strong id="total-${st.regNo}" style="color: var(--neon-blue); font-size: 1rem;">${studentMarks.total || 0}</strong></td>
-        <td>
+        <td style="text-align: center;"><strong id="total-${st.regNo}" style="color: var(--neon-blue); font-size: 1.1rem; font-family: monospace;">${studentMarks.total || 0}</strong></td>
+        <td style="text-align: center;">
           <button class="cyber-btn cyber-btn-green btn-save-row" 
                   data-reg="${st.regNo}" 
-                  style="padding: 4px 10px; font-size: 0.75rem; border-radius: 4px;"
+                  style="padding: 8px 16px; font-size: 0.85rem;"
           >
             Save
           </button>
