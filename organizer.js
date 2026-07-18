@@ -553,7 +553,7 @@ function setupEventListeners() {
   if (btnShareJudging) {
     btnShareJudging.addEventListener("click", () => {
       if (!assignedEventId) return;
-      const shareUrl = `${window.location.origin}/judge.html?event=${assignedEventId}`;
+      const shareUrl = `${window.location.origin}/j/${assignedEventId}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         const prevText = btnShareJudging.innerText;
         btnShareJudging.innerText = "Link Copied ✓";

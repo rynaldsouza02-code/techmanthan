@@ -20,7 +20,14 @@ const criteriaInfo = document.getElementById("criteriaInfo");
 
 // URL parameters parsing
 const urlParams = new URLSearchParams(window.location.search);
-const eventId = urlParams.get('event') ? urlParams.get('event').trim().toLowerCase() : null;
+let eventId = urlParams.get('event') ? urlParams.get('event').trim().toLowerCase() : null;
+if (!eventId) {
+  const pathParts = window.location.pathname.split('/');
+  const jIndex = pathParts.indexOf('j');
+  if (jIndex !== -1 && pathParts[jIndex + 1]) {
+    eventId = pathParts[jIndex + 1].trim().toLowerCase();
+  }
+}
 
 let eventData = null;
 let registeredStudents = [];

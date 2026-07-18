@@ -18,5 +18,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/j/:event",
+      "destination": "/judge.html?event=:event"
+    }
   ]
 }
