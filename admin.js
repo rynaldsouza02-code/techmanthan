@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js?v=2.12";
+import { db } from "./firebase-config.js?v=3.1";
 import {
   collection,
   getDocs,
@@ -23,6 +23,7 @@ const tabBtnStudents = document.getElementById("tabBtnStudents");
 const tabBtnOrganizers = document.getElementById("tabBtnOrganizers");
 const tabBtnRegistrations = document.getElementById("tabBtnRegistrations");
 const tabBtnJudges = document.getElementById("tabBtnJudges");
+const tabBtnChampionship = document.getElementById("tabBtnChampionship");
 
 const panelOverview = document.getElementById("panelOverview");
 const panelEvents = document.getElementById("panelEvents");
@@ -30,9 +31,10 @@ const panelStudents = document.getElementById("panelStudents");
 const panelOrganizers = document.getElementById("panelOrganizers");
 const panelRegistrations = document.getElementById("panelRegistrations");
 const panelJudges = document.getElementById("panelJudges");
+const panelChampionship = document.getElementById("panelChampionship");
 
-const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges];
-const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges];
+const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelChampionship];
+const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnChampionship];
 
 // Overview Stats Elements
 const statTotalEvents = document.getElementById("statTotalEvents");
@@ -88,12 +90,25 @@ const judgingEventTitleInput = document.getElementById("judgingEventTitle");
 const judgingAllottedJudgesInput = document.getElementById("judgingAllottedJudges");
 const judgingCriteriaInput = document.getElementById("judgingCriteria");
 
-
+// Championship Elements
+const championshipTableBody = document.getElementById("championshipTableBody");
+const btnPublishChampionship = document.getElementById("btnPublishChampionship");
+const btnUnpublishChampionship = document.getElementById("btnUnpublishChampionship");
+const champStatusLabel = document.getElementById("champStatusLabel");
+const champPublishedDetails = document.getElementById("champPublishedDetails");
+const pubChampionClass = document.getElementById("pubChampionClass");
+const pubRunnerClass = document.getElementById("pubRunnerClass");
+const pubTimestamp = document.getElementById("pubTimestamp");
 
 // Global states
 let allEvents = [];
 let allStudents = [];
 let allOrganizers = [];
+let calculatedChampionship = {
+  championClass: "",
+  runnerClass: "",
+  scoreboard: []
+};
 
 // Initialize Page
 async function init() {
@@ -105,6 +120,7 @@ async function init() {
   setupOrganizerForm();
   setupRegistrationsTab();
   setupJudgingForm();
+  setupChampionshipTab();
 }
 
 // Switch between panels
@@ -140,6 +156,10 @@ function setupTabs() {
   tabBtnJudges.addEventListener("click", () => {
     switchTab(tabBtnJudges, panelJudges);
     renderJudges();
+  });
+  tabBtnChampionship.addEventListener("click", () => {
+    switchTab(tabBtnChampionship, panelChampionship);
+    loadChampionshipLeaderboard();
   });
 }
 
@@ -723,6 +743,219 @@ function setupJudgingForm() {
       alert("Failed to save judging parameters.");
     }
   });
+}
+
+// Championship Logic and Event handlers
+async function loadChampionshipLeaderboard() {
+  const tableBody = document.getElementById("championshipTableBody");
+  tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">Computing championship standings...</td></tr>`;
+
+  try {
+    // Make sure we have the latest data
+    await loadAllData();
+
+    // Map student ID to class
+    const studentClassMap = {};
+    allStudents.forEach(st => {
+      if (st.regNo) {
+        studentClassMap[st.regNo.trim().toUpperCase()] = st.class ? st.class.trim() : "Unassigned";
+      }
+    });
+
+    // Aggregate points per class
+    const pointsMap = {}; // { className: { gold: 0, silver: 0, bronze: 0, total: 0 } }
+
+    const getOrCreateClass = (className) => {
+      if (!pointsMap[className]) {
+        pointsMap[className] = { gold: 0, silver: 0, bronze: 0, total: 0 };
+      }
+      return pointsMap[className];
+    };
+
+    const extractRegNo = (str) => {
+      if (!str) return null;
+      const match = str.match(/\(([^)]+)\)/);
+      if (match && match[1]) {
+        return match[1].trim().toUpperCase();
+      }
+      return str.trim().toUpperCase();
+    };
+
+    allEvents.forEach(evt => {
+      if (evt.results) {
+        const firstReg = extractRegNo(evt.results.first);
+        const secondReg = extractRegNo(evt.results.second);
+        const thirdReg = extractRegNo(evt.results.third);
+
+        if (firstReg) {
+          const cls = studentClassMap[firstReg];
+          if (cls) {
+            const entry = getOrCreateClass(cls);
+            entry.gold += 1;
+            entry.total += 5;
+          }
+        }
+        if (secondReg) {
+          const cls = studentClassMap[secondReg];
+          if (cls) {
+            const entry = getOrCreateClass(cls);
+            entry.silver += 1;
+            entry.total += 3;
+          }
+        }
+        if (thirdReg) {
+          const cls = studentClassMap[thirdReg];
+          if (cls) {
+            const entry = getOrCreateClass(cls);
+            entry.bronze += 1;
+            entry.total += 1;
+          }
+        }
+      }
+    });
+
+    // Convert map to sorted array
+    const standings = Object.keys(pointsMap).map(clsName => ({
+      className: clsName,
+      ...pointsMap[clsName]
+    }));
+
+    // Sort descending by total, then gold, then silver, then bronze
+    standings.sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      if (b.gold !== a.gold) return b.gold - a.gold;
+      if (b.silver !== a.silver) return b.silver - a.silver;
+      return b.bronze - a.bronze;
+    });
+
+    // Populate global object for publishing
+    calculatedChampionship.scoreboard = standings;
+    calculatedChampionship.championClass = standings[0] ? standings[0].className : "None";
+    calculatedChampionship.runnerClass = standings[1] ? standings[1].className : "None";
+
+    // Render Table
+    if (standings.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No events have published results yet. Standings will appear once winners are announced.</td></tr>`;
+    } else {
+      tableBody.innerHTML = standings.map((item, idx) => {
+        let rankEmoji = idx + 1;
+        if (idx === 0) rankEmoji = "🥇 1st";
+        else if (idx === 1) rankEmoji = "🥈 2nd";
+        else if (idx === 2) rankEmoji = "🥉 3rd";
+        
+        return `
+          <tr>
+            <td style="text-align: center; font-weight: 600; color: ${idx === 0 ? 'var(--neon-green)' : (idx === 1 ? 'var(--neon-cyan)' : 'var(--text-sub)')};">${rankEmoji}</td>
+            <td><strong>${item.className}</strong></td>
+            <td style="text-align: center;">${item.gold}</td>
+            <td style="text-align: center;">${item.silver}</td>
+            <td style="text-align: center;">${item.bronze}</td>
+            <td style="text-align: center;"><strong style="color: var(--neon-blue); font-size: 1.05rem;">${item.total} pts</strong></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    // Load published status
+    await loadChampionshipPublishedStatus();
+
+  } catch (error) {
+    console.error("Error computing standings:", error);
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--neon-red);">Failed to compute championship standings.</td></tr>`;
+  }
+}
+
+async function loadChampionshipPublishedStatus() {
+  try {
+    const docRef = doc(db, "settings", "championship");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists() && docSnap.data().published) {
+      const data = docSnap.data();
+      champStatusLabel.innerText = "PUBLISHED";
+      champStatusLabel.style.color = "var(--neon-green)";
+      document.getElementById("champStatusBox").style.borderColor = "var(--neon-green)";
+      
+      pubChampionClass.innerText = data.championClass || "-";
+      pubRunnerClass.innerText = data.runnerClass || "-";
+      pubTimestamp.innerText = data.publishedAt ? new Date(data.publishedAt).toLocaleString() : "-";
+      
+      champPublishedDetails.style.display = "flex";
+      btnUnpublishChampionship.style.display = "inline-block";
+      btnPublishChampionship.innerText = "Republish Standing Updates";
+    } else {
+      champStatusLabel.innerText = "NOT PUBLISHED";
+      champStatusLabel.style.color = "#888";
+      document.getElementById("champStatusBox").style.borderColor = "var(--border-color)";
+      champPublishedDetails.style.display = "none";
+      btnUnpublishChampionship.style.display = "none";
+      btnPublishChampionship.innerText = "Publish Championship Results";
+    }
+  } catch (error) {
+    console.error("Error loading championship published status:", error);
+  }
+}
+
+async function publishChampionship() {
+  if (calculatedChampionship.scoreboard.length === 0) {
+    alert("Cannot publish empty standings. Please ensure some events have winners announced first.");
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to publish the overall championship results?\n\nChampion: ${calculatedChampionship.championClass}\nRunner-Up: ${calculatedChampionship.runnerClass}\n\nThis will make it visible to all students on their homepage.`)) {
+    return;
+  }
+
+  btnPublishChampionship.disabled = true;
+  btnPublishChampionship.innerText = "Publishing...";
+
+  try {
+    const docRef = doc(db, "settings", "championship");
+    await setDoc(docRef, {
+      published: true,
+      championClass: calculatedChampionship.championClass,
+      runnerClass: calculatedChampionship.runnerClass,
+      scoreboard: calculatedChampionship.scoreboard,
+      publishedAt: new Date().toISOString()
+    });
+
+    alert("Championship standings published successfully!");
+    await loadChampionshipPublishedStatus();
+  } catch (error) {
+    console.error("Error publishing standings:", error);
+    alert("Failed to publish standings.");
+  } finally {
+    btnPublishChampionship.disabled = false;
+  }
+}
+
+async function unpublishChampionship() {
+  if (!confirm("Are you sure you want to reset/unpublish the overall championship standings? This will hide the banner on the student homepage.")) {
+    return;
+  }
+
+  btnUnpublishChampionship.disabled = true;
+  btnUnpublishChampionship.innerText = "Resetting...";
+
+  try {
+    const docRef = doc(db, "settings", "championship");
+    await setDoc(docRef, {
+      published: false
+    });
+
+    alert("Championship standings unpublished successfully.");
+    await loadChampionshipPublishedStatus();
+  } catch (error) {
+    console.error("Error unpublishing standings:", error);
+    alert("Failed to unpublish standings.");
+  } finally {
+    btnUnpublishChampionship.disabled = false;
+  }
+}
+
+function setupChampionshipTab() {
+  btnPublishChampionship.addEventListener("click", publishChampionship);
+  btnUnpublishChampionship.addEventListener("click", unpublishChampionship);
 }
 
 // Run initial configurations

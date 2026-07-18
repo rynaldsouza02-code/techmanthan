@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js?v=2.12";
+import { db } from "./firebase-config.js?v=3.1";
 import {
   collection,
   getDocs,
@@ -74,6 +74,7 @@ async function initializeApp() {
   await loadUserData();
   await loadEvents();
   setupEventListeners();
+  await checkAndRenderChampionship();
 }
 
 async function seedDatabaseIfNeeded() {
@@ -477,6 +478,31 @@ function setupEventListeners() {
       detailModal.classList.remove("active");
     }
   });
+}
+
+async function checkAndRenderChampionship() {
+  const banner = document.getElementById("championshipBanner");
+  const champClassTitle = document.getElementById("champClassTitle");
+  const runnerClassTitle = document.getElementById("runnerClassTitle");
+
+  if (!banner || !champClassTitle || !runnerClassTitle) return;
+
+  try {
+    const docRef = doc(db, "settings", "championship");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists() && docSnap.data().published) {
+      const data = docSnap.data();
+      champClassTitle.innerText = data.championClass || "None";
+      runnerClassTitle.innerText = data.runnerClass || "None";
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
+  } catch (error) {
+    console.error("Error loading championship banner:", error);
+    banner.style.display = "none";
+  }
 }
 
 // Boot application
