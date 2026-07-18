@@ -17,7 +17,25 @@
             <img src="/TC1.png" alt="Tech Manthan Logo">
             <span>TECH MANTHAN 6.0 | JUDGING CONSOLE</span>
         </div>
+        <div class="nav-user" id="judgeUserArea" style="display: none;">
+            <span class="user-badge" id="judgeBadge" style="border-color: var(--neon-cyan); color: var(--neon-cyan);">Judge: -</span>
+            <button class="btn-logout" id="btnChangeJudge" style="background: rgba(220, 38, 38, 0.1); border-color: var(--neon-red); color: var(--neon-red);">Change</button>
+        </div>
     </nav>
+
+    <!-- Judge Name Identification Modal -->
+    <div class="modal-overlay active" id="judgeNameModal" style="display: flex; align-items: center; justify-content: center; z-index: 10000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border: 1px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);">
+            <h3 class="modal-title" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">JUDGE IDENTIFICATION</h3>
+            <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">Please enter your name to access the evaluation sheet for this event.</p>
+            <form id="judgeNameForm">
+                <div class="form-group">
+                    <input type="text" id="judgeNameInput" placeholder="e.g. Dr. Swathi" required style="width: 100%; text-align: center; font-size: 1.1rem; padding: 10px; background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--border-color); border-radius: 4px;">
+                </div>
+                <button type="submit" class="cyber-btn cyber-btn-glow" style="width: 100%; margin-top: 15px;">Access Judging Console</button>
+            </form>
+        </div>
+    </div>
 
     <div class="dashboard-container" style="margin-top: 30px;">
         <div class="dashboard-header">

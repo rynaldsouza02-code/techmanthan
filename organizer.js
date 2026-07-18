@@ -644,17 +644,28 @@ function setupEventListeners() {
         return;
       }
 
-      // Calculate totals for all registered students currently entered
+      // Calculate totals for all registered students based on judges average totals
+      const savedMarksSheet = eventData.marksSheet || {};
       const leaderboard = registeredStudents.map(st => {
-        let total = 0;
-        const inputs = document.querySelectorAll(`input.marks-input[data-reg="${st.regNo}"]`);
-        inputs.forEach(input => {
-          total += parseFloat(input.value) || 0;
-        });
+        const studentSaved = savedMarksSheet[st.regNo] || {};
+        const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
+        
+        let avgTotal = 0;
+        
+        if (studentSaved.scores !== undefined) {
+          avgTotal = studentSaved.total || 0;
+        } else if (judgeKeys.length > 0) {
+          let sumTotal = 0;
+          judgeKeys.forEach(jk => {
+            sumTotal += studentSaved[jk].total || 0;
+          });
+          avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
+        }
+
         return {
           regNo: st.regNo,
           name: st.name || "N/A",
-          total: total
+          total: avgTotal
         };
       });
 
@@ -852,31 +863,29 @@ function renderMarksSheet() {
     marksTableBody.innerHTML = `
       <tr>
         <td colspan="4" style="text-align: center; color: var(--text-sub); padding: 20px;">
-          Judging criteria and judges have not been configured by the administrator for this event. Please contact the administrator.
+          Judging criteria and judges have not been configured by the coordinator/administrator for this event yet.
         </td>
       </tr>
     `;
     return;
   }
 
-  // 1. Build Header Row with criteria columns
+  // 1. Build Header Row
   const criteria = eventData.criteria;
   let headerHTML = `
     <th style="width: 80px; text-align: center;">Sl No</th>
     <th style="width: 150px;">Reg No</th>
     <th>Student Name</th>
+    <th>Judge Evaluation Breakdown</th>
+    <th style="width: 180px; text-align: center; color: var(--neon-cyan);">Average Total Score</th>
   `;
-  criteria.forEach(c => {
-    headerHTML += `<th style="text-align: center; min-width: 100px;">${c}</th>`;
-  });
-  headerHTML += `<th style="width: 150px; text-align: center;">Total Score</th>`;
   marksTableHeaderRow.innerHTML = headerHTML;
 
   // 2. Build Body Rows
   if (registeredStudents.length === 0) {
     marksTableBody.innerHTML = `
       <tr>
-        <td colspan="${4 + criteria.length}" style="text-align: center; color: var(--text-sub); padding: 20px;">
+        <td colspan="5" style="text-align: center; color: var(--text-sub); padding: 20px;">
           No students registered for this event.
         </td>
       </tr>
@@ -888,35 +897,45 @@ function renderMarksSheet() {
 
   marksTableBody.innerHTML = registeredStudents.map((st, index) => {
     const studentSaved = savedMarksSheet[st.regNo] || {};
-    const scores = studentSaved.scores || {};
-    const total = studentSaved.total || 0;
+    
+    // Find all judges' entries
+    const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
+    
+    let breakdownHTML = "";
+    let avgTotal = 0;
+    
+    if (studentSaved.scores !== undefined) {
+      // Legacy single-judge format
+      const scoresStr = criteria.map(c => `${c}: ${studentSaved.scores[c] || 0}`).join(", ");
+      breakdownHTML = `<div style="font-size: 0.85rem; color: var(--text-sub);">Legacy Marks (${scoresStr})</div>`;
+      avgTotal = studentSaved.total || 0;
+    } else if (judgeKeys.length > 0) {
+      breakdownHTML = judgeKeys.map(jk => {
+        const entry = studentSaved[jk];
+        const scoresStr = criteria.map(c => `${c}: ${entry.scores[c] || 0}`).join(", ");
+        return `<div style="font-size: 0.85rem; margin-bottom: 4px;"><strong style="color: var(--neon-purple);">${jk}</strong>: ${entry.total} pts (${scoresStr})</div>`;
+      }).join("");
+      
+      let sumTotal = 0;
+      judgeKeys.forEach(jk => {
+        sumTotal += studentSaved[jk].total || 0;
+      });
+      avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
+    } else {
+      breakdownHTML = `<span style="color: #666; font-style: italic; font-size: 0.85rem;">No evaluations submitted yet</span>`;
+    }
 
-    let rowHTML = `
+    return `
       <tr>
         <td style="text-align: center;">${index + 1}</td>
         <td><strong>${st.regNo}</strong></td>
         <td>${st.name || "N/A"}</td>
-    `;
-
-    criteria.forEach(c => {
-      const scoreVal = scores[c] !== undefined ? scores[c] : "";
-      rowHTML += `
-        <td style="text-align: center;">
-          <input type="number" class="marks-input" 
-            style="width: 80px; text-align: center; padding: 6px; border: 1px solid rgba(0, 243, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: #fff; font-family: monospace; border-radius: 4px;"
-            min="0" max="50" step="any" value="${scoreVal}" 
-            data-reg="${st.regNo}" data-criteria="${c}">
-        </td>
-      `;
-    });
-
-    rowHTML += `
-        <td style="text-align: center; font-weight: bold; color: var(--neon-cyan); font-family: monospace; font-size: 1.05rem;" id="total-${st.regNo}">
-          ${total}
+        <td>${breakdownHTML}</td>
+        <td style="text-align: center; font-weight: bold; color: var(--neon-cyan); font-family: monospace; font-size: 1.1rem;">
+          ${avgTotal} pts
         </td>
       </tr>
     `;
-    return rowHTML;
   }).join("");
 }
 

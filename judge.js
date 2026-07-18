@@ -18,6 +18,16 @@ const scoringTableBody = document.getElementById("scoringTableBody");
 const tableHeaders = document.getElementById("tableHeaders");
 const criteriaInfo = document.getElementById("criteriaInfo");
 
+// Judge Identification Elements
+const judgeNameModal = document.getElementById("judgeNameModal");
+const judgeNameForm = document.getElementById("judgeNameForm");
+const judgeNameInput = document.getElementById("judgeNameInput");
+const judgeUserArea = document.getElementById("judgeUserArea");
+const judgeBadge = document.getElementById("judgeBadge");
+const btnChangeJudge = document.getElementById("btnChangeJudge");
+
+let currentJudgeName = sessionStorage.getItem("judgeName") || "";
+
 // URL parameters parsing
 const urlParams = new URLSearchParams(window.location.search);
 let eventId = urlParams.get('event') ? urlParams.get('event').trim().toLowerCase() : null;
@@ -40,6 +50,7 @@ async function init() {
     return;
   }
 
+  setupJudgeIdentity();
   await loadEventData();
 }
 
@@ -128,7 +139,14 @@ function renderScoringSheet() {
   const marksSheet = eventData.marksSheet || {};
 
   scoringTableBody.innerHTML = registeredStudents.map(st => {
-    const studentMarks = marksSheet[st.regNo] || { scores: {}, total: 0 };
+    const studentEntry = marksSheet[st.regNo] || {};
+    let studentMarks = { scores: {}, total: 0 };
+    
+    if (studentEntry.scores !== undefined) {
+      studentMarks = studentEntry;
+    } else if (currentJudgeName && studentEntry[currentJudgeName]) {
+      studentMarks = studentEntry[currentJudgeName];
+    }
     
     // Generate inputs for each criterion
     const criteriaInputsHTML = criteria.map(crit => {
@@ -231,7 +249,12 @@ async function saveStudentScore(regNo, saveBtn) {
     const updatedMarksSheet = freshEventData.marksSheet || {};
     
     // Update only this specific student's marks in the map
-    updatedMarksSheet[regNo] = { scores, total };
+    if (!updatedMarksSheet[regNo] || updatedMarksSheet[regNo].scores !== undefined) {
+      updatedMarksSheet[regNo] = {};
+    }
+    
+    const judgeKey = (currentJudgeName || "Default Judge").trim();
+    updatedMarksSheet[regNo][judgeKey] = { scores, total };
 
     await updateDoc(eventRef, {
       marksSheet: updatedMarksSheet
@@ -256,6 +279,54 @@ async function saveStudentScore(regNo, saveBtn) {
     alert("Failed to save marks. Check database rules.");
     saveBtn.disabled = false;
     saveBtn.innerText = "Save";
+  }
+}
+
+function setupJudgeIdentity() {
+  if (currentJudgeName) {
+    // Already identified
+    judgeNameModal.style.display = "none";
+    judgeNameModal.classList.remove("active");
+    judgeUserArea.style.display = "flex";
+    judgeBadge.innerText = `Judge: ${currentJudgeName}`;
+  } else {
+    // Show identification overlay
+    judgeNameModal.style.display = "flex";
+    judgeNameModal.classList.add("active");
+    judgeUserArea.style.display = "none";
+  }
+
+  // Handle identity form submission
+  if (judgeNameForm) {
+    judgeNameForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const inputVal = judgeNameInput.value.trim();
+      if (!inputVal) return;
+
+      currentJudgeName = inputVal;
+      sessionStorage.setItem("judgeName", currentJudgeName);
+      
+      // Hide modal
+      judgeNameModal.style.display = "none";
+      judgeNameModal.classList.remove("active");
+      
+      // Show badge
+      judgeUserArea.style.display = "flex";
+      judgeBadge.innerText = `Judge: ${currentJudgeName}`;
+
+      // Re-render scoring sheet to load this judge's pre-filled marks if any
+      renderScoringSheet();
+    });
+  }
+
+  // Handle change judge button click
+  if (btnChangeJudge) {
+    btnChangeJudge.addEventListener("click", () => {
+      sessionStorage.removeItem("judgeName");
+      currentJudgeName = "";
+      judgeNameInput.value = "";
+      setupJudgeIdentity();
+    });
   }
 }
 
