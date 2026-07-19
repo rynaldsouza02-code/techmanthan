@@ -110,6 +110,7 @@ const chkIncludePending = document.getElementById("chkIncludePending");
 let allEvents = [];
 let allStudents = [];
 let allOrganizers = [];
+let currentEventRegistrants = [];
 let calculatedChampionship = {
   championClass: "",
   runnerClass: "",
@@ -577,6 +578,7 @@ function populateDropdowns() {
 function setupRegistrationsTab() {
   regEventFilter.addEventListener("change", async () => {
     const eventId = regEventFilter.value;
+    currentEventRegistrants = [];
     if (!eventId) {
       registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub);">Select an event from the filter to view registrations.</td></tr>`;
       return;
@@ -592,6 +594,8 @@ function setupRegistrationsTab() {
       querySnap.forEach(s => {
         registrants.push({ regNo: s.id, ...s.data() });
       });
+
+      currentEventRegistrants = registrants;
 
       if (registrants.length === 0) {
         registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub);">No students registered for this event yet.</td></tr>`;
@@ -612,7 +616,7 @@ function setupRegistrationsTab() {
       registrationsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--neon-red);">Failed to load registrations.</td></tr>`;
     }
   });
-  btnPrintRegistrations.addEventListener("click", () => {
+  btnPrintRegistrations.addEventListener("click", async () => {
     const eventId = regEventFilter.value;
     if (!eventId) {
       alert("Please select an event first.");
@@ -622,57 +626,57 @@ function setupRegistrationsTab() {
     const ev = allEvents.find(e => e.id === eventId);
     if (!ev) return;
 
-    printEventTitle.innerText = "Registration Directory for " + ev.title.toUpperCase();
+    const prevText = btnPrintRegistrations.innerText;
+    btnPrintRegistrations.disabled = true;
+    btnPrintRegistrations.innerText = "Generating PDF...";
 
     // Resolve coordinator/organizer name
     const org = allOrganizers.find(o => o.assignedEventId === ev.id);
     const orgName = org ? org.name : (ev.coordinator || "Unassigned");
 
-    // Prepare stylesheet overrides for print layout (black and white, clean table borders)
-    const printWindow = window.open('', '_blank');
-    const tableHTML = document.getElementById("printableArea").innerHTML;
-    
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Registrations - ${ev.title}</title>
-          <style>
-            body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-            th { background-color: #f2f2f2; font-weight: bold; }
-            .cyber-table { border: 1px solid #000; }
-            h2, h3 { margin: 0; text-align: center; }
-            h2 { font-size: 20px; }
-            h3 { font-size: 16px; margin-top: 5px; margin-bottom: 20px; font-weight: normal; }
-            .info-table td { border: none !important; padding: 4px 0 !important; }
-          </style>
-        </head>
-        <body onload="window.print(); window.close();">
-          <h2>TECH MANTHAN 6.0</h2>
-          <h3>Registration Directory for ${ev.title.toUpperCase()}</h3>
-          
-          <div style="margin: 20px 0; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background-color: #fafafa; font-size: 14px; line-height: 1.6; text-align: left;">
-            <div style="font-weight: bold; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 10px;">Event Parameters & Coordinator</div>
-            <table class="info-table" style="width: 100%; border: none; margin-top: 0; margin-bottom: 0;">
-              <tr style="border: none;">
-                <td style="border: none; padding: 4px 0; width: 50%;"><strong>📅 Date:</strong> ${ev.date || "N/A"}</td>
-                <td style="border: none; padding: 4px 0; width: 50%;"><strong>🕒 Time:</strong> ${ev.time || "N/A"}</td>
-              </tr>
-              <tr style="border: none;">
-                <td style="border: none; padding: 4px 0; width: 50%;"><strong>📍 Venue:</strong> ${ev.venue || "N/A"}</td>
-                <td style="border: none; padding: 4px 0; width: 50%;"><strong>👤 Coordinator:</strong> ${orgName}</td>
-              </tr>
-            </table>
-            ${ev.description ? `<div style="margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px;"><strong>Description:</strong> ${ev.description}</div>` : ""}
-          </div>
+    const studentsPayload = currentEventRegistrants.map(st => ({
+      regNo: st.regNo,
+      name: st.name || "N/A",
+      class: st.class || "N/A",
+      email: st.email || "N/A",
+      checkedIn: false
+    }));
 
-          ${tableHTML}
-        </body>
-      </html>
-    `);
-    
-    printWindow.document.close();
+    const payload = {
+      type: "registrations",
+      title: ev.title,
+      coordinator: orgName,
+      date: ev.date || "N/A",
+      time: ev.time || "N/A",
+      venue: ev.venue || "N/A",
+      students: studentsPayload
+    };
+
+    try {
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Failed to generate PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `registrations_${ev.title.toLowerCase().replace(/ /g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error generating registrations PDF:", err);
+      alert("Failed to generate PDF list.");
+    } finally {
+      btnPrintRegistrations.disabled = false;
+      btnPrintRegistrations.innerText = prevText;
+    }
   });
 }
 

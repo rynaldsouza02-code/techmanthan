@@ -452,230 +452,145 @@ function setupEventListeners() {
 
   const btnDownloadAttendance = document.getElementById("btnDownloadAttendance");
   if (btnDownloadAttendance) {
-    btnDownloadAttendance.addEventListener("click", () => {
+    btnDownloadAttendance.addEventListener("click", async () => {
       if (!eventData) return;
-      
-      const printWindow = window.open('', '_blank');
-      
-      // Build registrations table for print preview
-      let rowsHTML = "";
-      if (registeredStudents.length === 0) {
-        rowsHTML = `<tr><td colspan="7" style="text-align: center; color: #555;">No students registered for this event.</td></tr>`;
-      } else {
-        rowsHTML = registeredStudents.map((st, index) => {
-          const isCheckedIn = checkedInStudentIds.includes(st.regNo);
-          const statusText = isCheckedIn ? "Present (Checked-in)" : "Absent";
-          const statusColor = isCheckedIn ? "#16a34a" : "#dc2626";
-          
-          return `
-            <tr>
-              <td style="text-align: center;">${index + 1}</td>
-              <td><strong>${st.regNo}</strong></td>
-              <td>${st.name || "N/A"}</td>
-              <td>${st.class || "N/A"}</td>
-              <td>${st.email || '<span style="opacity: 0.5; font-size: 11px;">No email</span>'}</td>
-              <td style="text-align: center; font-weight: bold; color: ${statusColor};">${statusText}</td>
-              <td style="width: 150px; text-align: center; font-size: 11px; color: #888;">[ &nbsp; ] Present &nbsp; [ &nbsp; ] Absent</td>
-            </tr>
-          `;
-        }).join("");
-      }
+
+      const prevText = btnDownloadAttendance.innerText;
+      btnDownloadAttendance.disabled = true;
+      btnDownloadAttendance.innerText = "Generating PDF...";
+
+      const studentsPayload = registeredStudents.map(st => ({
+        regNo: st.regNo,
+        name: st.name || "N/A",
+        class: st.class || "N/A",
+        email: st.email || "N/A",
+        checkedIn: checkedInStudentIds.includes(st.regNo)
+      }));
 
       const orgName = localStorage.getItem("organizerName") || eventData.coordinator || "Unassigned";
 
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Attendance - ${eventData.title}</title>
-            <style>
-              body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
-              th { background-color: #f2f2f2; font-weight: bold; }
-              h2, h3 { margin: 0; text-align: center; }
-              h2 { font-size: 20px; font-weight: bold; letter-spacing: 0.5px; }
-              h3 { font-size: 15px; margin-top: 5px; margin-bottom: 20px; font-weight: normal; color: #333; }
-              .info-table td { border: none !important; padding: 4px 0 !important; }
-              .footer { margin-top: 40px; font-size: 12px; text-align: right; font-style: italic; }
-            </style>
-          </head>
-          <body onload="window.print(); window.close();">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px;">
-              <img src="${window.location.origin}/Dr%20BBHC.png?v=2" style="height: 60px; width: auto; object-fit: contain;">
-              <div style="text-align: left;">
-                <h2 style="margin: 0; font-size: 18px; font-weight: bold; text-align: left;">DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA</h2>
-                <h3 style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: #111; text-align: left;">TECH MANTHAN 6.0</h3>
-                <h3 style="margin: 2px 0 0 0; font-size: 13px; font-weight: normal; color: #444; text-align: left;">Registrants Directory & Attendance Sheet</h3>
-              </div>
-            </div>
-            
-            <div style="margin: 20px 0; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background-color: #fafafa; font-size: 13px; line-height: 1.6;">
-              <table class="info-table" style="width: 100%; border: none; margin-top: 0; margin-bottom: 0;">
-                <tr style="border: none;">
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>🏆 Event Name:</strong> ${eventData.title}</td>
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>👤 Coordinator Name:</strong> ${orgName}</td>
-                </tr>
-                <tr style="border: none;">
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📅 Event Date:</strong> ${eventData.date || "N/A"}</td>
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>🕒 Event Time:</strong> ${eventData.time || "N/A"}</td>
-                </tr>
-                <tr style="border: none;">
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📍 Venue:</strong> ${eventData.venue || "N/A"}</td>
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📈 Total Registrations:</strong> ${registeredStudents.length}</td>
-                </tr>
-              </table>
-            </div>
+      const payload = {
+        type: "attendance",
+        title: eventData.title,
+        coordinator: orgName,
+        date: eventData.date || "N/A",
+        time: eventData.time || "N/A",
+        venue: eventData.venue || "N/A",
+        students: studentsPayload
+      };
 
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center;">Sl No</th>
-                  <th style="width: 120px;">Reg No</th>
-                  <th>Student Name</th>
-                  <th>Class</th>
-                  <th>Email Address</th>
-                  <th style="width: 150px; text-align: center;">App Check-in Status</th>
-                  <th style="width: 180px; text-align: center;">Manual Attendance Signature</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHTML}
-              </tbody>
-            </table>
+      try {
+        const response = await fetch("/api/generate-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-            <div class="footer">
-              <p>Generated on ${new Date().toLocaleString()} | Coordinator Signature: _______________________</p>
-            </div>
-          </body>
-        </html>
-      `);
-      
-      printWindow.document.close();
+        if (!response.ok) throw new Error("Failed to generate PDF");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `attendance_${eventData.title.toLowerCase().replace(/ /g, "_")}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Error generating attendance PDF:", err);
+        alert("Failed to generate PDF report.");
+      } finally {
+        btnDownloadAttendance.disabled = false;
+        btnDownloadAttendance.innerText = prevText;
+      }
     });
   }
 
   if (btnPrintMarksheet) {
-    btnPrintMarksheet.addEventListener("click", () => {
+    btnPrintMarksheet.addEventListener("click", async () => {
       if (!eventData) return;
-      
-      const printWindow = window.open('', '_blank');
-      
-      // Build marks sheet rows for print preview
-      let rowsHTML = "";
+
+      const prevText = btnPrintMarksheet.innerText;
+      btnPrintMarksheet.disabled = true;
+      btnPrintMarksheet.innerText = "Generating PDF...";
+
       const savedMarksSheet = eventData.marksSheet || {};
       const criteria = eventData.criteria || [];
 
-      if (registeredStudents.length === 0) {
-        rowsHTML = `<tr><td colspan="5" style="text-align: center; color: #555;">No students registered for this event.</td></tr>`;
-      } else {
-        rowsHTML = registeredStudents.map((st, index) => {
-          const studentSaved = savedMarksSheet[st.regNo] || {};
-          const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
+      const studentsPayload = registeredStudents.map(st => {
+        const studentSaved = savedMarksSheet[st.regNo] || {};
+        const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
+        
+        let breakdownText = "";
+        let avgTotal = 0;
+        
+        if (studentSaved.scores !== undefined) {
+          // Legacy single-judge format
+          const scoresStr = criteria.map(c => `${c}: ${studentSaved.scores[c] || 0}`).join(", ");
+          breakdownText = `Legacy: ${studentSaved.total} pts (${scoresStr})`;
+          avgTotal = studentSaved.total || 0;
+        } else if (judgeKeys.length > 0) {
+          breakdownText = judgeKeys.map(jk => {
+            const entry = studentSaved[jk];
+            const scoresStr = criteria.map(c => `${c}: ${entry.scores[c] || 0}`).join(", ");
+            return `${jk}: ${entry.total} pts (${scoresStr})`;
+          }).join(" | ");
           
-          let breakdownText = "";
-          let avgTotal = 0;
-          
-          if (studentSaved.scores !== undefined) {
-            // Legacy single-judge format
-            const scoresStr = criteria.map(c => `${c}: ${studentSaved.scores[c] || 0}`).join(", ");
-            breakdownText = `Legacy: ${studentSaved.total} pts (${scoresStr})`;
-            avgTotal = studentSaved.total || 0;
-          } else if (judgeKeys.length > 0) {
-            breakdownText = judgeKeys.map(jk => {
-              const entry = studentSaved[jk];
-              const scoresStr = criteria.map(c => `${c}: ${entry.scores[c] || 0}`).join(", ");
-              return `${jk}: ${entry.total} pts (${scoresStr})`;
-            }).join(" | ");
-            
-            let sumTotal = 0;
-            judgeKeys.forEach(jk => {
-              sumTotal += studentSaved[jk].total || 0;
-            });
-            avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
-          } else {
-            breakdownText = "No evaluations submitted yet";
-          }
+          let sumTotal = 0;
+          judgeKeys.forEach(jk => {
+            sumTotal += studentSaved[jk].total || 0;
+          });
+          avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
+        } else {
+          breakdownText = "No evaluations submitted yet";
+        }
 
-          return `
-            <tr>
-              <td style="text-align: center;">${index + 1}</td>
-              <td><strong>${st.regNo}</strong></td>
-              <td>${st.name || "N/A"}</td>
-              <td>${breakdownText}</td>
-              <td style="text-align: center; font-weight: bold; color: #000;">${avgTotal} pts</td>
-            </tr>
-          `;
-        }).join("");
-      }
+        return {
+          regNo: st.regNo,
+          name: st.name || "N/A",
+          breakdownText: breakdownText,
+          avgTotal: avgTotal
+        };
+      });
 
       const orgName = localStorage.getItem("organizerName") || eventData.coordinator || "Unassigned";
 
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Marksheet - ${eventData.title}</title>
-            <style>
-              body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
-              th { background-color: #f2f2f2; font-weight: bold; }
-              h2, h3 { margin: 0; text-align: center; }
-              h2 { font-size: 20px; font-weight: bold; letter-spacing: 0.5px; }
-              h3 { font-size: 15px; margin-top: 5px; margin-bottom: 20px; font-weight: normal; color: #333; }
-              .info-table td { border: none !important; padding: 4px 0 !important; }
-              .footer { margin-top: 40px; font-size: 12px; text-align: right; font-style: italic; }
-            </style>
-          </head>
-          <body onload="window.print(); window.close();">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px;">
-              <img src="${window.location.origin}/Dr%20BBHC.png?v=2" style="height: 60px; width: auto; object-fit: contain;">
-              <div style="text-align: left;">
-                <h2 style="margin: 0; font-size: 18px; font-weight: bold; text-align: left;">DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA</h2>
-                <h3 style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: #111; text-align: left;">TECH MANTHAN 6.0</h3>
-                <h3 style="margin: 2px 0 0 0; font-size: 13px; font-weight: normal; color: #444; text-align: left;">Official Judging Marksheet</h3>
-              </div>
-            </div>
-            
-            <div style="margin: 20px 0; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background-color: #fafafa; font-size: 13px; line-height: 1.6;">
-              <table class="info-table" style="width: 100%; border: none; margin-top: 0; margin-bottom: 0;">
-                <tr style="border: none;">
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>🏆 Event Name:</strong> ${eventData.title}</td>
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>👤 Coordinator Name:</strong> ${orgName}</td>
-                </tr>
-                <tr style="border: none;">
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📅 Event Date:</strong> ${eventData.date || "N/A"}</td>
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>🕒 Event Time:</strong> ${eventData.time || "N/A"}</td>
-                </tr>
-                <tr style="border: none;">
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📍 Venue:</strong> ${eventData.venue || "N/A"}</td>
-                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📊 Criteria List:</strong> ${criteria.join(", ")}</td>
-                </tr>
-              </table>
-            </div>
+      const payload = {
+        type: "marksheet",
+        title: eventData.title,
+        coordinator: orgName,
+        date: eventData.date || "N/A",
+        time: eventData.time || "N/A",
+        venue: eventData.venue || "N/A",
+        students: studentsPayload
+      };
 
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center;">Sl No</th>
-                  <th style="width: 120px;">Reg No</th>
-                  <th>Student Name</th>
-                  <th>Judge Evaluation Breakdowns</th>
-                  <th style="width: 150px; text-align: center;">Final Average Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHTML}
-              </tbody>
-            </table>
+      try {
+        const response = await fetch("/api/generate-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-            <div class="footer">
-              <p>Generated on ${new Date().toLocaleString()} | Coordinator Signature: _______________________</p>
-            </div>
-          </body>
-        </html>
-      `);
-      
-      printWindow.document.close();
+        if (!response.ok) throw new Error("Failed to generate PDF");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `marksheet_${eventData.title.toLowerCase().replace(/ /g, "_")}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Error generating marksheet PDF:", err);
+        alert("Failed to generate PDF marksheet.");
+      } finally {
+        btnPrintMarksheet.disabled = false;
+        btnPrintMarksheet.innerText = prevText;
+      }
     });
   }
 
