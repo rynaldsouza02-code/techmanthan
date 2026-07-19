@@ -894,6 +894,7 @@ async function loadChampionshipPublishedStatus() {
       champStatusLabel.innerText = "PUBLISHED";
       champStatusLabel.style.color = "var(--neon-green)";
       document.getElementById("champStatusBox").style.borderColor = "var(--neon-green)";
+      document.getElementById("champStatusBox").style.boxShadow = "0 0 12px rgba(57, 255, 20, 0.25)";
       
       pubChampionClass.innerText = data.championClass || "-";
       pubRunnerClass.innerText = data.runnerClass || "-";
@@ -904,8 +905,9 @@ async function loadChampionshipPublishedStatus() {
       btnPublishChampionship.innerText = "Republish Standing Updates";
     } else {
       champStatusLabel.innerText = "NOT PUBLISHED";
-      champStatusLabel.style.color = "#888";
-      document.getElementById("champStatusBox").style.borderColor = "var(--border-color)";
+      champStatusLabel.style.color = "var(--neon-red)";
+      document.getElementById("champStatusBox").style.borderColor = "var(--neon-red)";
+      document.getElementById("champStatusBox").style.boxShadow = "0 0 12px rgba(255, 42, 95, 0.25)";
       champPublishedDetails.style.display = "none";
       btnUnpublishChampionship.style.display = "none";
       btnPublishChampionship.innerText = "Publish Championship Results";

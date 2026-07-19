@@ -1,5 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
 
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 243, 255, 0.3);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 243, 255, 0.6);
+}
+
 :root {
     --bg-color: #030712;
     --card-bg: rgba(255, 255, 255, 0.04);
@@ -713,25 +729,26 @@ body::before {
 /* Tabs & Multi-panel Views */
 .tab-nav {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--card-border);
     padding: 6px;
     border-radius: 12px;
     margin-bottom: 30px;
-    overflow-x: auto;
+    flex-wrap: wrap;
 }
 
 .tab-btn {
     background: transparent;
     border: none;
     color: var(--text-sub);
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    font-size: 0.85rem;
 }
 
 .tab-btn.active {
