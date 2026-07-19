@@ -54,6 +54,7 @@ const judgesLabel = document.getElementById("judgesLabel");
 const criteriaLabel = document.getElementById("criteriaLabel");
 const btnSaveMarks = document.getElementById("btnSaveMarks");
 const btnShareJudging = document.getElementById("btnShareJudging");
+const btnPrintMarksheet = document.getElementById("btnPrintMarksheet");
 const btnAutomateWinners = document.getElementById("btnAutomateWinners");
 const marksTableHeaderRow = document.getElementById("marksTableHeaderRow");
 const marksTableBody = document.getElementById("marksTableBody");
@@ -535,6 +536,131 @@ function setupEventListeners() {
                   <th>Email Address</th>
                   <th style="width: 150px; text-align: center;">App Check-in Status</th>
                   <th style="width: 180px; text-align: center;">Manual Attendance Signature</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHTML}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Generated on ${new Date().toLocaleString()} | Coordinator Signature: _______________________</p>
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+    });
+  }
+
+  if (btnPrintMarksheet) {
+    btnPrintMarksheet.addEventListener("click", () => {
+      if (!eventData) return;
+      
+      const printWindow = window.open('', '_blank');
+      
+      // Build marks sheet rows for print preview
+      let rowsHTML = "";
+      const savedMarksSheet = eventData.marksSheet || {};
+      const criteria = eventData.criteria || [];
+
+      if (registeredStudents.length === 0) {
+        rowsHTML = `<tr><td colspan="5" style="text-align: center; color: #555;">No students registered for this event.</td></tr>`;
+      } else {
+        rowsHTML = registeredStudents.map((st, index) => {
+          const studentSaved = savedMarksSheet[st.regNo] || {};
+          const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
+          
+          let breakdownText = "";
+          let avgTotal = 0;
+          
+          if (studentSaved.scores !== undefined) {
+            // Legacy single-judge format
+            const scoresStr = criteria.map(c => `${c}: ${studentSaved.scores[c] || 0}`).join(", ");
+            breakdownText = `Legacy: ${studentSaved.total} pts (${scoresStr})`;
+            avgTotal = studentSaved.total || 0;
+          } else if (judgeKeys.length > 0) {
+            breakdownText = judgeKeys.map(jk => {
+              const entry = studentSaved[jk];
+              const scoresStr = criteria.map(c => `${c}: ${entry.scores[c] || 0}`).join(", ");
+              return `${jk}: ${entry.total} pts (${scoresStr})`;
+            }).join(" | ");
+            
+            let sumTotal = 0;
+            judgeKeys.forEach(jk => {
+              sumTotal += studentSaved[jk].total || 0;
+            });
+            avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
+          } else {
+            breakdownText = "No evaluations submitted yet";
+          }
+
+          return `
+            <tr>
+              <td style="text-align: center;">${index + 1}</td>
+              <td><strong>${st.regNo}</strong></td>
+              <td>${st.name || "N/A"}</td>
+              <td>${breakdownText}</td>
+              <td style="text-align: center; font-weight: bold; color: #000;">${avgTotal} pts</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      const orgName = localStorage.getItem("organizerName") || eventData.coordinator || "Unassigned";
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Marksheet - ${eventData.title}</title>
+            <style>
+              body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
+              th { background-color: #f2f2f2; font-weight: bold; }
+              h2, h3 { margin: 0; text-align: center; }
+              h2 { font-size: 20px; font-weight: bold; letter-spacing: 0.5px; }
+              h3 { font-size: 15px; margin-top: 5px; margin-bottom: 20px; font-weight: normal; color: #333; }
+              .info-table td { border: none !important; padding: 4px 0 !important; }
+              .footer { margin-top: 40px; font-size: 12px; text-align: right; font-style: italic; }
+            </style>
+          </head>
+          <body onload="window.print(); window.close();">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px;">
+              <img src="${window.location.origin}/Dr%20BBHC.png?v=2" style="height: 60px; width: auto; object-fit: contain;">
+              <div style="text-align: left;">
+                <h2 style="margin: 0; font-size: 18px; font-weight: bold; text-align: left;">DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA</h2>
+                <h3 style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: #111; text-align: left;">TECH MANTHAN 6.0</h3>
+                <h3 style="margin: 2px 0 0 0; font-size: 13px; font-weight: normal; color: #444; text-align: left;">Official Judging Marksheet</h3>
+              </div>
+            </div>
+            
+            <div style="margin: 20px 0; border: 1px solid #ddd; padding: 15px; border-radius: 6px; background-color: #fafafa; font-size: 13px; line-height: 1.6;">
+              <table class="info-table" style="width: 100%; border: none; margin-top: 0; margin-bottom: 0;">
+                <tr style="border: none;">
+                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>🏆 Event Name:</strong> ${eventData.title}</td>
+                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>👤 Coordinator Name:</strong> ${orgName}</td>
+                </tr>
+                <tr style="border: none;">
+                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📅 Event Date:</strong> ${eventData.date || "N/A"}</td>
+                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>🕒 Event Time:</strong> ${eventData.time || "N/A"}</td>
+                </tr>
+                <tr style="border: none;">
+                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📍 Venue:</strong> ${eventData.venue || "N/A"}</td>
+                  <td style="border: none; padding: 4px 0; width: 50%;"><strong>📊 Criteria List:</strong> ${criteria.join(", ")}</td>
+                </tr>
+              </table>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center;">Sl No</th>
+                  <th style="width: 120px;">Reg No</th>
+                  <th>Student Name</th>
+                  <th>Judge Evaluation Breakdowns</th>
+                  <th style="width: 150px; text-align: center;">Final Average Score</th>
                 </tr>
               </thead>
               <tbody>

@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Manthan 6.0 | Judging Console</title>
     <link rel="stylesheet" href="/style.css?v=2.9">
+    <style>
+        .cyber-table.judge-table th, 
+        .cyber-table.judge-table td {
+            padding: 8px 6px !important;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .cyber-table.judge-table th {
+            font-size: 0.75rem;
+        }
+        /* Make sure name is left-aligned for readability */
+        .cyber-table.judge-table td:nth-child(2) {
+            text-align: left !important;
+        }
+        .judge-table input.marks-input {
+            width: 55px !important;
+            padding: 6px !important;
+            font-size: 0.85rem !important;
+        }
+    </style>
 </head>
 <body>
     <div class="cyber-crt-overlay"></div>
@@ -62,7 +82,7 @@
                 </div>
 
                 <div class="table-container" style="overflow-x: auto; margin-top: 15px;">
-                    <table class="cyber-table">
+                    <table class="cyber-table judge-table">
                         <thead>
                             <tr id="tableHeaders">
                                 <th>Reg No</th>
