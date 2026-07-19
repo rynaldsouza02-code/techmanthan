@@ -45,6 +45,7 @@
             <button class="tab-btn" id="tabBtnOrganizers">Manage Organizers</button>
             <button class="tab-btn" id="tabBtnRegistrations">View Registrations</button>
             <button class="tab-btn" id="tabBtnJudges">Manage Judges</button>
+            <button class="tab-btn" id="tabBtnResultsApproval">Approve Results</button>
             <button class="tab-btn" id="tabBtnChampionship">Overall Championship</button>
         </div>
 
@@ -348,6 +349,33 @@
             </div>
         </div>
 
+        <!-- RESULTS APPROVAL PANEL -->
+        <div class="tab-panel" id="panelResultsApproval">
+            <div style="margin-bottom: 25px;">
+                <h3 class="form-title" style="margin-bottom: 5px;">Event Results Approval Portal</h3>
+                <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 0;">Review and approve winner results submitted by event coordinators before publishing them to students.</p>
+            </div>
+            <div class="table-container">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Event ID</th>
+                            <th>Event Title</th>
+                            <th>Coordinators</th>
+                            <th>Submitted Winners</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsApprovalTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-sub);">Loading submitted results...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- OVERALL CHAMPIONSHIP PANEL -->
         <div class="tab-panel" id="panelChampionship">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
@@ -364,7 +392,13 @@
             <div style="display: flex; gap: 30px; flex-wrap: wrap;">
                 <!-- Points Scoreboard -->
                 <div class="form-panel cyber-corners" style="flex: 2; min-width: 300px; margin-bottom: 0;">
-                    <h4 style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Class Scoreboard</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h4 style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; margin-bottom: 0;">Class Scoreboard</h4>
+                        <label style="color: var(--text-sub); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="chkIncludePending" checked style="cursor: pointer; width: auto; height: auto; margin-right: 5px;">
+                            Include Pending (Unapproved) Results
+                        </label>
+                    </div>
                     <div class="table-container">
                         <table class="cyber-table">
                             <thead>

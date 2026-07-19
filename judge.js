@@ -190,6 +190,12 @@ function renderScoringSheet() {
   const inputs = document.querySelectorAll("input.marks-input");
   inputs.forEach(input => {
     input.addEventListener("input", (e) => {
+      let val = parseFloat(e.target.value);
+      if (val > 50) {
+        e.target.value = 50;
+      } else if (val < 0) {
+        e.target.value = 0;
+      }
       const regNo = e.target.dataset.reg;
       calculateRowTotal(regNo);
     });

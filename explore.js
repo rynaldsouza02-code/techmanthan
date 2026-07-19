@@ -212,7 +212,7 @@ function renderEvents() {
   eventGrid.innerHTML = filtered.map(ev => {
     const isRegistered = registeredEventsIds.includes(ev.id);
     const isStarted = ev.status === "started";
-    const hasResults = ev.results && (ev.results.first || ev.results.second || ev.results.third);
+    const hasResults = ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third);
     
     // Check if the current user is authorized to upload media for this card
     let showMediaControl = false;
@@ -339,7 +339,7 @@ window.openDetails = function(eventId) {
     <pre>${ev.rules || "No rules specified for this event."}</pre>
   `;
 
-  if (ev.results && (ev.results.first || ev.results.second || ev.results.third)) {
+  if (ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third)) {
     modalHTML += `
       <h4>Event Winners</h4>
       <div class="winner-card-banner" style="font-size: 0.9rem; padding: 15px; margin-top: 10px;">

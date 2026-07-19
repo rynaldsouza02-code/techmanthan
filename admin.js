@@ -23,6 +23,7 @@ const tabBtnStudents = document.getElementById("tabBtnStudents");
 const tabBtnOrganizers = document.getElementById("tabBtnOrganizers");
 const tabBtnRegistrations = document.getElementById("tabBtnRegistrations");
 const tabBtnJudges = document.getElementById("tabBtnJudges");
+const tabBtnResultsApproval = document.getElementById("tabBtnResultsApproval");
 const tabBtnChampionship = document.getElementById("tabBtnChampionship");
 
 const panelOverview = document.getElementById("panelOverview");
@@ -31,10 +32,11 @@ const panelStudents = document.getElementById("panelStudents");
 const panelOrganizers = document.getElementById("panelOrganizers");
 const panelRegistrations = document.getElementById("panelRegistrations");
 const panelJudges = document.getElementById("panelJudges");
+const panelResultsApproval = document.getElementById("panelResultsApproval");
 const panelChampionship = document.getElementById("panelChampionship");
 
-const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelChampionship];
-const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnChampionship];
+const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelResultsApproval, panelChampionship];
+const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnResultsApproval, tabBtnChampionship];
 
 // Overview Stats Elements
 const statTotalEvents = document.getElementById("statTotalEvents");
@@ -100,6 +102,10 @@ const pubChampionClass = document.getElementById("pubChampionClass");
 const pubRunnerClass = document.getElementById("pubRunnerClass");
 const pubTimestamp = document.getElementById("pubTimestamp");
 
+// Results Approval Elements
+const resultsApprovalTableBody = document.getElementById("resultsApprovalTableBody");
+const chkIncludePending = document.getElementById("chkIncludePending");
+
 // Global states
 let allEvents = [];
 let allStudents = [];
@@ -156,6 +162,10 @@ function setupTabs() {
   tabBtnJudges.addEventListener("click", () => {
     switchTab(tabBtnJudges, panelJudges);
     renderJudges();
+  });
+  tabBtnResultsApproval.addEventListener("click", () => {
+    switchTab(tabBtnResultsApproval, panelResultsApproval);
+    renderResultsApproval();
   });
   tabBtnChampionship.addEventListener("click", () => {
     switchTab(tabBtnChampionship, panelChampionship);
@@ -781,8 +791,13 @@ async function loadChampionshipLeaderboard() {
       return str.trim().toUpperCase();
     };
 
+    const includePending = chkIncludePending ? chkIncludePending.checked : true;
+
     allEvents.forEach(evt => {
       if (evt.results) {
+        if (!evt.resultsApproved && !includePending) {
+          return;
+        }
         const firstReg = extractRegNo(evt.results.first);
         const secondReg = extractRegNo(evt.results.second);
         const thirdReg = extractRegNo(evt.results.third);
@@ -897,12 +912,85 @@ async function loadChampionshipPublishedStatus() {
 }
 
 async function publishChampionship() {
-  if (calculatedChampionship.scoreboard.length === 0) {
-    alert("Cannot publish empty standings. Please ensure some events have winners announced first.");
+  // Recalculate standings using only approved results for the official student publish
+  const studentClassMap = {};
+  allStudents.forEach(st => {
+    if (st.regNo) {
+      studentClassMap[st.regNo.trim().toUpperCase()] = st.class ? st.class.trim() : "Unassigned";
+    }
+  });
+
+  const pointsMap = {};
+  const getOrCreateClass = (className) => {
+    if (!pointsMap[className]) {
+      pointsMap[className] = { gold: 0, silver: 0, bronze: 0, total: 0 };
+    }
+    return pointsMap[className];
+  };
+
+  const extractRegNo = (str) => {
+    if (!str) return null;
+    const match = str.match(/\(([^)]+)\)/);
+    if (match && match[1]) {
+      return match[1].trim().toUpperCase();
+    }
+    return str.trim().toUpperCase();
+  };
+
+  allEvents.forEach(evt => {
+    if (evt.results && evt.resultsApproved === true) {
+      const firstReg = extractRegNo(evt.results.first);
+      const secondReg = extractRegNo(evt.results.second);
+      const thirdReg = extractRegNo(evt.results.third);
+
+      if (firstReg) {
+        const cls = studentClassMap[firstReg];
+        if (cls) {
+          const entry = getOrCreateClass(cls);
+          entry.gold += 1;
+          entry.total += 5;
+        }
+      }
+      if (secondReg) {
+        const cls = studentClassMap[secondReg];
+        if (cls) {
+          const entry = getOrCreateClass(cls);
+          entry.silver += 1;
+          entry.total += 3;
+        }
+      }
+      if (thirdReg) {
+        const cls = studentClassMap[thirdReg];
+        if (cls) {
+          const entry = getOrCreateClass(cls);
+          entry.bronze += 1;
+          entry.total += 1;
+        }
+      }
+    }
+  });
+
+  const standings = Object.keys(pointsMap).map(clsName => ({
+    className: clsName,
+    ...pointsMap[clsName]
+  }));
+
+  standings.sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    if (b.gold !== a.gold) return b.gold - a.gold;
+    if (b.silver !== a.silver) return b.silver - a.silver;
+    return b.bronze - a.bronze;
+  });
+
+  const officialChampion = standings[0] ? standings[0].className : "None";
+  const officialRunner = standings[1] ? standings[1].className : "None";
+
+  if (standings.length === 0) {
+    alert("Cannot publish empty standings. Please ensure some events have approved results first.");
     return;
   }
 
-  if (!confirm(`Are you sure you want to publish the overall championship results?\n\nChampion: ${calculatedChampionship.championClass}\nRunner-Up: ${calculatedChampionship.runnerClass}\n\nThis will make it visible to all students on their homepage.`)) {
+  if (!confirm(`Are you sure you want to publish the official overall championship results?\n\nChampion: ${officialChampion}\nRunner-Up: ${officialRunner}\n\nNote: This counts only approved events. This will make it visible to all students on their homepage.`)) {
     return;
   }
 
@@ -913,19 +1001,20 @@ async function publishChampionship() {
     const docRef = doc(db, "settings", "championship");
     await setDoc(docRef, {
       published: true,
-      championClass: calculatedChampionship.championClass,
-      runnerClass: calculatedChampionship.runnerClass,
-      scoreboard: calculatedChampionship.scoreboard,
+      championClass: officialChampion,
+      runnerClass: officialRunner,
+      scoreboard: standings,
       publishedAt: new Date().toISOString()
     });
 
-    alert("Championship standings published successfully!");
+    alert("Official championship standings published successfully!");
     await loadChampionshipPublishedStatus();
   } catch (error) {
     console.error("Error publishing standings:", error);
     alert("Failed to publish standings.");
   } finally {
     btnPublishChampionship.disabled = false;
+    btnPublishChampionship.innerText = "Publish Championship Results";
   }
 }
 
@@ -953,9 +1042,125 @@ async function unpublishChampionship() {
   }
 }
 
+async function renderResultsApproval() {
+  if (!resultsApprovalTableBody) return;
+  resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">Loading submitted results...</td></tr>`;
+
+  try {
+    await loadAllData();
+
+    if (allEvents.length === 0) {
+      resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No events found in database.</td></tr>`;
+      return;
+    }
+
+    // Filter events that have some results entered
+    const eventsWithResults = allEvents.filter(ev => ev.results && (ev.results.first || ev.results.second || ev.results.third));
+
+    if (eventsWithResults.length === 0) {
+      resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No results have been submitted by coordinators yet.</td></tr>`;
+      return;
+    }
+
+    resultsApprovalTableBody.innerHTML = eventsWithResults.map(ev => {
+      const isApproved = ev.resultsApproved === true;
+      
+      const statusBadge = isApproved 
+        ? `<span class="user-badge" style="border-color: var(--neon-green); color: var(--neon-green); background: rgba(34, 197, 94, 0.1); padding: 4px 8px; border-radius: 4px;">Approved & Published</span>`
+        : `<span class="user-badge" style="border-color: var(--neon-yellow); color: var(--neon-yellow); background: rgba(234, 179, 8, 0.1); padding: 4px 8px; border-radius: 4px;">Pending Approval</span>`;
+
+      const winnersHTML = `
+        <div style="font-size: 0.85rem; line-height: 1.4;">
+          ${ev.results.first ? `<div>🥇 1st: <strong>${ev.results.first}</strong></div>` : ""}
+          ${ev.results.second ? `<div>🥈 2nd: <strong>${ev.results.second}</strong></div>` : ""}
+          ${ev.results.third ? `<div>🥉 3rd: <strong>${ev.results.third}</strong></div>` : ""}
+        </div>
+      `;
+
+      const actionsHTML = isApproved
+        ? `<button class="btn-action btn-danger" onclick="rejectEventResults('${ev.id}')">Unpublish / Recall</button>`
+        : `
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-action btn-success" onclick="approveEventResults('${ev.id}')">Approve & Publish</button>
+            <button class="btn-action btn-danger" onclick="rejectEventResults('${ev.id}')">Reject / Reset</button>
+          </div>
+        `;
+
+      return `
+        <tr>
+          <td><strong>${ev.id}</strong></td>
+          <td>${ev.title}</td>
+          <td>${ev.coordinator || "N/A"}</td>
+          <td>${winnersHTML}</td>
+          <td style="text-align: center;">${statusBadge}</td>
+          <td style="text-align: center;">${actionsHTML}</td>
+        </tr>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error("Error loading results approval table:", err);
+    resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--neon-red);">Error loading results list.</td></tr>`;
+  }
+}
+
+async function approveEventResults(eventId) {
+  if (!confirm(`Are you sure you want to approve and publish results for event "${eventId}"?\n\nThis will make it visible to students immediately.`)) {
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "events", eventId);
+    await updateDoc(docRef, {
+      resultsApproved: true
+    });
+
+    alert("Event results approved and published!");
+    await renderResultsApproval();
+  } catch (error) {
+    console.error("Error approving event results:", error);
+    alert("Failed to approve event results.");
+  }
+}
+
+async function rejectEventResults(eventId) {
+  const isReset = confirm(`Click OK to completely clear and reject/reset the results for event "${eventId}" (this allows coordinators to resubmit).\n\nClick Cancel to just unpublish the results (keep results but hide from students).`);
+  
+  try {
+    const docRef = doc(db, "events", eventId);
+    if (!isReset) {
+      // Just set resultsApproved = false
+      await updateDoc(docRef, {
+        resultsApproved: false
+      });
+      alert("Event results unpublished successfully.");
+    } else {
+      // Clear results map and set resultsApproved = false
+      await updateDoc(docRef, {
+        results: { first: "", second: "", third: "" },
+        resultsApproved: false
+      });
+      alert("Event results have been reset. Coordinator can now submit new results.");
+    }
+
+    await renderResultsApproval();
+  } catch (error) {
+    console.error("Error resetting event results:", error);
+    alert("Failed to update event results.");
+  }
+}
+
+window.approveEventResults = approveEventResults;
+window.rejectEventResults = rejectEventResults;
+
 function setupChampionshipTab() {
   btnPublishChampionship.addEventListener("click", publishChampionship);
   btnUnpublishChampionship.addEventListener("click", unpublishChampionship);
+  
+  if (chkIncludePending) {
+    chkIncludePending.addEventListener("change", () => {
+      loadChampionshipLeaderboard();
+    });
+  }
 }
 
 // Run initial configurations
