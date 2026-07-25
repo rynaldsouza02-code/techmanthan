@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { initializeFirestore } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { initializeFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2maKwjtoad-DSd3_wQLSKPZbKmigqh1Q",
@@ -14,6 +14,10 @@ const app = initializeApp(firebaseConfig);
 const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   useFetchStreams: false
+});
+
+enableIndexedDbPersistence(db).catch((err) => {
+  console.warn("Firestore persistence initialization failed:", err.code);
 });
 
 export { db };

@@ -75,4 +75,76 @@
 
     // Run code rain at ~30 FPS
     setInterval(draw, 33);
+
+    // Connection Status Monitor Logic
+    const connStyle = document.createElement('style');
+    connStyle.innerHTML = `
+        .cyber-conn-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            transform: translateY(100px);
+            opacity: 0;
+        }
+        .cyber-conn-toast.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .cyber-conn-toast.offline {
+            background: rgba(20, 10, 10, 0.95);
+            border: 1.5px solid #ff2a5f;
+            color: #ff2a5f;
+            box-shadow: 0 0 20px rgba(255, 42, 95, 0.35);
+        }
+        .cyber-conn-toast.online {
+            background: rgba(10, 20, 15, 0.95);
+            border: 1.5px solid #39ff14;
+            color: #39ff14;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.35);
+        }
+    `;
+    document.head.appendChild(connStyle);
+
+    const toast = document.createElement('div');
+    toast.className = 'cyber-conn-toast';
+    document.body.appendChild(toast);
+
+    let fadeTimeout;
+
+    function showStatusNotification(isOnline) {
+        clearTimeout(fadeTimeout);
+        toast.classList.remove('offline', 'online', 'visible');
+        
+        if (isOnline) {
+            toast.classList.add('online');
+            toast.innerHTML = `<span>⚡</span> SERVER CONNECTED (ONLINE)`;
+            toast.classList.add('visible');
+            
+            fadeTimeout = setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 4000);
+        } else {
+            toast.classList.add('offline');
+            toast.innerHTML = `<span>⚠️</span> CLIENT OFFLINE (CACHED PERSISTENCE)`;
+            toast.classList.add('visible');
+        }
+    }
+
+    window.addEventListener('online', () => showStatusNotification(true));
+    window.addEventListener('offline', () => showStatusNotification(false));
+
+    if (!navigator.onLine) {
+        setTimeout(() => showStatusNotification(false), 1500);
+    }
 })();
