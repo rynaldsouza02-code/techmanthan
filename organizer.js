@@ -207,7 +207,7 @@ function renderRegistrants() {
   checkedInCount.innerText = `Checked-in: ${checkedInStudentIds.length}`;
 
   if (registeredStudents.length === 0) {
-    registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub);">No students registered for this event.</td></tr>`;
+    registrantsTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No students registered for this event.</td></tr>`;
     return;
   }
 
@@ -223,6 +223,9 @@ function renderRegistrants() {
           <input type="checkbox" style="transform: scale(1.3); cursor: pointer;" 
             ${isCheckedIn ? "checked" : ""} 
             onclick="toggleCheckIn('${st.regNo}', this.checked)">
+        </td>
+        <td style="text-align: center;">
+          <button class="btn-action btn-danger" style="padding: 4px 10px; font-size: 0.8rem; margin: 0;" onclick="removeStudentFromEvent('${st.regNo}', '${st.name ? st.name.replace(/'/g, "\\'") : "N/A"}')">Remove</button>
         </td>
       </tr>
     `;
@@ -249,6 +252,40 @@ window.toggleCheckIn = async function(studentRegNo, isChecked) {
   } catch (error) {
     console.error("Error toggling check-in:", error);
     alert("System check-in update failed.");
+  }
+};
+
+window.removeStudentFromEvent = async function(studentRegNo, studentName) {
+  if (!confirm(`Are you sure you want to remove ${studentName} (${studentRegNo}) from this event?`)) {
+    return;
+  }
+
+  try {
+    // 1. Remove the event ID from student's registeredEvents array in Firestore
+    const studentRef = doc(db, "students", studentRegNo);
+    await updateDoc(studentRef, {
+      registeredEvents: arrayRemove(assignedEventId)
+    });
+
+    // 2. Remove the student from the event's checkedInStudents array in Firestore (if present)
+    const eventRef = doc(db, "events", assignedEventId);
+    await updateDoc(eventRef, {
+      checkedInStudents: arrayRemove(studentRegNo)
+    });
+
+    // 3. Update local state
+    registeredStudents = registeredStudents.filter(st => st.regNo !== studentRegNo);
+    checkedInStudentIds = checkedInStudentIds.filter(id => id !== studentRegNo);
+
+    // 4. Re-render UI elements
+    renderRegistrants();
+    populateWinnerDropdowns();
+    renderMarksSheet();
+
+    alert(`Successfully removed ${studentName} from the event.`);
+  } catch (error) {
+    console.error("Error removing student from event:", error);
+    alert("Failed to remove student from event. Please try again.");
   }
 };
 

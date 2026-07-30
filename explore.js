@@ -301,7 +301,8 @@ function renderEvents() {
                 
                 return username 
                   ? (isRegistered 
-                      ? `<button class="btn-action btn-danger" style="width: 100%;" onclick="unregisterEvent('${ev.id}')">Leave Event</button>`
+                      ? `<button class="btn-action btn-danger" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>Leave Event</button>
+                         <p style="color: var(--text-sub); font-size: 0.75rem; margin-top: 4px; text-align: center;">Once registered, you cannot leave this event without organizer permission.</p>`
                       : `<button class="btn-action btn-success" style="width: 100%;" onclick="registerEvent('${ev.id}')">Register for Event</button>`)
                   : "";
               })()
@@ -467,27 +468,8 @@ async function sendRegistrationEmail(ev) {
 
 // Student leave action
 window.unregisterEvent = async function(eventId) {
-  if (!username) return;
-  if (!confirm("Confirm unregistration?")) return;
-
-  const leaveBtn = document.querySelector(`#card-${eventId} .btn-danger`);
-  if (leaveBtn) {
-    leaveBtn.disabled = true;
-    leaveBtn.innerText = "Leaving...";
-  }
-
-  try {
-    const studentRef = doc(db, "students", username);
-    await updateDoc(studentRef, {
-      registeredEvents: arrayRemove(eventId)
-    });
-    registeredEventsIds = registeredEventsIds.filter(id => id !== eventId);
-    renderEvents();
-  } catch (error) {
-    console.error("Firestore unregister error:", error);
-    alert("Fail to cancel registration. Please try again.");
-    renderEvents();
-  }
+  alert("Self-deregistration is disabled. Only the organizers can remove you from an event.");
+  return;
 };
 
 // GALLERY SLIDESHOW CAROUSEL OPEN

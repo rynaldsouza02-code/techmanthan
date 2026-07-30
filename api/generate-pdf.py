@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
@@ -74,11 +74,9 @@ class handler(BaseHTTPRequestHandler):
             alignment=1 # Center
         )
         
-        # 1. Header (College Name)
-        story.append(Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", title_style))
-        story.append(Spacer(1, 4))
-        story.append(Paragraph("TECH MANTHAN 6.0", subtitle_style))
-        story.append(Spacer(1, 2))
+        # 1. Header (College Name & Logo)
+        import os
+        logo_path = os.path.join(os.path.dirname(__file__), '..', 'Dr BBHC.png')
         
         report_titles = {
             'attendance': 'REGISTRANTS DIRECTORY & ATTENDANCE SHEET',
@@ -86,7 +84,63 @@ class handler(BaseHTTPRequestHandler):
             'marksheet': 'OFFICIAL JUDGING MARKSHEET'
         }
         report_title = report_titles.get(pdf_type, 'EVENT REPORT')
-        story.append(Paragraph(report_title, ParagraphStyle('ReportTitleStyle', parent=subtitle_style, fontSize=9, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'))))
+        
+        header_table = None
+        if os.path.exists(logo_path):
+            try:
+                logo_img = Image(logo_path, width=45, height=45)
+                
+                title_style_left = ParagraphStyle(
+                    'TitleStyleLeft',
+                    parent=title_style,
+                    fontSize=12,
+                    leading=15,
+                    alignment=0 # Left
+                )
+                subtitle_style_left = ParagraphStyle(
+                    'SubtitleStyleLeft',
+                    parent=subtitle_style,
+                    fontSize=9.5,
+                    leading=12,
+                    alignment=0 # Left
+                )
+                report_title_style = ParagraphStyle(
+                    'ReportTitleStyleLeft',
+                    parent=subtitle_style_left,
+                    fontSize=8,
+                    fontName='Helvetica-Oblique',
+                    textColor=colors.HexColor('#555555')
+                )
+                
+                header_text = [
+                    Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", title_style_left),
+                    Spacer(1, 2),
+                    Paragraph("TECH MANTHAN 6.0", subtitle_style_left),
+                    Spacer(1, 1),
+                    Paragraph(report_title, report_title_style)
+                ]
+                
+                header_table = Table([[logo_img, header_text]], colWidths=[55, 485])
+                header_table.setStyle(TableStyle([
+                    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                    ('LEFTPADDING', (0,0), (-1,-1), 0),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                ]))
+            except Exception as e:
+                header_table = None
+                
+        if header_table:
+            story.append(header_table)
+        else:
+            story.append(Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", title_style))
+            story.append(Spacer(1, 4))
+            story.append(Paragraph("TECH MANTHAN 6.0", subtitle_style))
+            story.append(Spacer(1, 2))
+            story.append(Paragraph(report_title, ParagraphStyle('ReportTitleStyle', parent=subtitle_style, fontSize=9, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'))))
+            
         story.append(Spacer(1, 10))
         
         # 2. Event Info block (Table)

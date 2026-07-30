@@ -253,11 +253,12 @@ function renderEvents() {
             ${
               isClosed
                 ? `<button class="btn-action" style="width: 100%; opacity: 0.5; cursor: not-allowed; background: #374151; border-color: #374151; color: #9ca3af;" disabled>Registration Closed</button>`
-                : (username 
-                    ? (isRegistered 
-                        ? `<button class="btn-action btn-danger" style="width: 100%;" onclick="unregisterEvent('${ev.id}')">Leave</button>`
-                        : `<button class="btn-action btn-success" style="width: 100%;" onclick="registerEvent('${ev.id}')">Register</button>`)
-                    : `<button class="btn-action btn-success" style="width: 100%;" onclick="redirectToLogin()">Register</button>`)
+                 : (username 
+                     ? (isRegistered 
+                         ? `<button class="btn-action btn-danger" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>Leave</button>
+                            <p style="color: var(--text-sub); font-size: 0.75rem; margin-top: 4px; text-align: center;">Deregistration requires organizer permission.</p>`
+                         : `<button class="btn-action btn-success" style="width: 100%;" onclick="registerEvent('${ev.id}')">Register</button>`)
+                     : `<button class="btn-action btn-success" style="width: 100%;" onclick="redirectToLogin()">Register</button>`)
             }
           </div>
         </div>
@@ -416,29 +417,8 @@ async function sendRegistrationEmail(ev) {
 }
 
 window.unregisterEvent = async function(eventId) {
-  if (!username) return;
-  
-  if (!confirm("Are you sure you want to unregister from this event?")) return;
-
-  const leaveButton = document.querySelector(`#card-${eventId} .btn-danger`);
-  if (leaveButton) {
-    leaveButton.disabled = true;
-    leaveButton.innerText = "Leaving...";
-  }
-
-  try {
-    const studentRef = doc(db, "students", username);
-    await updateDoc(studentRef, {
-      registeredEvents: arrayRemove(eventId)
-    });
-    
-    registeredEventsIds = registeredEventsIds.filter(id => id !== eventId);
-    renderEvents();
-  } catch (error) {
-    console.error("Deregistration error:", error);
-    alert("Could not remove registration. Please try again.");
-    renderEvents();
-  }
+  alert("Self-deregistration is disabled. Only the organizers can remove you from an event.");
+  return;
 };
 
 function setupEventListeners() {
