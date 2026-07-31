@@ -102,7 +102,7 @@ class handler(BaseHTTPRequestHandler):
                     Spacer(1, 1),
                     Paragraph(report_title, ParagraphStyle('R1', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555')))
                 ]
-                header_table = Table([[logo_img, header_text, event_logo_img]], colWidths=[45, 450, 45])
+                header_table = Table([[logo_img, header_text, event_logo_img]], colWidths=[45, 360, 45], hAlign='CENTER')
                 header_table.setStyle(TableStyle([
                     ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                     ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -120,7 +120,7 @@ class handler(BaseHTTPRequestHandler):
                     Spacer(1, 1),
                     Paragraph(report_title, ParagraphStyle('R2', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'), alignment=0))
                 ]
-                header_table = Table([[logo_img, header_text]], colWidths=[45, 495])
+                header_table = Table([[logo_img, header_text]], colWidths=[45, 360], hAlign='CENTER')
                 header_table.setStyle(TableStyle([
                     ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                     ('ALIGN', (0,0), (-1,-1), 'LEFT'),
@@ -138,7 +138,7 @@ class handler(BaseHTTPRequestHandler):
                     Spacer(1, 1),
                     Paragraph(report_title, ParagraphStyle('R3', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'), alignment=0))
                 ]
-                header_table = Table([[header_text, event_logo_img]], colWidths=[495, 45])
+                header_table = Table([[header_text, event_logo_img]], colWidths=[360, 45], hAlign='CENTER')
                 header_table.setStyle(TableStyle([
                     ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                     ('ALIGN', (0,0), (-1,-1), 'LEFT'),
