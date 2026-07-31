@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
@@ -74,11 +74,10 @@ class handler(BaseHTTPRequestHandler):
             alignment=1 # Center
         )
         
-        # 1. Header (College Name)
-        story.append(Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", title_style))
-        story.append(Spacer(1, 4))
-        story.append(Paragraph("TECH MANTHAN 6.0", subtitle_style))
-        story.append(Spacer(1, 2))
+        # 1. Header (College Name & Logo)
+        import os
+        logo_path = os.path.join(os.path.dirname(__file__), '..', 'college_logo.png')
+        event_logo_path = os.path.join(os.path.dirname(__file__), '..', 'event_logo.png')
         
         report_titles = {
             'attendance': 'REGISTRANTS DIRECTORY & ATTENDANCE SHEET',
@@ -86,7 +85,80 @@ class handler(BaseHTTPRequestHandler):
             'marksheet': 'OFFICIAL JUDGING MARKSHEET'
         }
         report_title = report_titles.get(pdf_type, 'EVENT REPORT')
-        story.append(Paragraph(report_title, ParagraphStyle('ReportTitleStyle', parent=subtitle_style, fontSize=9, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'))))
+        
+        header_table = None
+        has_logo = os.path.exists(logo_path)
+        has_event_logo = os.path.exists(event_logo_path)
+        
+        try:
+            if has_logo and has_event_logo:
+                logo_img = Image(logo_path, width=40, height=40)
+                event_logo_img = Image(event_logo_path, width=40, height=40)
+                
+                header_text = [
+                    Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", ParagraphStyle('T1', parent=title_style, fontSize=11, leading=13)),
+                    Spacer(1, 2),
+                    Paragraph("TECH MANTHAN 6.0", ParagraphStyle('S1', parent=subtitle_style, fontSize=9, leading=11)),
+                    Spacer(1, 1),
+                    Paragraph(report_title, ParagraphStyle('R1', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555')))
+                ]
+                header_table = Table([[logo_img, header_text, event_logo_img]], colWidths=[45, 450, 45])
+                header_table.setStyle(TableStyle([
+                    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                    ('LEFTPADDING', (0,0), (-1,-1), 0),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                ]))
+            elif has_logo:
+                logo_img = Image(logo_path, width=40, height=40)
+                header_text = [
+                    Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", ParagraphStyle('T2', parent=title_style, fontSize=11, leading=13, alignment=0)),
+                    Spacer(1, 2),
+                    Paragraph("TECH MANTHAN 6.0", ParagraphStyle('S2', parent=subtitle_style, fontSize=9, leading=11, alignment=0)),
+                    Spacer(1, 1),
+                    Paragraph(report_title, ParagraphStyle('R2', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'), alignment=0))
+                ]
+                header_table = Table([[logo_img, header_text]], colWidths=[45, 495])
+                header_table.setStyle(TableStyle([
+                    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                    ('LEFTPADDING', (0,0), (-1,-1), 0),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                ]))
+            elif has_event_logo:
+                event_logo_img = Image(event_logo_path, width=40, height=40)
+                header_text = [
+                    Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", ParagraphStyle('T3', parent=title_style, fontSize=11, leading=13, alignment=0)),
+                    Spacer(1, 2),
+                    Paragraph("TECH MANTHAN 6.0", ParagraphStyle('S3', parent=subtitle_style, fontSize=9, leading=11, alignment=0)),
+                    Spacer(1, 1),
+                    Paragraph(report_title, ParagraphStyle('R3', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'), alignment=0))
+                ]
+                header_table = Table([[header_text, event_logo_img]], colWidths=[495, 45])
+                header_table.setStyle(TableStyle([
+                    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                    ('LEFTPADDING', (0,0), (-1,-1), 0),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                ]))
+        except Exception as e:
+            header_table = None
+            
+        if header_table:
+            story.append(header_table)
+        else:
+            story.append(Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", title_style))
+            story.append(Spacer(1, 4))
+            story.append(Paragraph("TECH MANTHAN 6.0", subtitle_style))
+            story.append(Spacer(1, 2))
+            story.append(Paragraph(report_title, ParagraphStyle('ReportTitleStyle', parent=subtitle_style, fontSize=9, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'))))
+            
         story.append(Spacer(1, 10))
         
         # 2. Event Info block (Table)
