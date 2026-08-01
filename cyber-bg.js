@@ -147,4 +147,192 @@
     if (!navigator.onLine) {
         setTimeout(() => showStatusNotification(false), 1500);
     }
+
+    // Custom Cyber Modal Dialogs
+    const dialogStyle = document.createElement('style');
+    dialogStyle.innerHTML = `
+        .cyber-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 2, 10, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .cyber-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .cyber-modal-card {
+            background: rgba(13, 8, 22, 0.95);
+            border: 2px solid #00f0ff;
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), inset 0 0 15px rgba(0, 240, 255, 0.1);
+            width: 90%;
+            max-width: 450px;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            color: #ffffff;
+            transform: scale(0.8);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .cyber-modal-overlay.active .cyber-modal-card {
+            transform: scale(1);
+        }
+        .cyber-modal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #00f0ff, #ff007f);
+        }
+        .cyber-modal-title {
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: #00f0ff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        .cyber-modal-title.warning {
+            color: #ff007f;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+        }
+        .cyber-modal-body {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #e2e8f0;
+            margin-bottom: 24px;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .cyber-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .cyber-modal-btn {
+            background: transparent;
+            border: 1px solid #00f0ff;
+            color: #00f0ff;
+            padding: 8px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.3);
+        }
+        .cyber-modal-btn:hover {
+            background: rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+        .cyber-modal-btn.primary {
+            background: #00f0ff;
+            color: #0d0816;
+            text-shadow: none;
+        }
+        .cyber-modal-btn.primary:hover {
+            background: #ffffff;
+            border-color: #ffffff;
+            color: #0d0816;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
+        .cyber-modal-btn.danger {
+            border-color: #ff007f;
+            color: #ff007f;
+            text-shadow: 0 0 5px rgba(255, 0, 127, 0.3);
+        }
+        .cyber-modal-btn.danger:hover {
+            background: rgba(255, 0, 127, 0.15);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+        }
+    `;
+    document.head.appendChild(dialogStyle);
+
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'cyber-modal-overlay';
+    modalOverlay.innerHTML = `
+        <div class="cyber-modal-card">
+            <div class="cyber-modal-title" id="cyberModalTitle">⚡ SYSTEM ALERT</div>
+            <div class="cyber-modal-body" id="cyberModalBody"></div>
+            <div class="cyber-modal-actions" id="cyberModalActions"></div>
+        </div>
+    `;
+    document.body.appendChild(modalOverlay);
+
+    const cyberModalTitle = document.getElementById('cyberModalTitle');
+    const cyberModalBody = document.getElementById('cyberModalBody');
+    const cyberModalActions = document.getElementById('cyberModalActions');
+
+    window.alert = function(message) {
+        return new Promise((resolve) => {
+            cyberModalTitle.innerText = "⚡ SYSTEM ALERT";
+            cyberModalTitle.className = "cyber-modal-title";
+            cyberModalBody.innerText = message;
+            
+            cyberModalActions.innerHTML = '';
+            const okBtn = document.createElement('button');
+            okBtn.className = 'cyber-modal-btn primary';
+            okBtn.innerText = 'ACKNOWLEDGE';
+            okBtn.onclick = () => {
+                modalOverlay.classList.remove('active');
+                resolve();
+            };
+            cyberModalActions.appendChild(okBtn);
+            
+            modalOverlay.classList.add('active');
+            setTimeout(() => okBtn.focus(), 50);
+        });
+    };
+
+    window.confirm = function(message) {
+        return new Promise((resolve) => {
+            cyberModalTitle.innerText = "⚠️ CONFIRMATION REQUIRED";
+            cyberModalTitle.className = "cyber-modal-title warning";
+            cyberModalBody.innerText = message;
+            
+            cyberModalActions.innerHTML = '';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'cyber-modal-btn';
+            cancelBtn.innerText = 'CANCEL';
+            cancelBtn.onclick = () => {
+                modalOverlay.classList.remove('active');
+                resolve(false);
+            };
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'cyber-modal-btn danger';
+            confirmBtn.innerText = 'CONFIRM';
+            confirmBtn.onclick = () => {
+                modalOverlay.classList.remove('active');
+                resolve(true);
+            };
+            
+            cyberModalActions.appendChild(cancelBtn);
+            cyberModalActions.appendChild(confirmBtn);
+            
+            modalOverlay.classList.add('active');
+            setTimeout(() => confirmBtn.focus(), 50);
+        });
+    };
 })();

@@ -362,7 +362,7 @@ window.editEvent = function(id) {
 };
 
 window.deleteEvent = async function(id) {
-  if (!confirm("Are you sure you want to delete this event? This will remove the event structure. Registrations for this event in student profiles will remain but reference a deleted event ID.")) return;
+  if (!await confirm("Are you sure you want to delete this event? This will remove the event structure. Registrations for this event in student profiles will remain but reference a deleted event ID.")) return;
 
   try {
     await deleteDoc(doc(db, "events", id));
@@ -472,7 +472,7 @@ function setupStudentForm() {
 }
 
 window.deleteStudent = async function(regNo) {
-  if (!confirm(`Are you sure you want to delete student ${regNo}? This action is permanent.`)) return;
+  if (!await confirm(`Are you sure you want to delete student ${regNo}? This action is permanent.`)) return;
 
   try {
     await deleteDoc(doc(db, "students", regNo));
@@ -546,7 +546,7 @@ function setupOrganizerForm() {
 }
 
 window.deleteOrganizer = async function(username) {
-  if (!confirm(`Are you sure you want to remove organizer credentials for ${username}?`)) return;
+  if (!await confirm(`Are you sure you want to remove organizer credentials for ${username}?`)) return;
 
   try {
     await deleteDoc(doc(db, "organizers", username));
@@ -996,7 +996,7 @@ async function publishChampionship() {
     return;
   }
 
-  if (!confirm(`Are you sure you want to publish the official overall championship results?\n\nChampion: ${officialChampion}\nRunner-Up: ${officialRunner}\n\nNote: This counts only approved events. This will make it visible to all students on their homepage.`)) {
+  if (!await confirm(`Are you sure you want to publish the official overall championship results?\n\nChampion: ${officialChampion}\nRunner-Up: ${officialRunner}\n\nNote: This counts only approved events. This will make it visible to all students on their homepage.`)) {
     return;
   }
 
@@ -1025,7 +1025,7 @@ async function publishChampionship() {
 }
 
 async function unpublishChampionship() {
-  if (!confirm("Are you sure you want to reset/unpublish the overall championship standings? This will hide the banner on the student homepage.")) {
+  if (!await confirm("Are you sure you want to reset/unpublish the overall championship standings? This will hide the banner on the student homepage.")) {
     return;
   }
 
@@ -1110,7 +1110,7 @@ async function renderResultsApproval() {
 }
 
 async function approveEventResults(eventId) {
-  if (!confirm(`Are you sure you want to approve and publish results for event "${eventId}"?\n\nThis will make it visible to students immediately.`)) {
+  if (!await confirm(`Are you sure you want to approve and publish results for event "${eventId}"?\n\nThis will make it visible to students immediately.`)) {
     return;
   }
 
@@ -1129,7 +1129,7 @@ async function approveEventResults(eventId) {
 }
 
 async function rejectEventResults(eventId) {
-  const isReset = confirm(`Click OK to completely clear and reject/reset the results for event "${eventId}" (this allows coordinators to resubmit).\n\nClick Cancel to just unpublish the results (keep results but hide from students).`);
+  const isReset = await confirm(`Click OK to completely clear and reject/reset the results for event "${eventId}" (this allows coordinators to resubmit).\n\nClick Cancel to just unpublish the results (keep results but hide from students).`);
   
   try {
     const docRef = doc(db, "events", eventId);

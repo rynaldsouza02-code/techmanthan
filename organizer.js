@@ -256,7 +256,7 @@ window.toggleCheckIn = async function(studentRegNo, isChecked) {
 };
 
 window.removeStudentFromEvent = async function(studentRegNo, studentName) {
-  if (!confirm(`Are you sure you want to remove ${studentName} (${studentRegNo}) from this event?`)) {
+  if (!await confirm(`Are you sure you want to remove ${studentName} (${studentRegNo}) from this event?`)) {
     return;
   }
 
@@ -372,7 +372,7 @@ function setupEventListeners() {
       
       if (isStarted) {
         // Stop Event Logic
-        if (!confirm(`Are you sure you want to stop the event "${eventData.title}"? This will revert its status and allow you to start it again.`)) {
+        if (!await confirm(`Are you sure you want to stop the event "${eventData.title}"? This will revert its status and allow you to start it again.`)) {
           return;
         }
         
@@ -395,7 +395,7 @@ function setupEventListeners() {
         }
       } else {
         // Start Event Logic
-        if (!confirm(`Are you sure you want to start the event "${eventData.title}"? This will update the event status to Live and notify all registered students via email.`)) {
+        if (!await confirm(`Are you sure you want to start the event "${eventData.title}"? This will update the event status to Live and notify all registered students via email.`)) {
           return;
         }
         
@@ -764,7 +764,7 @@ function setupEventListeners() {
       }
       msg += `\nDo you want to confirm and announce these results to the students directory?`;
 
-      if (!confirm(msg)) return;
+      if (!await confirm(msg)) return;
 
       btnAutomateWinners.disabled = true;
       btnAutomateWinners.innerText = "Publishing...";
@@ -818,7 +818,7 @@ function setupEventListeners() {
       const subject = announcementSubject.value.trim();
       const messageBody = announcementMessage.value.trim();
 
-      if (!confirm(`Are you sure you want to broadcast this announcement email to ${emails.length} registered students?`)) {
+      if (!await confirm(`Are you sure you want to broadcast this announcement email to ${emails.length} registered students?`)) {
         return;
       }
 
