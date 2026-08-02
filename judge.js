@@ -9,6 +9,72 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+// Inject Excel Table Styles
+const excelStyles = document.createElement("style");
+excelStyles.innerHTML = `
+  .excel-table {
+      border-collapse: collapse !important;
+      width: 100%;
+  }
+  .excel-table th, .excel-table td {
+      border: 1px solid rgba(0, 243, 255, 0.2) !important;
+      padding: 0 !important;
+      height: 42px;
+      vertical-align: middle;
+  }
+  .excel-table th {
+      background: rgba(10, 15, 30, 0.85) !important;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      padding: 12px 10px !important;
+      color: var(--neon-blue);
+      text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+  }
+  .excel-table td.static-cell {
+      padding: 8px 12px !important;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+  }
+  .excel-table td.total-cell {
+      padding: 8px 12px !important;
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--neon-blue);
+      background: rgba(0, 240, 255, 0.05);
+  }
+  .excel-input {
+      width: 100%;
+      height: 100%;
+      border: none !important;
+      background: transparent !important;
+      color: #ffffff !important;
+      font-family: 'Orbitron', monospace !important;
+      font-size: 1rem !important;
+      text-align: center !important;
+      outline: none !important;
+      box-sizing: border-box;
+      padding: 10px 0;
+      transition: all 0.15s ease;
+  }
+  .excel-input::-webkit-outer-spin-button,
+  .excel-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }
+  .excel-input[type=number] {
+      -moz-appearance: textfield;
+  }
+  .excel-table td.input-cell:focus-within {
+      background: rgba(0, 240, 255, 0.1) !important;
+      outline: 2px solid #00f0ff !important;
+      outline-offset: -2px;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  }
+`;
+document.head.appendChild(excelStyles);
+
 // DOM Elements
 const assignedEventTitle = document.getElementById("assignedEventTitle");
 const assignedEventSubtitle = document.getElementById("assignedEventSubtitle");
@@ -156,16 +222,15 @@ function renderScoringSheet() {
     const criteriaInputsHTML = criteria.map(crit => {
       const score = studentMarks.scores[crit] !== undefined ? studentMarks.scores[crit] : "";
       return `
-        <td style="text-align: center;">
+        <td style="text-align: center;" class="input-cell">
           <input type="number" 
-                 class="marks-input score-field-${st.regNo}" 
+                 class="marks-input excel-input score-field-${st.regNo}" 
                  data-reg="${st.regNo}" 
                  data-criteria="${crit}" 
                  value="${score}" 
                  placeholder="0" 
                  min="0"
                  max="50"
-                 style="width: 80px; text-align: center; padding: 8px; border: 1px solid rgba(0, 243, 255, 0.25); background: rgba(0, 0, 0, 0.4); color: #fff; font-family: monospace; border-radius: 6px; outline: none;"
           >
         </td>
       `;
@@ -173,11 +238,11 @@ function renderScoringSheet() {
 
     return `
       <tr id="row-${st.regNo}">
-        <td><strong style="color: var(--neon-purple);">${st.regNo}</strong></td>
-        <td>${st.name || "N/A"}</td>
-        <td>${st.class || "N/A"}</td>
+        <td class="static-cell"><strong style="color: var(--neon-purple);">${st.regNo}</strong></td>
+        <td class="static-cell">${st.name || "N/A"}</td>
+        <td class="static-cell">${st.class || "N/A"}</td>
         ${criteriaInputsHTML}
-        <td style="text-align: center;"><strong id="total-${st.regNo}" style="color: var(--neon-blue); font-size: 1.1rem; font-family: monospace;">${studentMarks.total || 0}</strong></td>
+        <td class="total-cell" style="text-align: center;"><strong id="total-${st.regNo}">${studentMarks.total || 0}</strong></td>
       </tr>
     `;
   }).join("");
@@ -196,6 +261,9 @@ function renderScoringSheet() {
       calculateRowTotal(regNo);
     });
   });
+
+  // Setup arrow-key cell navigation (like Excel)
+  setupKeyboardNavigation();
 }
 
 function calculateRowTotal(regNo) {
@@ -343,6 +411,67 @@ function setupJudgeIdentity() {
       setupJudgeIdentity();
     });
   }
+}
+
+function setupKeyboardNavigation() {
+  const inputs = Array.from(document.querySelectorAll("input.excel-input"));
+  
+  inputs.forEach((input) => {
+    input.addEventListener("keydown", (e) => {
+      const criteria = eventData.criteria || [];
+      const colCount = criteria.length;
+      
+      const currentReg = e.target.dataset.reg;
+      const currentCrit = e.target.dataset.criteria;
+      
+      const rowIndex = registeredStudents.findIndex(st => st.regNo === currentReg);
+      const colIndex = criteria.indexOf(currentCrit);
+      
+      let targetInput = null;
+      
+      if (e.key === "ArrowDown" || e.key === "Enter") {
+        e.preventDefault();
+        if (rowIndex < registeredStudents.length - 1) {
+          const nextStudent = registeredStudents[rowIndex + 1];
+          targetInput = document.querySelector(`input.excel-input[data-reg="${nextStudent.regNo}"][data-criteria="${currentCrit}"]`);
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (rowIndex > 0) {
+          const prevStudent = registeredStudents[rowIndex - 1];
+          targetInput = document.querySelector(`input.excel-input[data-reg="${prevStudent.regNo}"][data-criteria="${currentCrit}"]`);
+        }
+      } else if (e.key === "ArrowRight") {
+        const length = e.target.value.length;
+        if (e.target.selectionStart === length) {
+          e.preventDefault();
+          if (colIndex < colCount - 1) {
+            const nextCrit = criteria[colIndex + 1];
+            targetInput = document.querySelector(`input.excel-input[data-reg="${currentReg}"][data-criteria="${nextCrit}"]`);
+          } else if (rowIndex < registeredStudents.length - 1) {
+            const nextStudent = registeredStudents[rowIndex + 1];
+            targetInput = document.querySelector(`input.excel-input[data-reg="${nextStudent.regNo}"][data-criteria="${criteria[0]}"]`);
+          }
+        }
+      } else if (e.key === "ArrowLeft") {
+        if (e.target.selectionStart === 0) {
+          e.preventDefault();
+          if (colIndex > 0) {
+            const prevCrit = criteria[colIndex - 1];
+            targetInput = document.querySelector(`input.excel-input[data-reg="${currentReg}"][data-criteria="${prevCrit}"]`);
+          } else if (rowIndex > 0) {
+            const prevStudent = registeredStudents[rowIndex - 1];
+            targetInput = document.querySelector(`input.excel-input[data-reg="${prevStudent.regNo}"][data-criteria="${criteria[colCount - 1]}"]`);
+          }
+        }
+      }
+      
+      if (targetInput) {
+        targetInput.focus();
+        setTimeout(() => targetInput.select(), 50);
+      }
+    });
+  });
 }
 
 // Start Initialization
