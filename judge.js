@@ -52,6 +52,11 @@ async function init() {
 
   setupJudgeIdentity();
   await loadEventData();
+
+  const btnSaveAll = document.getElementById("btnSaveAll");
+  if (btnSaveAll) {
+    btnSaveAll.addEventListener("click", saveAllScores);
+  }
 }
 
 async function loadEventData() {
@@ -104,7 +109,6 @@ function renderHeaders() {
     <th>Class</th>
     ${criteria.map(c => `<th style="text-align: center;">${c}</th>`).join("")}
     <th style="color: var(--neon-blue); text-align: center;">Total</th>
-    <th style="text-align: center;">Action</th>
   `;
 }
 
@@ -174,14 +178,6 @@ function renderScoringSheet() {
         <td>${st.class || "N/A"}</td>
         ${criteriaInputsHTML}
         <td style="text-align: center;"><strong id="total-${st.regNo}" style="color: var(--neon-blue); font-size: 1.1rem; font-family: monospace;">${studentMarks.total || 0}</strong></td>
-        <td style="text-align: center;">
-          <button class="cyber-btn cyber-btn-green btn-save-row" 
-                  data-reg="${st.regNo}" 
-                  style="padding: 8px 16px; font-size: 0.85rem;"
-          >
-            Save
-          </button>
-        </td>
       </tr>
     `;
   }).join("");
@@ -200,15 +196,6 @@ function renderScoringSheet() {
       calculateRowTotal(regNo);
     });
   });
-
-  // Add event listeners to row save buttons
-  const saveButtons = document.querySelectorAll(".btn-save-row");
-  saveButtons.forEach(btn => {
-    btn.addEventListener("click", async (e) => {
-      const regNo = e.target.dataset.reg;
-      await saveStudentScore(regNo, e.target);
-    });
-  });
 }
 
 function calculateRowTotal(regNo) {
@@ -220,47 +207,67 @@ function calculateRowTotal(regNo) {
   document.getElementById(`total-${regNo}`).innerText = total;
 }
 
-async function saveStudentScore(regNo, saveBtn) {
-  saveBtn.disabled = true;
-  saveBtn.innerText = "Saving...";
+async function saveAllScores() {
+  const btnSaveAll = document.getElementById("btnSaveAll");
+  if (!btnSaveAll) return;
+  
+  btnSaveAll.disabled = true;
+  btnSaveAll.innerText = "SAVING ALL SCORES...";
 
+  const criteria = eventData.criteria || [];
   let invalidScore = false;
-  fields.forEach(field => {
-    const score = parseFloat(field.value) || 0;
-    if (score > 50) {
-      invalidScore = true;
-    }
-    scores[field.dataset.criteria] = score;
-    total += score;
-  });
+  const newMarksSheetUpdate = {};
+
+  // Construct updated marks for all students present in the table
+  for (const st of registeredStudents) {
+    const fields = document.querySelectorAll(`.score-field-${st.regNo}`);
+    const scores = {};
+    let total = 0;
+    
+    fields.forEach(field => {
+      const score = parseFloat(field.value) || 0;
+      if (score > 50) {
+        invalidScore = true;
+      }
+      scores[field.dataset.criteria] = score;
+      total += score;
+    });
+    
+    newMarksSheetUpdate[st.regNo] = { scores, total };
+  }
 
   if (invalidScore) {
     alert("Validation failed: Marks for each criterion cannot exceed 50.");
-    saveBtn.disabled = false;
-    saveBtn.innerText = "Save";
+    btnSaveAll.disabled = false;
+    btnSaveAll.innerText = "SAVE EVALUATION SHEET";
     return;
   }
 
   try {
     const eventRef = doc(db, "events", eventId);
     
-    // Retrieve fresh eventData to avoid overwriting other students' marks
+    // Retrieve fresh eventData to avoid overwriting other judges' marks
     const eventSnap = await getDoc(eventRef);
     if (!eventSnap.exists()) {
       alert("Error: Event not found.");
+      btnSaveAll.disabled = false;
+      btnSaveAll.innerText = "SAVE EVALUATION SHEET";
       return;
     }
     
     const freshEventData = eventSnap.data();
     const updatedMarksSheet = freshEventData.marksSheet || {};
     
-    // Update only this specific student's marks in the map
-    if (!updatedMarksSheet[regNo] || updatedMarksSheet[regNo].scores !== undefined) {
-      updatedMarksSheet[regNo] = {};
-    }
-    
     const judgeKey = (currentJudgeName || "Default Judge").trim();
-    updatedMarksSheet[regNo][judgeKey] = { scores, total };
+    
+    // Merge new scores into the marksSheet map, keeping other judges' and legacy scores untouched
+    for (const regNo in newMarksSheetUpdate) {
+      if (!updatedMarksSheet[regNo] || updatedMarksSheet[regNo].scores !== undefined) {
+        // legacy structure or empty
+        updatedMarksSheet[regNo] = {};
+      }
+      updatedMarksSheet[regNo][judgeKey] = newMarksSheetUpdate[regNo];
+    }
 
     await updateDoc(eventRef, {
       marksSheet: updatedMarksSheet
@@ -269,22 +276,24 @@ async function saveStudentScore(regNo, saveBtn) {
     // Update local copy
     eventData.marksSheet = updatedMarksSheet;
 
-    saveBtn.innerText = "Saved ✓";
-    saveBtn.style.borderColor = "var(--neon-green)";
-    saveBtn.style.color = "var(--neon-green)";
+    btnSaveAll.innerText = "SAVED SUCCESSFULLY ✓";
+    btnSaveAll.style.borderColor = "var(--neon-green)";
+    btnSaveAll.style.color = "var(--neon-green)";
+    btnSaveAll.style.boxShadow = "0 0 20px rgba(57, 255, 20, 0.4)";
     
     setTimeout(() => {
-      saveBtn.disabled = false;
-      saveBtn.innerText = "Save";
-      saveBtn.style.borderColor = "";
-      saveBtn.style.color = "";
-    }, 1500);
+      btnSaveAll.disabled = false;
+      btnSaveAll.innerText = "SAVE EVALUATION SHEET";
+      btnSaveAll.style.borderColor = "";
+      btnSaveAll.style.color = "";
+      btnSaveAll.style.boxShadow = "";
+    }, 2000);
 
   } catch (error) {
     console.error("Error saving student marks:", error);
     alert("Failed to save marks. Check database rules.");
-    saveBtn.disabled = false;
-    saveBtn.innerText = "Save";
+    btnSaveAll.disabled = false;
+    btnSaveAll.innerText = "SAVE EVALUATION SHEET";
   }
 }
 
