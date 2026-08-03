@@ -170,6 +170,52 @@ async function loadEvents() {
   }
 }
 
+function parseToYYYYMMDD(dStr) {
+  if (!dStr) return null;
+  let s = dStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+    const parts = s.split('-');
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+    const d = String(parsed.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return null;
+}
+
+function isRegistrationClosed(ev) {
+  if (!ev) return false;
+  
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+
+  // 1. Explicit registrationCloseDate if specified
+  if (ev.registrationCloseDate) {
+    const regCloseNorm = parseToYYYYMMDD(ev.registrationCloseDate);
+    if (regCloseNorm && todayStr >= regCloseNorm) {
+      return true; // Closed at 12:00 AM Midnight of registrationCloseDate
+    }
+  }
+
+  // 2. Default: Closes at 12:00 AM Midnight of the event date (ev.date)
+  if (ev.date) {
+    const eventDateNorm = parseToYYYYMMDD(ev.date);
+    if (eventDateNorm && todayStr >= eventDateNorm) {
+      return true; // Closed at 12:00 AM Midnight on event date
+    }
+  }
+
+  return false;
+}
+
 function renderEvents() {
   let filtered = eventsList.filter(ev => {
     const matchesSearch = ev.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -208,12 +254,11 @@ function renderEvents() {
       `;
     }
 
-    const d = new Date();
-    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const isClosed = ev.registrationCloseDate && todayStr > ev.registrationCloseDate;
+    const isClosed = isRegistrationClosed(ev);
+    const closeDateStr = ev.registrationCloseDate || ev.date || "";
 
-    const regCloseHTML = ev.registrationCloseDate 
-      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> ${ev.registrationCloseDate} ${isClosed ? '(Closed)' : ''}</div>`
+    const regCloseHTML = closeDateStr
+      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> 12 AM Midnight (${closeDateStr}) ${isClosed ? '🔴 (Closed)' : ''}</div>`
       : "";
 
     let posterHTML = `<div class="event-card-poster-fallback"><span>No Poster</span></div>`;
@@ -276,6 +321,10 @@ window.showEventDetails = function(eventId) {
   const ev = eventsList.find(e => e.id === eventId);
   if (!ev) return;
 
+  const isClosed = isRegistrationClosed(ev);
+  const closeDateStr = ev.registrationCloseDate || ev.date || "N/A";
+  const regCloseText = `12:00 AM Midnight (${closeDateStr}) ${isClosed ? '🔴 (Closed)' : ''}`;
+
   modalTitle.innerText = ev.title;
   
   let modalHTML = `
@@ -285,6 +334,7 @@ window.showEventDetails = function(eventId) {
       <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
       <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
       <div style="grid-column: 1/-1;">👤 <strong>Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
+      <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'inherit'};">⏳ <strong>Registration Close:</strong> ${regCloseText}</div>
     </div>
     <h4>Rules & Guidelines</h4>
     <pre>${ev.rules || "No rules specified for this event."}</pre>
@@ -309,13 +359,9 @@ window.registerEvent = async function(eventId) {
   if (!username) return;
 
   const ev = eventsList.find(e => e.id === eventId);
-  if (ev && ev.registrationCloseDate) {
-    const d = new Date();
-    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (todayStr > ev.registrationCloseDate) {
-      alert("Registration is closed for this event.");
-      return;
-    }
+  if (ev && isRegistrationClosed(ev)) {
+    alert("Registration for this event closed at 12:00 AM Midnight.");
+    return;
   }
   
   const registerButton = document.querySelector(`#card-${eventId} .btn-success`);
