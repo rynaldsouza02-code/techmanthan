@@ -133,57 +133,98 @@ loginForm.addEventListener("submit", async (e) => {
       return;
     }
 
-    // STUDENT LOGIN
-    // Convert registration number to uppercase (e.g. bca24079 -> BCA24079)
+    // STUDENT LOGIN / REGISTRATION
     const studentDocId = username.toUpperCase();
     const studentRef = doc(db, "students", studentDocId);
-    const studentSnap = await getDoc(studentRef);
 
-    if (!studentSnap.exists()) {
-      alert("User not found");
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = "Submit";
-      return;
+    const nameGroup = document.getElementById("nameGroup");
+    const isRegisterMode = (nameGroup && nameGroup.style.display !== "none");
+
+    if (isRegisterMode) {
+      // REGISTRATION FLOW
+      const nameVal = document.getElementById("nameInput") ? document.getElementById("nameInput").value.trim() : "";
+      const classVal = document.getElementById("classInput") ? document.getElementById("classInput").value.trim() : "";
+      const emailVal = emailInput ? emailInput.value.trim() : "";
+
+      if (!nameVal || !username || !classVal || !emailVal || !password) {
+        alert("Please fill in all fields: Name, Roll No, Class, Email, and Date of Birth.");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Complete Student Registration";
+        return;
+      }
+
+      // Check if student already exists in Firestore
+      const existingSnap = await getDoc(studentRef);
+      if (existingSnap.exists()) {
+        alert(`Roll No / Reg No "${studentDocId}" is ALREADY REGISTERED!\n\nPlease switch to Login mode to access your account.`);
+        
+        // Auto-switch to login mode and fill in Roll No
+        const authSwitchLink = document.getElementById("authSwitchLink");
+        if (authSwitchLink) {
+          authSwitchLink.click();
+        }
+        usernameInput.value = studentDocId;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Save new student record to Firestore
+      const formattedDOB = normalizeDOB(password);
+      await setDoc(studentRef, {
+        name: nameVal,
+        class: classVal,
+        email: emailVal,
+        dob: formattedDOB,
+        registeredEvents: []
+      });
+
+      // Save session locally
+      localStorage.setItem("username", studentDocId);
+      localStorage.setItem("name", nameVal);
+      localStorage.setItem("email", emailVal);
+
+      submitBtn.innerHTML = "REGISTRATION SUCCESSFUL ✓";
+
+      setTimeout(() => {
+        window.location.href = "home.html";
+      }, 1000);
+
+    } else {
+      // LOGIN FLOW
+      const studentSnap = await getDoc(studentRef);
+
+      if (!studentSnap.exists()) {
+        alert(`Student record for "${studentDocId}" not found.\n\nIf you have not created an account yet, please click "Register Student Account" below.`);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Initialize Student Protocol";
+        return;
+      }
+
+      const studentData = studentSnap.data();
+
+      // Verify date of birth password (normalized to DD-MM-YYYY)
+      if (normalizeDOB(studentData.dob || "") !== normalizedPassword) {
+        alert("Invalid Password (DOB format: DD-MM-YYYY)");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Initialize Student Protocol";
+        return;
+      }
+
+      // Store session
+      localStorage.setItem("username", studentDocId);
+      localStorage.setItem("name", studentData.name || "");
+      localStorage.setItem("email", studentData.email || "");
+
+      submitBtn.innerHTML = "ACCESS GRANTED";
+
+      setTimeout(() => {
+        window.location.href = "home.html";
+      }, 1000);
     }
-
-    const studentData = studentSnap.data();
-
-    // Verify date of birth password (normalized to DD-MM-YYYY)
-    if (normalizeDOB(studentData.dob || "") !== normalizedPassword) {
-      alert("Invalid Password (DOB format: DD-MM-YYYY)");
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = "Submit";
-      return;
-    }
-
-    // Save latest notification email & class details if provided
-    const classVal = document.getElementById("classInput") ? document.getElementById("classInput").value.trim() : "";
-    const updateData = {};
-    if (email !== "") {
-      updateData.email = email;
-    }
-    if (classVal !== "") {
-      updateData.class = classVal;
-    }
-
-    if (Object.keys(updateData).length > 0) {
-      await setDoc(studentRef, updateData, { merge: true });
-    }
-
-    // Store normalized uppercase username
-    localStorage.setItem("username", studentDocId);
-    localStorage.setItem("name", studentData.name || "");
-    localStorage.setItem("email", email || studentData.email || "");
-
-    submitBtn.innerHTML = "ACCESS GRANTED";
-
-    setTimeout(() => {
-      window.location.href = "home.html";
-    }, 1000);
 
   } catch (error) {
-    console.error(error);
-    alert("Login failed: " + error.message);
+    console.error("Authentication error:", error);
+    alert("Authentication failed: " + error.message);
     submitBtn.disabled = false;
     submitBtn.innerHTML = "Submit";
   }
