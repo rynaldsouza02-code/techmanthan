@@ -1193,8 +1193,8 @@ function setupEventListeners() {
         return;
       }
 
-      if (!/BCA/i.test(studentClass)) {
-        alert("Student coordinators must be selected from a BCA class section.");
+      if (studentClass !== "III BCA (A)" && studentClass !== "III BCA (B)") {
+        alert("Student coordinators can only be selected from III BCA (A) or III BCA (B).");
         return;
       }
 
