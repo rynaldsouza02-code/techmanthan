@@ -552,51 +552,83 @@ function setupEventListeners() {
     });
   }
 
+  // Handle View Round Select change
+  const viewRoundSelect = document.getElementById("viewRoundSelect");
+  if (viewRoundSelect) {
+    viewRoundSelect.addEventListener("change", renderMarksSheet);
+  }
+
+  // Print PDF Marksheet per Round
   if (btnPrintMarksheet) {
     btnPrintMarksheet.addEventListener("click", async () => {
-      if (!eventData) return;
+      if (!eventData || !eventData.criteria || eventData.criteria.length === 0) {
+        alert("No criteria configured for this event.");
+        return;
+      }
+
+      const selectedRound = viewRoundSelect ? viewRoundSelect.value : "Round 1";
+      const criteria = eventData.criteria;
 
       const prevText = btnPrintMarksheet.innerText;
       btnPrintMarksheet.disabled = true;
       btnPrintMarksheet.innerText = "Generating PDF...";
 
-      const savedMarksSheet = eventData.marksSheet || {};
-      const criteria = eventData.criteria || [];
+      // Filter students for selectedRound
+      const roundPromotions = (eventData.roundPromotions && eventData.roundPromotions[selectedRound])
+        ? eventData.roundPromotions[selectedRound].promotedStudents
+        : null;
 
-      const studentsPayload = registeredStudents.map(st => {
-        const studentSaved = savedMarksSheet[st.regNo] || {};
-        const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
-        
-        let breakdownText = "";
-        let avgTotal = 0;
-        
-        if (studentSaved.scores !== undefined) {
-          // Legacy single-judge format
-          const scoresStr = criteria.map(c => `${c}: ${studentSaved.scores[c] || 0}`).join(", ");
-          breakdownText = `Legacy: ${studentSaved.total} pts (${scoresStr})`;
-          avgTotal = studentSaved.total || 0;
-        } else if (judgeKeys.length > 0) {
-          breakdownText = judgeKeys.map(jk => {
-            const entry = studentSaved[jk];
-            const scoresStr = criteria.map(c => `${c}: ${entry.scores[c] || 0}`).join(", ");
-            return `${jk}: ${entry.total} pts (${scoresStr})`;
-          }).join(" | ");
-          
-          let sumTotal = 0;
-          judgeKeys.forEach(jk => {
-            sumTotal += studentSaved[jk].total || 0;
-          });
-          avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
+      let targetStudents = [];
+      if (selectedRound === "Round 1" || !roundPromotions) {
+        targetStudents = registeredStudents;
+      } else {
+        targetStudents = registeredStudents.filter(st => roundPromotions.includes(st.regNo));
+      }
+
+      let roundMarksSheet = {};
+      if (selectedRound === "Round 1") {
+        roundMarksSheet = (eventData.rounds && eventData.rounds["Round 1"] && eventData.rounds["Round 1"].marksSheet)
+          ? eventData.rounds["Round 1"].marksSheet
+          : (eventData.marksSheet || {});
+      } else if (eventData.rounds && eventData.rounds[selectedRound] && eventData.rounds[selectedRound].marksSheet) {
+        roundMarksSheet = eventData.rounds[selectedRound].marksSheet;
+      } else {
+        roundMarksSheet = eventData.marksSheet || {};
+      }
+
+      const headers = ["Sl No", "Reg No", "Student Name", "Class", ...criteria, "Total Score"];
+      const rows = targetStudents.map((st, idx) => {
+        const studentEntry = roundMarksSheet[st.regNo] || {};
+        const criteriaScores = {};
+        criteria.forEach(c => criteriaScores[c] = []);
+        let totalSum = 0;
+        let judgeCount = 0;
+
+        if (studentEntry.scores !== undefined) {
+          criteria.forEach(c => criteriaScores[c].push(studentEntry.scores[c] || 0));
+          totalSum = studentEntry.total || 0;
+          judgeCount = 1;
         } else {
-          breakdownText = "No evaluations submitted yet";
+          Object.keys(studentEntry).forEach(jKey => {
+            const entry = studentEntry[jKey];
+            if (entry && entry.scores) {
+              criteria.forEach(c => {
+                if (entry.scores[c] !== undefined) criteriaScores[c].push(entry.scores[c]);
+              });
+              totalSum += entry.total || 0;
+              judgeCount++;
+            }
+          });
         }
 
-        return {
-          regNo: st.regNo,
-          name: st.name || "N/A",
-          breakdownText: breakdownText,
-          avgTotal: avgTotal
-        };
+        const critVals = criteria.map(c => {
+          const vals = criteriaScores[c];
+          return vals.length > 0 ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
+        });
+
+        const avgTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
+
+        return [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, `${avgTotal} pts`];
       });
 
       const orgName = localStorage.getItem("organizerName") || eventData.coordinator || "Unassigned";
@@ -604,11 +636,13 @@ function setupEventListeners() {
       const payload = {
         type: "marksheet",
         title: eventData.title,
+        round: selectedRound,
         coordinator: orgName,
         date: eventData.date || "N/A",
         time: eventData.time || "N/A",
         venue: eventData.venue || "N/A",
-        students: studentsPayload
+        headers: headers,
+        rows: rows
       };
 
       try {
@@ -624,7 +658,7 @@ function setupEventListeners() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `marksheet_${eventData.title.toLowerCase().replace(/ /g, "_")}.pdf`;
+        a.download = `marksheet_${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -636,6 +670,91 @@ function setupEventListeners() {
         btnPrintMarksheet.disabled = false;
         btnPrintMarksheet.innerText = prevText;
       }
+    });
+  }
+
+  // Export Excel CSV Sheet per Round
+  const btnExportExcel = document.getElementById("btnExportExcel");
+  if (btnExportExcel) {
+    btnExportExcel.addEventListener("click", () => {
+      if (!eventData || !eventData.criteria || eventData.criteria.length === 0) {
+        alert("No criteria configured for this event.");
+        return;
+      }
+
+      const selectedRound = viewRoundSelect ? viewRoundSelect.value : "Round 1";
+      const criteria = eventData.criteria;
+
+      // Filter students for selectedRound
+      const roundPromotions = (eventData.roundPromotions && eventData.roundPromotions[selectedRound])
+        ? eventData.roundPromotions[selectedRound].promotedStudents
+        : null;
+
+      let targetStudents = [];
+      if (selectedRound === "Round 1" || !roundPromotions) {
+        targetStudents = registeredStudents;
+      } else {
+        targetStudents = registeredStudents.filter(st => roundPromotions.includes(st.regNo));
+      }
+
+      let roundMarksSheet = {};
+      if (selectedRound === "Round 1") {
+        roundMarksSheet = (eventData.rounds && eventData.rounds["Round 1"] && eventData.rounds["Round 1"].marksSheet)
+          ? eventData.rounds["Round 1"].marksSheet
+          : (eventData.marksSheet || {});
+      } else if (eventData.rounds && eventData.rounds[selectedRound] && eventData.rounds[selectedRound].marksSheet) {
+        roundMarksSheet = eventData.rounds[selectedRound].marksSheet;
+      } else {
+        roundMarksSheet = eventData.marksSheet || {};
+      }
+
+      const headers = ["Sl No", "Reg No", "Student Name", "Class", ...criteria, "Total Score"];
+      let csvContent = "\uFEFF" + headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
+
+      targetStudents.forEach((st, idx) => {
+        const studentEntry = roundMarksSheet[st.regNo] || {};
+        const criteriaScores = {};
+        criteria.forEach(c => criteriaScores[c] = []);
+        let totalSum = 0;
+        let judgeCount = 0;
+
+        if (studentEntry.scores !== undefined) {
+          criteria.forEach(c => criteriaScores[c].push(studentEntry.scores[c] || 0));
+          totalSum = studentEntry.total || 0;
+          judgeCount = 1;
+        } else {
+          Object.keys(studentEntry).forEach(jKey => {
+            const entry = studentEntry[jKey];
+            if (entry && entry.scores) {
+              criteria.forEach(c => {
+                if (entry.scores[c] !== undefined) criteriaScores[c].push(entry.scores[c]);
+              });
+              totalSum += entry.total || 0;
+              judgeCount++;
+            }
+          });
+        }
+
+        const critVals = criteria.map(c => {
+          const vals = criteriaScores[c];
+          return vals.length > 0 ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
+        });
+
+        const avgTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
+
+        const row = [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, avgTotal];
+        csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}_marksheet.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     });
   }
 
@@ -1037,86 +1156,128 @@ function setupEventListeners() {
 }
 
 function renderMarksSheet() {
+  const viewRoundSelect = document.getElementById("viewRoundSelect");
+  const selectedRound = viewRoundSelect ? viewRoundSelect.value : "Round 1";
+
   if (!eventData || !eventData.criteria || eventData.criteria.length === 0) {
     marksTableHeaderRow.innerHTML = `
       <th style="width: 80px; text-align: center;">Sl No</th>
       <th style="width: 150px;">Reg No</th>
       <th>Student Name</th>
+      <th>Class</th>
       <th style="width: 150px; text-align: center;">Total Score</th>
     `;
     marksTableBody.innerHTML = `
       <tr>
-        <td colspan="4" style="text-align: center; color: var(--text-sub); padding: 20px;">
-          Judging criteria and judges have not been configured by the coordinator/administrator for this event yet.
+        <td colspan="5" style="text-align: center; color: var(--text-sub); padding: 20px;">
+          Judging criteria have not been configured for this event yet. Click "Setup Criteria & Judges" above.
         </td>
       </tr>
     `;
     return;
   }
 
-  // 1. Build Header Row
   const criteria = eventData.criteria;
+
+  // 1. Build Header Row matching Excel Grid format (Image 2)
   let headerHTML = `
-    <th style="width: 80px; text-align: center;">Sl No</th>
-    <th style="width: 150px;">Reg No</th>
-    <th>Student Name</th>
-    <th>Judge Evaluation Breakdown</th>
-    <th style="width: 180px; text-align: center; color: var(--neon-cyan);">Average Total Score</th>
+    <th style="width: 60px; text-align: center;">SL NO</th>
+    <th style="width: 120px;">REG NO</th>
+    <th>STUDENT NAME</th>
+    <th style="width: 110px;">CLASS</th>
+    ${criteria.map(c => `<th style="text-align: center;">${c.toUpperCase()}</th>`).join("")}
+    <th style="width: 130px; text-align: center; color: var(--neon-cyan);">TOTAL</th>
   `;
   marksTableHeaderRow.innerHTML = headerHTML;
 
-  // 2. Build Body Rows
-  if (registeredStudents.length === 0) {
+  // Filter students for selectedRound
+  const roundPromotions = (eventData.roundPromotions && eventData.roundPromotions[selectedRound])
+    ? eventData.roundPromotions[selectedRound].promotedStudents
+    : null;
+
+  let targetStudents = [];
+  if (selectedRound === "Round 1" || !roundPromotions) {
+    targetStudents = registeredStudents;
+  } else {
+    targetStudents = registeredStudents.filter(st => roundPromotions.includes(st.regNo));
+  }
+
+  if (targetStudents.length === 0) {
     marksTableBody.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align: center; color: var(--text-sub); padding: 20px;">
-          No students registered for this event.
+        <td colspan="${5 + criteria.length}" style="text-align: center; color: var(--text-sub); padding: 20px;">
+          ${selectedRound !== "Round 1" ? `No students promoted to ${selectedRound} yet.` : "No registered students found."}
         </td>
       </tr>
     `;
     return;
   }
 
-  const savedMarksSheet = eventData.marksSheet || {};
+  // Determine marksSheet to use for selectedRound
+  let roundMarksSheet = {};
+  if (selectedRound === "Round 1") {
+    roundMarksSheet = (eventData.rounds && eventData.rounds["Round 1"] && eventData.rounds["Round 1"].marksSheet)
+      ? eventData.rounds["Round 1"].marksSheet
+      : (eventData.marksSheet || {});
+  } else if (eventData.rounds && eventData.rounds[selectedRound] && eventData.rounds[selectedRound].marksSheet) {
+    roundMarksSheet = eventData.rounds[selectedRound].marksSheet;
+  } else {
+    roundMarksSheet = eventData.marksSheet || {};
+  }
 
-  marksTableBody.innerHTML = registeredStudents.map((st, index) => {
-    const studentSaved = savedMarksSheet[st.regNo] || {};
-    
-    // Find all judges' entries
-    const judgeKeys = Object.keys(studentSaved).filter(k => studentSaved[k] && studentSaved[k].scores !== undefined);
-    
-    let breakdownHTML = "";
-    let avgTotal = 0;
-    
-    if (studentSaved.scores !== undefined) {
-      // Legacy single-judge format
-      const scoresStr = criteria.map(c => `${c}: ${studentSaved.scores[c] || 0}`).join(", ");
-      breakdownHTML = `<div style="font-size: 0.85rem; color: var(--text-sub);">Legacy Marks (${scoresStr})</div>`;
-      avgTotal = studentSaved.total || 0;
-    } else if (judgeKeys.length > 0) {
-      breakdownHTML = judgeKeys.map(jk => {
-        const entry = studentSaved[jk];
-        const scoresStr = criteria.map(c => `${c}: ${entry.scores[c] || 0}`).join(", ");
-        return `<div style="font-size: 0.85rem; margin-bottom: 4px;"><strong style="color: var(--neon-purple);">${jk}</strong>: ${entry.total} pts (${scoresStr})</div>`;
-      }).join("");
-      
-      let sumTotal = 0;
-      judgeKeys.forEach(jk => {
-        sumTotal += studentSaved[jk].total || 0;
+  marksTableBody.innerHTML = targetStudents.map((st, index) => {
+    const studentEntry = roundMarksSheet[st.regNo] || {};
+
+    // Calculate average scores per criterion across judges
+    const criteriaScores = {};
+    criteria.forEach(c => criteriaScores[c] = []);
+
+    let totalSum = 0;
+    let judgeCount = 0;
+
+    if (studentEntry.scores !== undefined) {
+      // Single legacy judge format
+      criteria.forEach(c => {
+        const val = studentEntry.scores[c] || 0;
+        criteriaScores[c].push(val);
       });
-      avgTotal = parseFloat((sumTotal / judgeKeys.length).toFixed(2));
+      totalSum = studentEntry.total || 0;
+      judgeCount = 1;
     } else {
-      breakdownHTML = `<span style="color: #666; font-style: italic; font-size: 0.85rem;">No evaluations submitted yet</span>`;
+      Object.keys(studentEntry).forEach(jKey => {
+        const entry = studentEntry[jKey];
+        if (entry && entry.scores) {
+          criteria.forEach(c => {
+            if (entry.scores[c] !== undefined) {
+              criteriaScores[c].push(entry.scores[c]);
+            }
+          });
+          totalSum += entry.total || 0;
+          judgeCount++;
+        }
+      });
     }
+
+    const criteriaCellsHTML = criteria.map(c => {
+      const vals = criteriaScores[c];
+      let avg = 0;
+      if (vals.length > 0) {
+        avg = parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1));
+      }
+      return `<td style="text-align: center; font-weight: bold; font-family: monospace;">${vals.length > 0 ? avg : "-"}</td>`;
+    }).join("");
+
+    const avgTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
 
     return `
       <tr>
         <td style="text-align: center;">${index + 1}</td>
-        <td><strong>${st.regNo}</strong></td>
+        <td><strong style="color: var(--neon-purple);">${st.regNo}</strong></td>
         <td>${st.name || "N/A"}</td>
-        <td>${breakdownHTML}</td>
-        <td style="text-align: center; font-weight: bold; color: var(--neon-cyan); font-family: monospace; font-size: 1.1rem;">
-          ${avgTotal} pts
+        <td>${st.class || "N/A"}</td>
+        ${criteriaCellsHTML}
+        <td style="text-align: center; font-weight: bold; color: var(--neon-cyan); font-family: monospace; font-size: 1.05rem;">
+          ${avgTotal}
         </td>
       </tr>
     `;

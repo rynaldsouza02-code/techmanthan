@@ -82,7 +82,7 @@ class handler(BaseHTTPRequestHandler):
         report_titles = {
             'attendance': 'REGISTRANTS DIRECTORY & ATTENDANCE SHEET',
             'registrations': 'REGISTRATIONS DIRECTORY',
-            'marksheet': 'OFFICIAL JUDGING MARKSHEET'
+            'marksheet': f"OFFICIAL JUDGING MARKSHEET - {data.get('round', '').upper()}" if data.get('round') else 'OFFICIAL JUDGING MARKSHEET'
         }
         report_title = report_titles.get(pdf_type, 'EVENT REPORT')
         
@@ -120,7 +120,7 @@ class handler(BaseHTTPRequestHandler):
                     Spacer(1, 1),
                     Paragraph(report_title, ParagraphStyle('R2', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'), alignment=0))
                 ]
-                header_table = Table([[logo_img, header_text]], colWidths=[45, 360], hAlign='CENTER')
+                header_table = Table([[logo_img, header_text]], colWidths=[45, 405], hAlign='CENTER')
                 header_table.setStyle(TableStyle([
                     ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                     ('ALIGN', (0,0), (-1,-1), 'LEFT'),
@@ -129,57 +129,65 @@ class handler(BaseHTTPRequestHandler):
                     ('BOTTOMPADDING', (0,0), (-1,-1), 0),
                     ('TOPPADDING', (0,0), (-1,-1), 0),
                 ]))
-            elif has_event_logo:
-                event_logo_img = Image(event_logo_path, width=40, height=40)
+            else:
                 header_text = [
-                    Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", ParagraphStyle('T3', parent=title_style, fontSize=11, leading=13, alignment=0)),
+                    Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", ParagraphStyle('T3', parent=title_style, fontSize=11, leading=13)),
                     Spacer(1, 2),
-                    Paragraph("TECH MANTHAN 6.0", ParagraphStyle('S3', parent=subtitle_style, fontSize=9, leading=11, alignment=0)),
+                    Paragraph("TECH MANTHAN 6.0", ParagraphStyle('S3', parent=subtitle_style, fontSize=9, leading=11)),
                     Spacer(1, 1),
-                    Paragraph(report_title, ParagraphStyle('R3', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'), alignment=0))
+                    Paragraph(report_title, ParagraphStyle('R3', parent=subtitle_style, fontSize=8, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555')))
                 ]
-                header_table = Table([[header_text, event_logo_img]], colWidths=[360, 45], hAlign='CENTER')
+                header_table = Table([[header_text]], colWidths=[450], hAlign='CENTER')
                 header_table.setStyle(TableStyle([
                     ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-                    ('LEFTPADDING', (0,0), (-1,-1), 0),
-                    ('RIGHTPADDING', (0,0), (-1,-1), 0),
-                    ('BOTTOMPADDING', (0,0), (-1,-1), 0),
-                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ]))
-        except Exception as e:
-            header_table = None
-            
-        if header_table:
             story.append(header_table)
-        else:
+        except Exception as e:
             story.append(Paragraph("DR. B.B HEGDE FIRST GRADE COLLEGE, KUNDAPURA", title_style))
-            story.append(Spacer(1, 4))
-            story.append(Paragraph("TECH MANTHAN 6.0", subtitle_style))
             story.append(Spacer(1, 2))
-            story.append(Paragraph(report_title, ParagraphStyle('ReportTitleStyle', parent=subtitle_style, fontSize=9, fontName='Helvetica-Oblique', textColor=colors.HexColor('#555555'))))
-            
+            story.append(Paragraph("TECH MANTHAN 6.0", subtitle_style))
+            story.append(Spacer(1, 1))
+            story.append(Paragraph(report_title, subtitle_style))
+
         story.append(Spacer(1, 10))
         
-        # 2. Event Info block (Table)
-        info_data = [
-            [Paragraph(f"<b>🏆 Event Name:</b> {title}", body_style), Paragraph(f"<b>👤 Coordinator:</b> {coordinator}", body_style)],
-            [Paragraph(f"<b>📅 Event Date:</b> {date}", body_style), Paragraph(f"<b>🕒 Event Time:</b> {time}", body_style)],
-            [Paragraph(f"<b>📍 Venue:</b> {venue}", body_style), Paragraph(f"<b>📊 Total Students:</b> {len(students)}", body_style)]
+        # 2. Event Metadata Box
+        meta_data = [
+            [
+                Paragraph(f"<b>Event Name:</b> {title}", body_style),
+                Paragraph(f"<b>Coordinator:</b> {coordinator}", body_style)
+            ],
+            [
+                Paragraph(f"<b>Date & Time:</b> {date} | {time}", body_style),
+                Paragraph(f"<b>Venue:</b> {venue}", body_style)
+            ]
         ]
-        info_table = Table(info_data, colWidths=[270, 270])
-        info_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#fafafa')),
+        meta_table = Table(meta_data, colWidths=[270, 270])
+        meta_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
+            ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
+            ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
             ('PADDING', (0,0), (-1,-1), 6),
-            ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
-            ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#f0f0f0')),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ]))
-        story.append(info_table)
-        story.append(Spacer(1, 15))
+        story.append(meta_table)
+        story.append(Spacer(1, 12))
         
         # 3. Students Table
-        if pdf_type in ['attendance', 'registrations']:
+        if data.get('headers') and data.get('rows'):
+            # Dynamic Excel-style PDF table
+            raw_headers = data.get('headers')
+            raw_rows = data.get('rows')
+            
+            table_data = [[Paragraph(str(h), header_cell_style) for h in raw_headers]]
+            for row in raw_rows:
+                table_data.append([Paragraph(str(cell), body_style) for cell in row])
+                
+            num_cols = len(raw_headers)
+            available_width = 540
+            col_widths = [available_width / num_cols] * num_cols
+        elif pdf_type in ['attendance', 'registrations']:
             # Attendance columns: Sl No, Reg No, Student Name, Class, Email, Check-in/App Status, Signature
             table_data = [[
                 Paragraph("Sl No", header_cell_style),
