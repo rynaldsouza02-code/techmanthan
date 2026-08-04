@@ -555,13 +555,22 @@ function setupEventListeners() {
     });
   }
 
-  // Handle View Round Select change
+  // Populate & Handle View Round / View Judge Select change
   const viewRoundSelect = document.getElementById("viewRoundSelect");
+  const viewJudgeSelect = document.getElementById("viewJudgeSelect");
+
   if (viewRoundSelect) {
-    viewRoundSelect.addEventListener("change", renderMarksSheet);
+    viewRoundSelect.addEventListener("change", () => {
+      populateJudgeSelect();
+      renderMarksSheet();
+    });
   }
 
-  // Print PDF Marksheet per Round
+  if (viewJudgeSelect) {
+    viewJudgeSelect.addEventListener("change", renderMarksSheet);
+  }
+
+  // Print PDF Marksheet per Round & Per Judge
   if (btnPrintMarksheet) {
     btnPrintMarksheet.addEventListener("click", async () => {
       if (!eventData || !eventData.criteria || eventData.criteria.length === 0) {
@@ -570,6 +579,9 @@ function setupEventListeners() {
       }
 
       const selectedRound = viewRoundSelect ? viewRoundSelect.value : "Round 1";
+      const selectedJudge = viewJudgeSelect ? viewJudgeSelect.value : "all";
+      const selectedJudgeText = (viewJudgeSelect && viewJudgeSelect.selectedIndex >= 0) ? viewJudgeSelect.options[viewJudgeSelect.selectedIndex].text : "All Judges";
+
       const criteria = eventData.criteria;
 
       const prevText = btnPrintMarksheet.innerText;
@@ -602,36 +614,8 @@ function setupEventListeners() {
       const headers = ["Sl No", "Reg No", "Student Name", "Class", ...criteria, "Total Score"];
       const rows = targetStudents.map((st, idx) => {
         const studentEntry = roundMarksSheet[st.regNo] || {};
-        const criteriaScores = {};
-        criteria.forEach(c => criteriaScores[c] = []);
-        let totalSum = 0;
-        let judgeCount = 0;
-
-        if (studentEntry.scores !== undefined) {
-          criteria.forEach(c => criteriaScores[c].push(studentEntry.scores[c] || 0));
-          totalSum = studentEntry.total || 0;
-          judgeCount = 1;
-        } else {
-          Object.keys(studentEntry).forEach(jKey => {
-            const entry = studentEntry[jKey];
-            if (entry && entry.scores) {
-              criteria.forEach(c => {
-                if (entry.scores[c] !== undefined) criteriaScores[c].push(entry.scores[c]);
-              });
-              totalSum += entry.total || 0;
-              judgeCount++;
-            }
-          });
-        }
-
-        const critVals = criteria.map(c => {
-          const vals = criteriaScores[c];
-          return vals.length > 0 ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-        });
-
-        const avgTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
-
-        return [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, `${avgTotal} pts`];
+        const { critVals, finalTotal } = getStudentScoresForRoundAndJudge(studentEntry, criteria, selectedJudge);
+        return [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, `${finalTotal} pts`];
       });
 
       const orgName = localStorage.getItem("organizerName") || eventData.coordinator || "Unassigned";
@@ -640,6 +624,7 @@ function setupEventListeners() {
         type: "marksheet",
         title: eventData.title,
         round: selectedRound,
+        judge: selectedJudge !== "all" ? selectedJudgeText : null,
         coordinator: orgName,
         date: eventData.date || "N/A",
         time: eventData.time || "N/A",
@@ -661,7 +646,8 @@ function setupEventListeners() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `marksheet_${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}.pdf`;
+        const judgeFileSuffix = selectedJudge !== "all" ? `_${selectedJudge}` : "";
+        a.download = `marksheet_${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}${judgeFileSuffix}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -676,7 +662,7 @@ function setupEventListeners() {
     });
   }
 
-  // Export Excel CSV Sheet per Round
+  // Export Excel CSV Sheet per Round & Per Judge
   const btnExportExcel = document.getElementById("btnExportExcel");
   if (btnExportExcel) {
     btnExportExcel.addEventListener("click", () => {
@@ -686,6 +672,7 @@ function setupEventListeners() {
       }
 
       const selectedRound = viewRoundSelect ? viewRoundSelect.value : "Round 1";
+      const selectedJudge = viewJudgeSelect ? viewJudgeSelect.value : "all";
       const criteria = eventData.criteria;
 
       // Filter students for selectedRound
@@ -716,36 +703,8 @@ function setupEventListeners() {
 
       targetStudents.forEach((st, idx) => {
         const studentEntry = roundMarksSheet[st.regNo] || {};
-        const criteriaScores = {};
-        criteria.forEach(c => criteriaScores[c] = []);
-        let totalSum = 0;
-        let judgeCount = 0;
-
-        if (studentEntry.scores !== undefined) {
-          criteria.forEach(c => criteriaScores[c].push(studentEntry.scores[c] || 0));
-          totalSum = studentEntry.total || 0;
-          judgeCount = 1;
-        } else {
-          Object.keys(studentEntry).forEach(jKey => {
-            const entry = studentEntry[jKey];
-            if (entry && entry.scores) {
-              criteria.forEach(c => {
-                if (entry.scores[c] !== undefined) criteriaScores[c].push(entry.scores[c]);
-              });
-              totalSum += entry.total || 0;
-              judgeCount++;
-            }
-          });
-        }
-
-        const critVals = criteria.map(c => {
-          const vals = criteriaScores[c];
-          return vals.length > 0 ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
-        });
-
-        const avgTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
-
-        const row = [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, avgTotal];
+        const { critVals, finalTotal } = getStudentScoresForRoundAndJudge(studentEntry, criteria, selectedJudge);
+        const row = [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, finalTotal];
         csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
       });
 
@@ -753,7 +712,8 @@ function setupEventListeners() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}_marksheet.csv`);
+      const judgeFileSuffix = selectedJudge !== "all" ? `_${selectedJudge}` : "";
+      link.setAttribute("download", `${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}${judgeFileSuffix}_marksheet.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1264,9 +1224,119 @@ function setupEventListeners() {
   }
 }
 
+function populateJudgeSelect() {
+  const viewJudgeSelect = document.getElementById("viewJudgeSelect");
+  if (!viewJudgeSelect) return;
+
+  const currentSelection = viewJudgeSelect.value || "all";
+  viewJudgeSelect.innerHTML = `<option value="all">All Judges (Consolidated Avg)</option>`;
+
+  const judgeSet = new Map();
+
+  if (eventData && eventData.judges && Array.isArray(eventData.judges)) {
+    eventData.judges.forEach(j => {
+      if (j && j.trim()) {
+        const name = j.trim();
+        const key = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+        judgeSet.set(key, name);
+      }
+    });
+  }
+
+  const allSheets = [eventData?.marksSheet || {}];
+  if (eventData?.rounds) {
+    Object.keys(eventData.rounds).forEach(rKey => {
+      if (eventData.rounds[rKey]?.marksSheet) {
+        allSheets.push(eventData.rounds[rKey].marksSheet);
+      }
+    });
+  }
+
+  allSheets.forEach(sheet => {
+    Object.keys(sheet).forEach(regNo => {
+      const entry = sheet[regNo];
+      if (entry && typeof entry === "object" && entry.scores === undefined) {
+        Object.keys(entry).forEach(jKey => {
+          if (!judgeSet.has(jKey)) {
+            const jName = entry[jKey]?.judgeName || jKey.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+            judgeSet.set(jKey, jName);
+          }
+        });
+      }
+    });
+  });
+
+  judgeSet.forEach((jName, jKey) => {
+    viewJudgeSelect.innerHTML += `<option value="${jKey}">${jName}</option>`;
+  });
+
+  if (currentSelection && [...viewJudgeSelect.options].some(o => o.value === currentSelection)) {
+    viewJudgeSelect.value = currentSelection;
+  }
+}
+
+function getStudentScoresForRoundAndJudge(studentEntry, criteria, selectedJudge) {
+  const criteriaScores = {};
+  criteria.forEach(c => criteriaScores[c] = []);
+  let totalSum = 0;
+  let judgeCount = 0;
+
+  if (!studentEntry) {
+    return { critVals: criteria.map(() => 0), finalTotal: 0, judgeCount: 0 };
+  }
+
+  if (studentEntry.scores !== undefined) {
+    if (selectedJudge === "all" || selectedJudge === "legacy") {
+      criteria.forEach(c => criteriaScores[c].push(studentEntry.scores[c] || 0));
+      totalSum = studentEntry.total || 0;
+      judgeCount = 1;
+    }
+  } else {
+    if (selectedJudge === "all") {
+      Object.keys(studentEntry).forEach(jKey => {
+        const entry = studentEntry[jKey];
+        if (entry && entry.scores) {
+          criteria.forEach(c => {
+            if (entry.scores[c] !== undefined) criteriaScores[c].push(entry.scores[c]);
+          });
+          totalSum += entry.total || 0;
+          judgeCount++;
+        }
+      });
+    } else {
+      let judgeEntry = studentEntry[selectedJudge];
+      if (!judgeEntry) {
+        const foundKey = Object.keys(studentEntry).find(k => k.toLowerCase() === selectedJudge.toLowerCase());
+        if (foundKey) judgeEntry = studentEntry[foundKey];
+      }
+
+      if (judgeEntry && judgeEntry.scores) {
+        criteria.forEach(c => {
+          if (judgeEntry.scores[c] !== undefined) criteriaScores[c].push(judgeEntry.scores[c]);
+        });
+        totalSum = judgeEntry.total || 0;
+        judgeCount = 1;
+      }
+    }
+  }
+
+  const critVals = criteria.map(c => {
+    const vals = criteriaScores[c];
+    return vals.length > 0 ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0;
+  });
+
+  const finalTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
+
+  return { critVals, finalTotal, judgeCount };
+}
+
 function renderMarksSheet() {
+  populateJudgeSelect();
+
   const viewRoundSelect = document.getElementById("viewRoundSelect");
+  const viewJudgeSelect = document.getElementById("viewJudgeSelect");
   const selectedRound = viewRoundSelect ? viewRoundSelect.value : "Round 1";
+  const selectedJudge = viewJudgeSelect ? viewJudgeSelect.value : "all";
 
   if (!eventData || !eventData.criteria || eventData.criteria.length === 0) {
     marksTableHeaderRow.innerHTML = `
@@ -1288,7 +1358,6 @@ function renderMarksSheet() {
 
   const criteria = eventData.criteria;
 
-  // 1. Build Header Row matching Excel Grid format (Image 2)
   let headerHTML = `
     <th style="width: 60px; text-align: center;">SL NO</th>
     <th style="width: 120px;">REG NO</th>
@@ -1299,7 +1368,6 @@ function renderMarksSheet() {
   `;
   marksTableHeaderRow.innerHTML = headerHTML;
 
-  // Filter students for selectedRound
   const roundPromotions = (eventData.roundPromotions && eventData.roundPromotions[selectedRound])
     ? eventData.roundPromotions[selectedRound].promotedStudents
     : null;
@@ -1322,7 +1390,6 @@ function renderMarksSheet() {
     return;
   }
 
-  // Determine marksSheet to use for selectedRound
   let roundMarksSheet = {};
   if (selectedRound === "Round 1") {
     roundMarksSheet = (eventData.rounds && eventData.rounds["Round 1"] && eventData.rounds["Round 1"].marksSheet)
@@ -1336,47 +1403,11 @@ function renderMarksSheet() {
 
   marksTableBody.innerHTML = targetStudents.map((st, index) => {
     const studentEntry = roundMarksSheet[st.regNo] || {};
+    const { critVals, finalTotal, judgeCount } = getStudentScoresForRoundAndJudge(studentEntry, criteria, selectedJudge);
 
-    // Calculate average scores per criterion across judges
-    const criteriaScores = {};
-    criteria.forEach(c => criteriaScores[c] = []);
-
-    let totalSum = 0;
-    let judgeCount = 0;
-
-    if (studentEntry.scores !== undefined) {
-      // Single legacy judge format
-      criteria.forEach(c => {
-        const val = studentEntry.scores[c] || 0;
-        criteriaScores[c].push(val);
-      });
-      totalSum = studentEntry.total || 0;
-      judgeCount = 1;
-    } else {
-      Object.keys(studentEntry).forEach(jKey => {
-        const entry = studentEntry[jKey];
-        if (entry && entry.scores) {
-          criteria.forEach(c => {
-            if (entry.scores[c] !== undefined) {
-              criteriaScores[c].push(entry.scores[c]);
-            }
-          });
-          totalSum += entry.total || 0;
-          judgeCount++;
-        }
-      });
-    }
-
-    const criteriaCellsHTML = criteria.map(c => {
-      const vals = criteriaScores[c];
-      let avg = 0;
-      if (vals.length > 0) {
-        avg = parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1));
-      }
-      return `<td style="text-align: center; font-weight: bold; font-family: monospace;">${vals.length > 0 ? avg : "-"}</td>`;
+    const criteriaCellsHTML = critVals.map(val => {
+      return `<td style="text-align: center; font-weight: bold; font-family: monospace;">${judgeCount > 0 ? val : "-"}</td>`;
     }).join("");
-
-    const avgTotal = judgeCount > 0 ? parseFloat((totalSum / judgeCount).toFixed(1)) : 0;
 
     return `
       <tr>
@@ -1386,7 +1417,7 @@ function renderMarksSheet() {
         <td>${st.class || "N/A"}</td>
         ${criteriaCellsHTML}
         <td style="text-align: center; font-weight: bold; color: var(--neon-cyan); font-family: monospace; font-size: 1.05rem;">
-          ${avgTotal}
+          ${finalTotal}
         </td>
       </tr>
     `;

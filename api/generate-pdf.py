@@ -84,7 +84,18 @@ class handler(BaseHTTPRequestHandler):
             'registrations': 'REGISTRATIONS DIRECTORY',
             'marksheet': f"OFFICIAL JUDGING MARKSHEET - {data.get('round', '').upper()}" if data.get('round') else 'OFFICIAL JUDGING MARKSHEET'
         }
-        report_title = report_titles.get(pdf_type, 'EVENT REPORT')
+        
+        selected_judge = data.get('judge')
+        round_text = data.get('round', '').upper()
+        if pdf_type == 'marksheet':
+            if selected_judge:
+                report_title = f"OFFICIAL JUDGING MARKSHEET ({round_text}) - JUDGE: {selected_judge.upper()}"
+            elif round_text:
+                report_title = f"OFFICIAL JUDGING MARKSHEET - {round_text}"
+            else:
+                report_title = "OFFICIAL JUDGING MARKSHEET"
+        else:
+            report_title = report_titles.get(pdf_type, 'EVENT REPORT')
         
         header_table = None
         has_logo = os.path.exists(logo_path)
@@ -153,16 +164,22 @@ class handler(BaseHTTPRequestHandler):
         story.append(Spacer(1, 10))
         
         # 2. Event Metadata Box
-        meta_data = [
-            [
-                Paragraph(f"<b>Event Name:</b> {title}", body_style),
-                Paragraph(f"<b>Coordinator:</b> {coordinator}", body_style)
-            ],
-            [
+        meta_row1 = [
+            Paragraph(f"<b>Event Name:</b> {title}", body_style),
+            Paragraph(f"<b>Coordinator:</b> {coordinator}", body_style)
+        ]
+        if selected_judge:
+            meta_row2 = [
+                Paragraph(f"<b>Date & Time:</b> {date} | {time}", body_style),
+                Paragraph(f"<b>Judge Name:</b> <font color='#6b21a8'><b>{selected_judge}</b></font>", body_style)
+            ]
+        else:
+            meta_row2 = [
                 Paragraph(f"<b>Date & Time:</b> {date} | {time}", body_style),
                 Paragraph(f"<b>Venue:</b> {venue}", body_style)
             ]
-        ]
+            
+        meta_data = [meta_row1, meta_row2]
         meta_table = Table(meta_data, colWidths=[270, 270])
         meta_table.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
