@@ -231,8 +231,8 @@ function renderOverview() {
   }
 
   overviewEventsTable.innerHTML = allEvents.map(ev => {
-    const org = allOrganizers.find(o => o.assignedEventId === ev.id);
-    const orgName = org ? org.name : "Unassigned";
+    const orgs = allOrganizers.filter(o => o.assignedEventId === ev.id);
+    const orgName = orgs.length > 0 ? orgs.map(o => `${o.name} (@${o.username})`).join(", ") : "Unassigned";
     return `
       <tr>
         <td><strong>${ev.title}</strong></td>

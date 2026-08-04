@@ -348,13 +348,20 @@ window.openDetails = function(eventId) {
     : "No closing date set (Open)";
 
   modalTitle.innerText = ev.title;
+  let studentCoordinatorsHTML = "";
+  if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
+    const scList = ev.studentCoordinators.map(sc => `<strong>${sc.name}</strong> (${sc.studentClass} - 📞 ${sc.phone})`).join(", ");
+    studentCoordinatorsHTML = `<div style="grid-column: 1/-1;">🎓 <strong>Student Coordinators:</strong> ${scList}</div>`;
+  }
+
   let modalHTML = `
     <p><strong>Description:</strong> ${ev.description}</p>
     <div class="event-details" style="margin: 20px 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px;">
       <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
       <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
       <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
-      <div style="grid-column: 1/-1;">👤 <strong>Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
+      <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
+      ${studentCoordinatorsHTML}
       <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'inherit'};">⏳ <strong>Registration Close Date:</strong> ${regCloseText}</div>
     </div>
     <h4>Rules & Guidelines</h4>

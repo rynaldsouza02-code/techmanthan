@@ -184,6 +184,7 @@ async function loadEventData() {
 
     renderJudgeAssignments();
     renderRoundPromotions();
+    renderStudentCoordinators();
 
   } catch (error) {
     console.error("Error loading event details:", error);
@@ -1153,6 +1154,67 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Handle Add Student Coordinator Form Submit (Max 2)
+  const addStudentCoordForm = document.getElementById("addStudentCoordForm");
+  if (addStudentCoordForm) {
+    addStudentCoordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const currentList = eventData.studentCoordinators || [];
+
+      if (currentList.length >= 2) {
+        alert("Maximum limit reached: You can only assign up to 2 student coordinators per event.");
+        return;
+      }
+
+      const name = document.getElementById("scNameInput").value.trim();
+      const rollNo = document.getElementById("scRollNoInput").value.trim().toUpperCase();
+      const studentClass = document.getElementById("scClassSelect").value;
+      const phone = document.getElementById("scPhoneInput").value.trim();
+
+      if (!name || !rollNo || !studentClass || !phone) {
+        alert("Please fill all student coordinator fields.");
+        return;
+      }
+
+      if (studentClass !== "III BCA (A)" && studentClass !== "III BCA (B)") {
+        alert("Student coordinators can only be selected from III BCA (A) or III BCA (B).");
+        return;
+      }
+
+      if (currentList.some(sc => sc.rollNo === rollNo)) {
+        alert(`Roll No "${rollNo}" is already added as a student coordinator for this event.`);
+        return;
+      }
+
+      const newCoord = {
+        name,
+        rollNo,
+        studentClass,
+        phone,
+        addedAt: new Date().toISOString()
+      };
+
+      currentList.push(newCoord);
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, { studentCoordinators: currentList });
+        eventData.studentCoordinators = currentList;
+
+        document.getElementById("scNameInput").value = "";
+        document.getElementById("scRollNoInput").value = "";
+        document.getElementById("scClassSelect").value = "";
+        document.getElementById("scPhoneInput").value = "";
+
+        renderStudentCoordinators();
+        alert(`Student coordinator ${name} (${studentClass}) added successfully!`);
+      } catch (err) {
+        console.error("Error adding student coordinator:", err);
+        alert("Failed to add student coordinator.");
+      }
+    });
+  }
 }
 
 function renderMarksSheet() {
@@ -1459,6 +1521,70 @@ function calculateStudentScoresForRound(roundName) {
 
   return resultsList;
 }
+
+// ==========================================
+// STUDENT COORDINATORS MANAGEMENT (MAX 2)
+// ==========================================
+
+function renderStudentCoordinators() {
+  const tableBody = document.getElementById("studentCoordTableBody");
+  const countBadge = document.getElementById("studentCoordCountBadge");
+  const addBtn = document.getElementById("btnAddStudentCoord");
+  if (!tableBody) return;
+
+  const studentCoordinators = eventData.studentCoordinators || [];
+  if (countBadge) {
+    countBadge.innerText = `Assigned: ${studentCoordinators.length} / 2`;
+  }
+
+  if (addBtn) {
+    if (studentCoordinators.length >= 2) {
+      addBtn.disabled = true;
+      addBtn.style.opacity = "0.5";
+      addBtn.style.cursor = "not-allowed";
+      addBtn.innerText = "LIMIT REACHED (2/2)";
+    } else {
+      addBtn.disabled = false;
+      addBtn.style.opacity = "1";
+      addBtn.style.cursor = "pointer";
+      addBtn.innerText = "ADD COORDINATOR";
+    }
+  }
+
+  if (studentCoordinators.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No student coordinators assigned yet.</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = studentCoordinators.map((sc, idx) => `
+    <tr>
+      <td style="text-align: center;">${idx + 1}</td>
+      <td><strong>${sc.name}</strong></td>
+      <td><strong style="color: var(--neon-purple);">${sc.rollNo}</strong></td>
+      <td><span class="user-badge" style="border-color: var(--neon-cyan); color: var(--neon-cyan);">${sc.studentClass}</span></td>
+      <td>📞 ${sc.phone}</td>
+      <td style="text-align: center;">
+        <button class="cyber-btn cyber-btn-red" style="font-size: 0.75rem; padding: 4px 8px;" onclick="deleteStudentCoordinator('${sc.rollNo}')">Remove</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+window.deleteStudentCoordinator = async function(rollNo) {
+  if (!confirm(`Are you sure you want to remove student coordinator with Roll No "${rollNo}"?`)) return;
+
+  try {
+    const studentCoordinators = (eventData.studentCoordinators || []).filter(sc => sc.rollNo !== rollNo);
+    const eventRef = doc(db, "events", assignedEventId);
+    await updateDoc(eventRef, { studentCoordinators });
+    eventData.studentCoordinators = studentCoordinators;
+    renderStudentCoordinators();
+    alert("Student coordinator removed.");
+  } catch (error) {
+    console.error("Error removing student coordinator:", error);
+    alert("Failed to remove student coordinator.");
+  }
+};
 
 // Boot Dashboard
 document.addEventListener("DOMContentLoaded", init);
