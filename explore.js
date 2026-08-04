@@ -79,17 +79,35 @@ function setupSessionUI() {
       <span class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple); box-shadow: 0 0 10px rgba(188, 19, 254, 0.2);">Admin System</span>
       <button class="btn-logout" id="btnLogout">Logout</button>
     `;
+    const btnLogout = document.getElementById("btnLogout");
+    if (btnLogout) {
+      btnLogout.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "login.html";
+      });
+    }
   } else if (organizerUsername && organizerName) {
     // Organizer
     navUserArea.innerHTML = `
       <span class="user-badge" style="border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);">Coord: ${organizerName}</span>
       <button class="btn-logout" id="btnLogout">Logout</button>
     `;
+    const btnLogout = document.getElementById("btnLogout");
+    if (btnLogout) {
+      btnLogout.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "login.html";
+      });
+    }
   } else if (username && name) {
     // Student
+    const firstInitial = (name.charAt(0) || "S").toUpperCase();
+
     navUserArea.innerHTML = `
-      <span class="user-badge">${name} (${username})</span>
-      <button class="btn-logout" id="btnLogout">Logout</button>
+      <div class="profile-pill-btn" id="btnProfilePill">
+        <div class="avatar-circle-sm">${firstInitial}</div>
+        <span class="profile-name-text">${name}</span>
+      </div>
     `;
     loadStudentRegisteredEvents();
 
@@ -100,21 +118,147 @@ function setupSessionUI() {
         <button class="tab-btn" id="btnMyEvents">My Registrations</button>
       `;
     }
+
+    // Render Student Profile Dropdown Panel
+    renderProfileDropdown();
+
+    document.getElementById("btnProfilePill").addEventListener("click", (e) => {
+      e.stopPropagation();
+      const dropdown = document.getElementById("studentProfileDropdown");
+      if (dropdown) {
+        dropdown.classList.toggle("active");
+        renderProfileEventsList();
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      const dropdown = document.getElementById("studentProfileDropdown");
+      const btn = document.getElementById("btnProfilePill");
+      if (dropdown && dropdown.classList.contains("active")) {
+        if (!dropdown.contains(e.target) && (!btn || !btn.contains(e.target))) {
+          dropdown.classList.remove("active");
+        }
+      }
+    });
+
   } else {
     // Guest
     navUserArea.innerHTML = `
       <a href="login.html" class="cyber-btn" style="padding: 6px 20px; font-size: 0.85rem;">Login</a>
     `;
   }
+}
 
-  // Logout listener
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "login.html";
-    });
+function renderProfileDropdown() {
+  let existing = document.getElementById("studentProfileDropdown");
+  if (!existing) {
+    existing = document.createElement("div");
+    existing.id = "studentProfileDropdown";
+    existing.className = "student-profile-dropdown";
+    document.body.appendChild(existing);
   }
+
+  const firstInitial = (name.charAt(0) || "S").toUpperCase();
+  const userClass = localStorage.getItem("userClass") || "N/A";
+  const userDOB = localStorage.getItem("userDOB") || "N/A";
+  const userEmail = localStorage.getItem("email") || "";
+
+  existing.innerHTML = `
+    <div class="profile-card-header">
+      <span class="profile-title-text">Profile Protocol</span>
+      <span class="profile-role-badge">STUDENT</span>
+    </div>
+
+    <div class="profile-user-info">
+      <div class="profile-avatar-large">${firstInitial}</div>
+      <div class="profile-user-name">${name}</div>
+    </div>
+
+    <div class="profile-details-grid">
+      <div class="profile-field-row">
+        <span class="profile-field-label">Roll Number</span>
+        <span class="profile-field-val">${username}</span>
+      </div>
+      <div class="profile-field-row">
+        <span class="profile-field-label">Course & Sec</span>
+        <span class="profile-field-val">${userClass}</span>
+      </div>
+      <div class="profile-field-row">
+        <span class="profile-field-label">Date of Birth</span>
+        <span class="profile-field-val">${userDOB}</span>
+      </div>
+      <div class="profile-field-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+        <span class="profile-field-label">Email Address</span>
+        <div style="display: flex; gap: 6px; width: 100%;">
+          <input type="email" id="profileEmailInput" class="profile-email-input" value="${userEmail}">
+          <button type="button" id="btnSaveProfileEmail" class="profile-email-save-btn" title="Save Email">✓</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-events-section" style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+      <span class="profile-field-label" style="display: block; margin-bottom: 6px; color: var(--neon-cyan); font-weight: 700;">REGISTERED EVENTS</span>
+      <div id="profileRegisteredEventsList" style="display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto;">
+        <div style="color: var(--text-sub); font-size: 0.8rem; font-style: italic;">Loading registered events...</div>
+      </div>
+    </div>
+
+    <button type="button" class="profile-logout-btn" id="btnProfileLogout">Log Out</button>
+  `;
+
+  document.getElementById("btnProfileLogout").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.reload();
+  });
+
+  document.getElementById("btnSaveProfileEmail").addEventListener("click", async () => {
+    const newEmail = document.getElementById("profileEmailInput").value.trim();
+    if (!newEmail || !newEmail.includes("@")) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+    try {
+      const studentRef = doc(db, "students", username);
+      await updateDoc(studentRef, { email: newEmail });
+      localStorage.setItem("email", newEmail);
+      alert("Email address updated successfully!");
+    } catch (err) {
+      console.error("Error updating email:", err);
+      alert("Failed to update email address.");
+    }
+  });
+}
+
+function renderProfileEventsList() {
+  const container = document.getElementById("profileRegisteredEventsList");
+  if (!container) return;
+
+  if (registeredEventsIds.length === 0) {
+    container.innerHTML = `<div style="color: var(--text-sub); font-size: 0.8rem; font-style: italic;">You have not registered for any events yet.</div>`;
+    return;
+  }
+
+  container.innerHTML = registeredEventsIds.map(evId => {
+    const ev = eventsList.find(e => e.id === evId);
+    const title = ev ? ev.title : evId;
+
+    let promoText = "";
+    if (ev && ev.roundPromotions) {
+      Object.keys(ev.roundPromotions).forEach(targetRound => {
+        const promo = ev.roundPromotions[targetRound];
+        if (promo && promo.promotedStudents && promo.promotedStudents.includes(username)) {
+          promoText = `<span style="color: #e9d5ff; font-weight: bold; font-size: 0.75rem;"> (🎉 Qualified: ${targetRound})</span>`;
+        }
+      });
+    }
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,243,255,0.05); border: 1px solid rgba(0,243,255,0.2); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem;">
+        <span style="color: #fff; font-weight: 600;">⚡ ${title}${promoText}</span>
+        <span style="color: var(--neon-cyan); font-weight: 700; font-size: 0.7rem;">REGISTERED</span>
+      </div>
+    `;
+  }).join("");
 }
 
 // Fetch user registrations if student
@@ -126,12 +270,10 @@ async function loadStudentRegisteredEvents() {
     if (studentSnap.exists()) {
       const data = studentSnap.data();
       registeredEventsIds = data.registeredEvents || [];
-      if (data.email) {
-        localStorage.setItem("email", data.email);
-      }
-      if (data.name) {
-        localStorage.setItem("name", data.name);
-      }
+      if (data.email) localStorage.setItem("email", data.email);
+      if (data.name) localStorage.setItem("name", data.name);
+      if (data.class) localStorage.setItem("userClass", data.class);
+      if (data.dob) localStorage.setItem("userDOB", data.dob);
       renderEvents();
     }
   } catch (error) {
