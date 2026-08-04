@@ -839,59 +839,12 @@ async function loadPromosForHome() {
     console.error("Error loading promos for homepage:", err);
   }
 
-  // If no promos uploaded yet, use default festival promos matching screenshot
   if (promos.length === 0) {
-    promos = [
-      {
-        title: "6th",
-        badge: "6TH",
-        subtitle: "Promo Poster",
-        contentType: "image",
-        thumbnail: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
-        mediaUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80",
-        description: "Official Tech Manthan 6.0 Event Launch Poster."
-      },
-      {
-        title: "4th",
-        badge: "4TH",
-        subtitle: "Promo Broadcast",
-        contentType: "video",
-        thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80",
-        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        description: "Special Night Event & Drone Showcase Teaser."
-      },
-      {
-        title: "3rd",
-        badge: "3RD",
-        subtitle: "Promo Broadcast",
-        contentType: "video",
-        thumbnail: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80",
-        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        description: "Cultural Festival & Grand Arena Highlights."
-      },
-      {
-        title: "2nd",
-        badge: "2ND",
-        subtitle: "Promo Broadcast",
-        contentType: "video",
-        thumbnail: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80",
-        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        description: "Official Teaser Trailer & Tech Battle Reveal."
-      },
-      {
-        title: "1st",
-        badge: "1ST",
-        subtitle: "Promo Broadcast",
-        contentType: "video",
-        thumbnail: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80",
-        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        description: "Tech Manthan 6.0 Opening Anthem."
-      }
-    ];
-  } else {
-    promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+    section.style.display = "none";
+    return;
   }
 
+  promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
   section.style.display = "block";
 
   track.innerHTML = promos.map((p, idx) => {
