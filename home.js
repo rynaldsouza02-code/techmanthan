@@ -799,51 +799,168 @@ function getEmbedMediaUrl(url) {
 }
 
 async function loadPromosForHome() {
+  const section = document.getElementById("promoGallerySection");
+  const track = document.getElementById("promoCarouselTrack");
+  if (!section || !track) return;
+
+  // Set up Prev/Next buttons
+  const btnPrev = document.getElementById("btnPromoCarouselPrev");
+  const btnNext = document.getElementById("btnPromoCarouselNext");
+
+  if (btnPrev && !btnPrev.dataset.bound) {
+    btnPrev.dataset.bound = "true";
+    btnPrev.addEventListener("click", () => {
+      track.scrollBy({ left: -320, behavior: "smooth" });
+    });
+  }
+
+  if (btnNext && !btnNext.dataset.bound) {
+    btnNext.dataset.bound = "true";
+    btnNext.addEventListener("click", () => {
+      track.scrollBy({ left: 320, behavior: "smooth" });
+    });
+  }
+
+  // Set up Promo Modal Close Handler
+  const modal = document.getElementById("promoMediaModal");
+  const modalClose = document.getElementById("promoMediaModalCloseBtn");
+  if (modalClose && modal) {
+    modalClose.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  }
+
+  let promos = [];
   try {
     const promoSnap = await getDocs(collection(db, "promos"));
-    const promos = [];
     promoSnap.forEach(snap => promos.push(snap.data()));
-
-    const section = document.getElementById("promoGallerySection");
-    const grid = document.getElementById("promoGridHome");
-
-    if (!section || !grid) return;
-
-    if (promos.length === 0) {
-      section.style.display = "none";
-      return;
-    }
-
-    promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
-    section.style.display = "block";
-
-    grid.innerHTML = promos.map(p => {
-      let mediaHTML = "";
-      if (p.contentType === "video") {
-        const embedUrl = getEmbedMediaUrl(p.mediaUrl);
-        if (embedUrl.includes("youtube.com/embed")) {
-          mediaHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 200px; border: none; border-radius: 8px;" allowfullscreen></iframe>`;
-        } else {
-          mediaHTML = `<video src="${p.mediaUrl}" controls style="width: 100%; height: 200px; border-radius: 8px; object-fit: cover; background: #000;"></video>`;
-        }
-      } else {
-        mediaHTML = `<img src="${p.mediaUrl}" style="width: 100%; height: 200px; border-radius: 8px; object-fit: cover;" alt="${p.title}">`;
-      }
-
-      return `
-        <div class="event-card cyber-card-scan cyber-corners" style="padding: 15px;">
-          ${mediaHTML}
-          <div style="margin-top: 12px;">
-            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 6px; font-family: 'Orbitron', sans-serif;">${p.title}</h3>
-            <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0;">${p.description || "Official promo media."}</p>
-          </div>
-        </div>
-      `;
-    }).join("");
   } catch (err) {
     console.error("Error loading promos for homepage:", err);
   }
+
+  // If no promos uploaded yet, use default festival promos matching screenshot
+  if (promos.length === 0) {
+    promos = [
+      {
+        title: "6th",
+        badge: "6TH",
+        subtitle: "Promo Poster",
+        contentType: "image",
+        thumbnail: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80",
+        description: "Official Tech Manthan 6.0 Event Launch Poster."
+      },
+      {
+        title: "4th",
+        badge: "4TH",
+        subtitle: "Promo Broadcast",
+        contentType: "video",
+        thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80",
+        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        description: "Special Night Event & Drone Showcase Teaser."
+      },
+      {
+        title: "3rd",
+        badge: "3RD",
+        subtitle: "Promo Broadcast",
+        contentType: "video",
+        thumbnail: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80",
+        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        description: "Cultural Festival & Grand Arena Highlights."
+      },
+      {
+        title: "2nd",
+        badge: "2ND",
+        subtitle: "Promo Broadcast",
+        contentType: "video",
+        thumbnail: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80",
+        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        description: "Official Teaser Trailer & Tech Battle Reveal."
+      },
+      {
+        title: "1st",
+        badge: "1ST",
+        subtitle: "Promo Broadcast",
+        contentType: "video",
+        thumbnail: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80",
+        mediaUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        description: "Tech Manthan 6.0 Opening Anthem."
+      }
+    ];
+  } else {
+    promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+  }
+
+  section.style.display = "block";
+
+  track.innerHTML = promos.map((p, idx) => {
+    const badgeText = p.badge || `${promos.length - idx}${['TH','ST','ND','RD'][(promos.length - idx)%10 > 3 ? 0 : (promos.length - idx)%10] || 'TH'}`;
+    const subtitleText = p.subtitle || (p.contentType === "video" ? "Promo Broadcast" : "Promo Poster");
+    const thumbUrl = p.thumbnail || p.mediaUrl || "TC1.png";
+    const isVideo = p.contentType === "video";
+    const iconSymbol = isVideo ? "▶" : "👁";
+
+    return `
+      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+        <!-- Top Badge -->
+        <div style="position: absolute; top: 12px; left: 12px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.4); font-weight: 800; border-radius: 4px; padding: 3px 9px; font-size: 0.75rem; font-family: monospace; letter-spacing: 1px;">
+          ${badgeText}
+        </div>
+
+        <!-- Thumbnail Aspect Box -->
+        <div style="position: relative; width: 100%; height: 170px; background: #000; overflow: hidden;">
+          <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title}">
+          
+          <!-- Center Play / Eye Action Button -->
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(10, 15, 30, 0.8); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
+            ${iconSymbol}
+          </div>
+        </div>
+
+        <!-- Card Text Info -->
+        <div style="padding: 14px 16px;">
+          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; margin: 0 0 4px 0;">${p.title}</h3>
+          <p style="color: #94a3b8; font-size: 0.8rem; margin: 0; font-family: 'Inter', sans-serif;">${subtitleText}</p>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
+
+window.openPromoMedia = function(title, contentType, mediaUrl, description) {
+  const modal = document.getElementById("promoMediaModal");
+  const modalTitle = document.getElementById("promoMediaModalTitle");
+  const modalBody = document.getElementById("promoMediaModalBody");
+
+  if (!modal || !modalTitle || !modalBody) return;
+
+  modalTitle.innerText = `TECH MANTHANA 6.0 PROMO: ${title}`;
+
+  if (contentType === "video") {
+    const embedUrl = getEmbedMediaUrl(mediaUrl);
+    if (embedUrl.includes("youtube.com/embed")) {
+      modalBody.innerHTML = `
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; border: 1px solid var(--neon-cyan);">
+          <iframe src="${embedUrl}?autoplay=1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+        ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+      `;
+    } else {
+      modalBody.innerHTML = `
+        <video src="${mediaUrl}" controls autoplay style="width: 100%; max-height: 450px; border-radius: 12px; border: 1px solid var(--neon-cyan); background: #000;"></video>
+        ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+      `;
+    }
+  } else {
+    modalBody.innerHTML = `
+      <img src="${mediaUrl}" style="max-width: 100%; max-height: 500px; border-radius: 12px; border: 1px solid var(--neon-cyan); object-fit: contain;" alt="${title}">
+      ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+    `;
+  }
+
+  modal.classList.add("active");
+};
 
 // Boot application
 document.addEventListener("DOMContentLoaded", initializeApp);
