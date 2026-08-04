@@ -262,6 +262,11 @@ function renderProfileEventsList() {
   }).join("");
 }
 
+function normalizeClassName(str) {
+  if (!str) return "";
+  return str.toString().trim().toUpperCase().replace(/[\.\s\(\)]+/g, " ");
+}
+
 function isRestrictedClassStudent(studentClass) {
   if (!studentClass) return false;
   const cls = studentClass.toString().trim().toUpperCase();
@@ -275,6 +280,27 @@ function isVideographyEvent(ev) {
   const title = (ev.title || "").toLowerCase();
   const id = (ev.id || "").toLowerCase();
   return title.includes("videography") || id.includes("videography") || title.includes("video") || id.includes("video");
+}
+
+function getClassRegistrationLimit(ev, studentClass) {
+  if (!ev || !studentClass) return null;
+  const normStudentClass = normalizeClassName(studentClass);
+
+  if (ev.classLimits && typeof ev.classLimits === "object") {
+    const keys = Object.keys(ev.classLimits);
+    const matchedKey = keys.find(k => normalizeClassName(k) === normStudentClass);
+    if (matchedKey && ev.classLimits[matchedKey] !== undefined) {
+      const limit = parseInt(ev.classLimits[matchedKey]);
+      if (!isNaN(limit) && limit >= 0) return limit;
+    }
+  }
+
+  if (ev.maxPerClass !== undefined && ev.maxPerClass !== null) {
+    const globalLimit = parseInt(ev.maxPerClass);
+    if (!isNaN(globalLimit) && globalLimit > 0) return globalLimit;
+  }
+
+  return null;
 }
 
 // Fetch user registrations if student
@@ -601,6 +627,37 @@ window.registerEvent = async function(eventId) {
   if (registerBtn) {
     registerBtn.disabled = true;
     registerBtn.innerText = "Registering...";
+  }
+
+  // Check Class Registration Limit
+  if (ev && currentStudentClass) {
+    const classLimit = getClassRegistrationLimit(ev, currentStudentClass);
+    if (classLimit !== null && classLimit > 0) {
+      try {
+        const q = query(collection(db, "students"), where("registeredEvents", "array-contains", eventId));
+        const querySnap = await getDocs(q);
+        
+        const normClass = normalizeClassName(currentStudentClass);
+        let currentClassCount = 0;
+        querySnap.forEach(docSnap => {
+          const st = docSnap.data();
+          if (st.class && normalizeClassName(st.class) === normClass) {
+            currentClassCount++;
+          }
+        });
+
+        if (currentClassCount >= classLimit) {
+          alert(`Class Registration Limit Reached!\n\nEvent "${ev.title}" allows a maximum of ${classLimit} student(s) from class "${currentStudentClass}".\n\nCurrently, ${currentClassCount} student(s) from your class section have already registered.`);
+          if (registerBtn) {
+            registerBtn.disabled = false;
+            registerBtn.innerText = "Register for Event";
+          }
+          return;
+        }
+      } catch (err) {
+        console.error("Error verifying class limits:", err);
+      }
+    }
   }
 
   try {

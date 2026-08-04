@@ -90,6 +90,7 @@ async function init() {
   setupOrgPromoStudio();
   await loadOrgPromosData();
   setupCredentialsModal();
+  setupClassLimitsForm();
 
   const btnGoToMedia = document.getElementById("btnGoToMedia");
   if (btnGoToMedia) {
@@ -164,6 +165,13 @@ async function loadEventData() {
     eventVenueInput.value = eventData.venue || "";
     eventCoordinatorInput.value = eventData.coordinator || "";
     eventRulesInput.value = eventData.rules || "";
+
+    // Class Limits setup
+    if (document.getElementById("maxPerClassInput")) {
+      document.getElementById("maxPerClassInput").value = eventData.maxPerClass || "";
+    }
+    tempClassLimits = eventData.classLimits || {};
+    renderActiveClassLimits();
 
     // Judging Labels
     if (judgesLabel) {
@@ -2122,6 +2130,87 @@ function setupCredentialsModal() {
     });
   }
 }
+
+// ==========================================
+// CLASS REGISTRATION LIMITS CONTROL
+// ==========================================
+let tempClassLimits = {};
+
+function setupClassLimitsForm() {
+  const classLimitForm = document.getElementById("classLimitForm");
+  const maxPerClassInput = document.getElementById("maxPerClassInput");
+  const limitClassSelect = document.getElementById("limitClassSelect");
+  const customClassLimitInput = document.getElementById("customClassLimitInput");
+  const btnAddClassLimit = document.getElementById("btnAddClassLimit");
+
+  if (btnAddClassLimit) {
+    btnAddClassLimit.addEventListener("click", () => {
+      const cls = limitClassSelect.value;
+      const val = parseInt(customClassLimitInput.value);
+
+      if (isNaN(val) || val < 0) {
+        alert("Please enter a valid non-negative limit number.");
+        return;
+      }
+
+      tempClassLimits[cls] = val;
+      customClassLimitInput.value = "";
+      renderActiveClassLimits();
+    });
+  }
+
+  if (classLimitForm) {
+    classLimitForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!assignedEventId) return;
+
+      const maxVal = parseInt(maxPerClassInput.value) || 0;
+      const submitBtn = classLimitForm.querySelector("button[type='submit']");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "SAVING...";
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, {
+          maxPerClass: maxVal,
+          classLimits: tempClassLimits
+        });
+
+        alert("Class registration limits saved successfully!");
+      } catch (err) {
+        console.error("Error saving class limits:", err);
+        alert("Failed to save class limits.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "SAVE CLASS LIMITS";
+      }
+    });
+  }
+}
+
+function renderActiveClassLimits() {
+  const container = document.getElementById("activeClassLimitsList");
+  if (!container) return;
+
+  const keys = Object.keys(tempClassLimits);
+  if (keys.length === 0) {
+    container.innerHTML = `<span style="font-size: 0.75rem; color: var(--text-sub); font-style: italic;">No custom per-class overrides set. Global limit applies to all.</span>`;
+    return;
+  }
+
+  container.innerHTML = keys.map(cls => `
+    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.25); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+      <span style="color: #fff; font-weight: 600;">🏫 ${cls}: <strong style="color: var(--neon-cyan);">${tempClassLimits[cls]} max student(s)</strong></span>
+      <button type="button" class="cyber-btn cyber-btn-red" style="padding: 2px 8px; font-size: 0.7rem;" onclick="removeClassLimitOverride('${cls}')">Delete</button>
+    </div>
+  `).join("");
+}
+
+window.removeClassLimitOverride = function(cls) {
+  delete tempClassLimits[cls];
+  renderActiveClassLimits();
+};
 
 // Boot Dashboard
 document.addEventListener("DOMContentLoaded", init);
