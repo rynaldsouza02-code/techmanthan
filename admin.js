@@ -772,10 +772,41 @@ function setupJudgingForm() {
   });
 }
 
+// Default College Class Sections for Pre-populating Standings
+const DEFAULT_COLLEGE_CLASSES = [
+  "I BCA - A",
+  "I BCA - B",
+  "I BCA - C",
+  "II BCA - A",
+  "II BCA - B",
+  "III BCA - A",
+  "III BCA - B",
+  "I B.Com - A",
+  "I B.Com - B",
+  "II B.Com - A",
+  "II B.Com - B",
+  "III B.Com - A",
+  "III B.Com - B",
+  "I BBA",
+  "II BBA",
+  "III BBA"
+];
+
+function formatClassForLeaderboard(clsName) {
+  if (!clsName) return "Unassigned";
+  let cleaned = clsName.toString().trim();
+  cleaned = cleaned.replace(/\s*\(\s*([A-D])\s*\)/i, " - $1");
+  cleaned = cleaned.replace(/^(I+ BCA)\s+([A-D])$/i, "$1 - $2");
+  cleaned = cleaned.replace(/^(I+ B\.?COM)\s+([A-D])$/i, "$1 - $2");
+  return cleaned;
+}
+
 // Championship Logic and Event handlers
 async function loadChampionshipLeaderboard() {
   const tableBody = document.getElementById("championshipTableBody");
-  tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">Computing championship standings...</td></tr>`;
+  if (!tableBody) return;
+
+  tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub); padding: 30px;">Computing championship standings...</td></tr>`;
 
   try {
     // Make sure we have the latest data
@@ -785,18 +816,23 @@ async function loadChampionshipLeaderboard() {
     const studentClassMap = {};
     allStudents.forEach(st => {
       if (st.regNo) {
-        studentClassMap[st.regNo.trim().toUpperCase()] = st.class ? st.class.trim() : "Unassigned";
+        studentClassMap[st.regNo.trim().toUpperCase()] = st.class ? formatClassForLeaderboard(st.class) : "Unassigned";
       }
     });
 
-    // Aggregate points per class
-    const pointsMap = {}; // { className: { gold: 0, silver: 0, bronze: 0, total: 0 } }
+    const pointsMap = {};
+
+    // Pre-populate default classes so all classes appear in standings even with 0 pts
+    DEFAULT_COLLEGE_CLASSES.forEach(c => {
+      pointsMap[c] = { gold: 0, silver: 0, bronze: 0, total: 0, totalWins: 0 };
+    });
 
     const getOrCreateClass = (className) => {
-      if (!pointsMap[className]) {
-        pointsMap[className] = { gold: 0, silver: 0, bronze: 0, total: 0 };
+      const formatted = formatClassForLeaderboard(className);
+      if (!pointsMap[formatted]) {
+        pointsMap[formatted] = { gold: 0, silver: 0, bronze: 0, total: 0, totalWins: 0 };
       }
-      return pointsMap[className];
+      return pointsMap[formatted];
     };
 
     const extractRegNo = (str) => {
@@ -821,25 +857,28 @@ async function loadChampionshipLeaderboard() {
 
         if (firstReg) {
           const cls = studentClassMap[firstReg];
-          if (cls) {
+          if (cls && cls !== "Unassigned") {
             const entry = getOrCreateClass(cls);
             entry.gold += 1;
+            entry.totalWins += 1;
             entry.total += 5;
           }
         }
         if (secondReg) {
           const cls = studentClassMap[secondReg];
-          if (cls) {
+          if (cls && cls !== "Unassigned") {
             const entry = getOrCreateClass(cls);
             entry.silver += 1;
+            entry.totalWins += 1;
             entry.total += 3;
           }
         }
         if (thirdReg) {
           const cls = studentClassMap[thirdReg];
-          if (cls) {
+          if (cls && cls !== "Unassigned") {
             const entry = getOrCreateClass(cls);
             entry.bronze += 1;
+            entry.totalWins += 1;
             entry.total += 1;
           }
         }
@@ -852,12 +891,13 @@ async function loadChampionshipLeaderboard() {
       ...pointsMap[clsName]
     }));
 
-    // Sort descending by total, then gold, then silver, then bronze
+    // Sort descending by total, then gold, then silver, then bronze, then class name
     standings.sort((a, b) => {
       if (b.total !== a.total) return b.total - a.total;
       if (b.gold !== a.gold) return b.gold - a.gold;
       if (b.silver !== a.silver) return b.silver - a.silver;
-      return b.bronze - a.bronze;
+      if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+      return a.className.localeCompare(b.className);
     });
 
     // Populate global object for publishing
@@ -865,24 +905,47 @@ async function loadChampionshipLeaderboard() {
     calculatedChampionship.championClass = standings[0] ? standings[0].className : "None";
     calculatedChampionship.runnerClass = standings[1] ? standings[1].className : "None";
 
-    // Render Table
-    if (standings.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No events have published results yet. Standings will appear once winners are announced.</td></tr>`;
-    } else {
-      tableBody.innerHTML = standings.map((item, idx) => {
-        let rankEmoji = idx + 1;
-        if (idx === 0) rankEmoji = "🥇 1st";
-        else if (idx === 1) rankEmoji = "🥈 2nd";
-        else if (idx === 2) rankEmoji = "🥉 3rd";
-        
+    // Render Preview Table (Matching exact design in screenshot)
+    tableBody.innerHTML = standings.map((item, idx) => {
+      let rankHTML = `${idx + 1}`;
+      if (idx === 0) {
+        rankHTML = `<span style="color: #fbbf24; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">🏆 1st</span>`;
+      } else if (idx === 1) {
+        rankHTML = `<span style="color: #cbd5e1; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">🥈 2nd</span>`;
+      } else if (idx === 2) {
+        rankHTML = `<span style="color: #d97706; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">🥉 3rd</span>`;
+      } else {
+        rankHTML = `<span style="color: #fff; font-weight: 700; margin-left: 8px;">${idx + 1}</span>`;
+      }
+
+      return `
+        <tr style="background: rgba(15, 23, 42, 0.4); border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s ease;">
+          <td style="padding: 14px 16px; border: none;">${rankHTML}</td>
+          <td style="padding: 14px 16px; border: none;"><strong style="color: #fff; font-size: 0.95rem;">${item.className}</strong></td>
+          <td style="padding: 14px 16px; border: none;"><span style="color: var(--neon-cyan); font-weight: 700; font-family: monospace; font-size: 0.95rem;">${item.total} Pts</span></td>
+          <td style="padding: 14px 16px; border: none;"><span style="color: var(--text-sub); font-size: 0.9rem;">${item.totalWins} Wins</span></td>
+        </tr>
+      `;
+    }).join("");
+
+    // Populate Full Leaderboard Modal Table
+    const fullTableBody = document.getElementById("fullLeaderboardTableBody");
+    if (fullTableBody) {
+      fullTableBody.innerHTML = standings.map((item, idx) => {
+        let rankText = `${idx + 1}`;
+        if (idx === 0) rankText = "🥇 1st";
+        else if (idx === 1) rankText = "🥈 2nd";
+        else if (idx === 2) rankText = "🥉 3rd";
+
         return `
           <tr>
-            <td style="text-align: center; font-weight: 600; color: ${idx === 0 ? 'var(--neon-green)' : (idx === 1 ? 'var(--neon-cyan)' : 'var(--text-sub)')};">${rankEmoji}</td>
-            <td><strong>${item.className}</strong></td>
-            <td style="text-align: center;">${item.gold}</td>
-            <td style="text-align: center;">${item.silver}</td>
-            <td style="text-align: center;">${item.bronze}</td>
-            <td style="text-align: center;"><strong style="color: var(--neon-blue); font-size: 1.05rem;">${item.total} pts</strong></td>
+            <td style="text-align: center; font-weight: 700; color: ${idx === 0 ? '#fbbf24' : (idx === 1 ? '#cbd5e1' : (idx === 2 ? '#d97706' : '#fff'))};">${rankText}</td>
+            <td><strong style="color: #fff;">${item.className}</strong></td>
+            <td style="text-align: center; font-weight: bold; color: #fbbf24;">${item.gold}</td>
+            <td style="text-align: center; font-weight: bold; color: #cbd5e1;">${item.silver}</td>
+            <td style="text-align: center; font-weight: bold; color: #d97706;">${item.bronze}</td>
+            <td style="text-align: center; font-weight: bold; color: var(--text-sub);">${item.totalWins}</td>
+            <td style="text-align: center;"><strong style="color: var(--neon-cyan); font-size: 1.05rem;">${item.total} Pts</strong></td>
           </tr>
         `;
       }).join("");
@@ -893,7 +956,7 @@ async function loadChampionshipLeaderboard() {
 
   } catch (error) {
     console.error("Error computing standings:", error);
-    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--neon-red);">Failed to compute championship standings.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--neon-red); padding: 20px;">Failed to compute championship standings.</td></tr>`;
   }
 }
 
@@ -1178,6 +1241,22 @@ function setupChampionshipTab() {
   if (chkIncludePending) {
     chkIncludePending.addEventListener("change", () => {
       loadChampionshipLeaderboard();
+    });
+  }
+
+  const btnViewFullLeaderboard = document.getElementById("btnViewFullLeaderboard");
+  const fullLeaderboardModal = document.getElementById("fullLeaderboardModal");
+  const fullLeaderboardCloseBtn = document.getElementById("fullLeaderboardCloseBtn");
+
+  if (btnViewFullLeaderboard && fullLeaderboardModal) {
+    btnViewFullLeaderboard.addEventListener("click", () => {
+      fullLeaderboardModal.classList.add("active");
+    });
+  }
+
+  if (fullLeaderboardCloseBtn && fullLeaderboardModal) {
+    fullLeaderboardCloseBtn.addEventListener("click", () => {
+      fullLeaderboardModal.classList.remove("active");
     });
   }
 }

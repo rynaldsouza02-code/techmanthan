@@ -376,10 +376,13 @@
 
         <!-- OVERALL CHAMPIONSHIP PANEL -->
         <div class="tab-panel" id="panelChampionship">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
-                <div>
-                    <h3 class="form-title" style="margin-bottom: 5px;">Overall Championship Leaderboard</h3>
-                    <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 0;">Scan event winners to determine the Champion (5 pts for 1st, 3 pts for 2nd, 1 pt for 3rd).</p>
+            <!-- Action Controls Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="color: var(--text-sub); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                        <input type="checkbox" id="chkIncludePending" checked style="cursor: pointer; width: auto; height: auto; margin-right: 5px;">
+                        Include Pending (Unapproved) Results
+                    </label>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="button" class="cyber-btn cyber-btn-purple" id="btnPublishChampionship" style="padding: 8px 16px; font-size: 0.85rem;">Publish Championship Results</button>
@@ -387,39 +390,44 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 30px; flex-wrap: wrap; align-items: stretch;">
-                <!-- Points Scoreboard -->
-                <div class="form-panel cyber-corners" style="flex: 2; min-width: 300px; margin-bottom: 0; border: 1px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);">
+            <div style="display: flex; gap: 25px; flex-wrap: wrap; align-items: stretch;">
+                <!-- Main Leaderboard Card matching requested design -->
+                <div class="form-panel cyber-corners" style="flex: 2; min-width: 320px; margin-bottom: 0; border: 1px solid rgba(0, 243, 255, 0.25); background: rgba(10, 15, 30, 0.85); box-shadow: 0 0 20px rgba(0, 243, 255, 0.1); padding: 24px; border-radius: 16px;">
+                    <!-- Top Title Bar -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                        <h4 style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; margin-bottom: 0;">Class Scoreboard</h4>
-                        <label style="color: var(--text-sub); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="chkIncludePending" checked style="cursor: pointer; width: auto; height: auto; margin-right: 5px;">
-                            Include Pending (Unapproved) Results
-                        </label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; color: var(--neon-cyan); font-size: 0.9rem; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);">
+                                🎯
+                            </div>
+                            <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; margin-bottom: 0; font-size: 1.25rem; font-weight: 700;">Overall Championship Leaderboard Preview</h3>
+                        </div>
+                        <button type="button" id="btnViewFullLeaderboard" style="background: none; border: none; color: var(--neon-cyan); font-weight: bold; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; font-family: 'Inter', sans-serif; transition: all 0.2s ease;">
+                            View Full Leaderboard &rarr;
+                        </button>
                     </div>
-                    <div class="table-container">
-                        <table class="cyber-table">
+
+                    <!-- Clean Leaderboard Table -->
+                    <div class="table-container" style="margin-bottom: 0;">
+                        <table class="cyber-table" style="border-collapse: separate; border-spacing: 0 4px;">
                             <thead>
                                 <tr>
-                                    <th style="width: 80px; text-align: center;">Rank</th>
-                                    <th>Class Name</th>
-                                    <th style="width: 120px; text-align: center;">Gold (1st)</th>
-                                    <th style="width: 120px; text-align: center;">Silver (2nd)</th>
-                                    <th style="width: 120px; text-align: center;">Bronze (3rd)</th>
-                                    <th style="width: 120px; text-align: center; color: var(--neon-blue);">Total Points</th>
+                                    <th style="font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: var(--text-sub); font-size: 0.8rem; text-align: left; padding: 12px 16px; border: none;">RANK</th>
+                                    <th style="font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: var(--text-sub); font-size: 0.8rem; text-align: left; padding: 12px 16px; border: none;">CLASS</th>
+                                    <th style="font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: var(--text-sub); font-size: 0.8rem; text-align: left; padding: 12px 16px; border: none;">TOTAL POINTS</th>
+                                    <th style="font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: var(--text-sub); font-size: 0.8rem; text-align: left; padding: 12px 16px; border: none;">WINS (TOP 3)</th>
                                 </tr>
                             </thead>
                             <tbody id="championshipTableBody">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--text-sub);">Loading leaderboard standings...</td>
+                                    <td colspan="4" style="text-align: center; color: var(--text-sub); padding: 30px;">Loading leaderboard standings...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Published Standings Box -->
-                <div class="form-panel cyber-corners" style="flex: 1; min-width: 250px; margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.15);">
+                <!-- Published Status Panel -->
+                <div class="form-panel cyber-corners" style="flex: 1; min-width: 250px; margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.15); border-radius: 16px;">
                     <div>
                         <h4 style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; margin-bottom: 20px;">Published Status</h4>
                         <div id="champStatusBox" style="text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -580,6 +588,35 @@
                 </div>
                 <button type="submit" class="cyber-btn cyber-btn-purple" style="width: 100%; margin-top: 15px;">Save Judging Parameters</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Full Leaderboard Breakdown Modal -->
+    <div class="modal-overlay" id="fullLeaderboardModal">
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <button class="modal-close" id="fullLeaderboardCloseBtn">&times;</button>
+            <h3 class="modal-title" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">🏆 Full Overall Championship Breakdown</h3>
+            <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px;">Detailed gold, silver, and bronze win breakdown across all college class sections.</p>
+            <div class="table-container">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px; text-align: center;">Rank</th>
+                            <th>Class Name</th>
+                            <th style="width: 110px; text-align: center; color: #fbbf24;">Gold (1st)</th>
+                            <th style="width: 110px; text-align: center; color: #cbd5e1;">Silver (2nd)</th>
+                            <th style="width: 110px; text-align: center; color: #d97706;">Bronze (3rd)</th>
+                            <th style="width: 110px; text-align: center;">Total Wins</th>
+                            <th style="width: 120px; text-align: center; color: var(--neon-cyan);">Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullLeaderboardTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-sub);">Loading breakdown...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
