@@ -1489,9 +1489,14 @@ function renderRoundPromotions() {
         <td><strong style="color: var(--neon-purple);">${targetRound}</strong> <span style="font-size: 0.75rem; color: var(--text-sub);">(From ${promo.fromRound})</span></td>
         <td style="text-align: center;"><strong style="color: var(--neon-green); font-size: 1.1rem;">${promo.promotedStudents.length} Students</strong></td>
         <td style="text-align: center;">
-          <button class="cyber-btn cyber-btn-blue" style="font-size: 0.8rem; padding: 6px 12px;" onclick="downloadPromotedStudentsExcel('${targetRound}')">
-            📊 Download Excel List (.csv)
-          </button>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="cyber-btn cyber-btn-blue" style="font-size: 0.75rem; padding: 6px 10px;" onclick="downloadPromotedStudentsExcel('${targetRound}')">
+              📊 Excel (.csv)
+            </button>
+            <button class="cyber-btn cyber-btn-purple" style="font-size: 0.75rem; padding: 6px 10px;" onclick="downloadPromotedStudentsPDF('${targetRound}', this)">
+              🖨️ PDF (.pdf)
+            </button>
+          </div>
         </td>
         <td style="text-align: center;">
           <button class="cyber-btn cyber-btn-red" style="font-size: 0.75rem; padding: 6px 10px;" onclick="clearRoundPromotion('${targetRound}')">Reset Promotion</button>
@@ -1527,6 +1532,74 @@ window.downloadPromotedStudentsExcel = function(targetRound) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+window.downloadPromotedStudentsPDF = async function(targetRound, btnElement) {
+  const roundPromotions = eventData.roundPromotions || {};
+  const promo = roundPromotions[targetRound];
+  if (!promo) {
+    alert("No promotion data found for " + targetRound);
+    return;
+  }
+
+  const promotedDetails = promo.promotedDetails || [];
+  const headers = ["Sl No", "Reg No / Roll No", "Student Name", "Class", `Average Score (${promo.fromRound})` ];
+  const rows = promotedDetails.map((d, idx) => [
+    idx + 1,
+    d.regNo,
+    d.name || "N/A",
+    d.class || "N/A",
+    `${d.avgScore !== undefined ? d.avgScore : 'N/A'} pts`
+  ]);
+
+  let origText = "🖨️ PDF (.pdf)";
+  if (btnElement) {
+    origText = btnElement.innerText;
+    btnElement.disabled = true;
+    btnElement.innerText = "Generating...";
+  }
+
+  const orgName = localStorage.getItem("organizerName") || eventData.coordinator || "Unassigned";
+
+  const payload = {
+    type: "marksheet",
+    title: `${eventData.title} - Qualified Students for ${targetRound}`,
+    round: targetRound,
+    coordinator: orgName,
+    date: eventData.date || "N/A",
+    time: eventData.time || "N/A",
+    venue: eventData.venue || "N/A",
+    headers: headers,
+    rows: rows
+  };
+
+  try {
+    const response = await fetch("/api/generate-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error("Failed to generate PDF");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${eventData.title.toLowerCase().replace(/ /g, "_")}_${targetRound.toLowerCase().replace(/ /g, "_")}_promoted_students.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Error generating PDF list:", err);
+    alert("Failed to generate PDF for promoted students.");
+  } finally {
+    if (btnElement) {
+      btnElement.disabled = false;
+      btnElement.innerText = origText;
+    }
+  }
 };
 
 window.clearRoundPromotion = async function(targetRound) {
