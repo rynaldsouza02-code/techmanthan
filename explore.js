@@ -69,6 +69,7 @@ function initializeExplore() {
   setupSessionUI();
   setupRealtimeListeners();
   setupEventListeners();
+  loadPromosForExplore();
 }
 
 // Setup User navigation badge
@@ -998,6 +999,62 @@ async function saveMediaToFirestore() {
   } finally {
     btnSaveMedia.disabled = false;
     btnSaveMedia.innerText = "Sync Media To Database";
+  }
+}
+
+function getEmbedMediaUrl(url) {
+  if (!url) return "";
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
+  }
+  return url;
+}
+
+async function loadPromosForExplore() {
+  try {
+    const promoSnap = await getDocs(collection(db, "promos"));
+    const promos = [];
+    promoSnap.forEach(snap => promos.push(snap.data()));
+
+    const section = document.getElementById("promoGallerySection");
+    const grid = document.getElementById("promoGridExplore");
+
+    if (!section || !grid) return;
+
+    if (promos.length === 0) {
+      section.style.display = "none";
+      return;
+    }
+
+    promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+    section.style.display = "block";
+
+    grid.innerHTML = promos.map(p => {
+      let mediaHTML = "";
+      if (p.contentType === "video") {
+        const embedUrl = getEmbedMediaUrl(p.mediaUrl);
+        if (embedUrl.includes("youtube.com/embed")) {
+          mediaHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 200px; border: none; border-radius: 8px;" allowfullscreen></iframe>`;
+        } else {
+          mediaHTML = `<video src="${p.mediaUrl}" controls style="width: 100%; height: 200px; border-radius: 8px; object-fit: cover; background: #000;"></video>`;
+        }
+      } else {
+        mediaHTML = `<img src="${p.mediaUrl}" style="width: 100%; height: 200px; border-radius: 8px; object-fit: cover;" alt="${p.title}">`;
+      }
+
+      return `
+        <div class="event-card cyber-card-scan cyber-corners" style="padding: 15px;">
+          ${mediaHTML}
+          <div style="margin-top: 12px;">
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 6px; font-family: 'Orbitron', sans-serif;">${p.title}</h3>
+            <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0;">${p.description || "Official promo media."}</p>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error("Error loading promos for explore page:", err);
   }
 }
 

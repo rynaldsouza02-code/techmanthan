@@ -25,6 +25,7 @@ const tabBtnRegistrations = document.getElementById("tabBtnRegistrations");
 const tabBtnJudges = document.getElementById("tabBtnJudges");
 const tabBtnResultsApproval = document.getElementById("tabBtnResultsApproval");
 const tabBtnChampionship = document.getElementById("tabBtnChampionship");
+const tabBtnPromos = document.getElementById("tabBtnPromos");
 
 const panelOverview = document.getElementById("panelOverview");
 const panelEvents = document.getElementById("panelEvents");
@@ -34,9 +35,10 @@ const panelRegistrations = document.getElementById("panelRegistrations");
 const panelJudges = document.getElementById("panelJudges");
 const panelResultsApproval = document.getElementById("panelResultsApproval");
 const panelChampionship = document.getElementById("panelChampionship");
+const panelPromos = document.getElementById("panelPromos");
 
-const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelResultsApproval, panelChampionship];
-const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnResultsApproval, tabBtnChampionship];
+const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelResultsApproval, panelChampionship, panelPromos];
+const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnResultsApproval, tabBtnChampionship, tabBtnPromos];
 
 // Overview Stats Elements
 const statTotalEvents = document.getElementById("statTotalEvents");
@@ -128,6 +130,8 @@ async function init() {
   setupRegistrationsTab();
   setupJudgingForm();
   setupChampionshipTab();
+  setupPromoStudio();
+  loadPromosData();
 }
 
 // Switch between panels
@@ -172,6 +176,12 @@ function setupTabs() {
     switchTab(tabBtnChampionship, panelChampionship);
     loadChampionshipLeaderboard();
   });
+  if (tabBtnPromos && panelPromos) {
+    tabBtnPromos.addEventListener("click", () => {
+      switchTab(tabBtnPromos, panelPromos);
+      loadPromosData();
+    });
+  }
 }
 
 function setupLogout() {
@@ -1168,6 +1178,270 @@ function setupChampionshipTab() {
     });
   }
 }
+
+// ==========================================
+// PROMO CONTENT STUDIO MANAGEMENT
+// ==========================================
+
+let allPromos = [];
+
+function getEmbedMediaUrl(url) {
+  if (!url) return "";
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
+  }
+  return url;
+}
+
+function setupPromoStudio() {
+  const btnTypeVideo = document.getElementById("btnTypeVideo");
+  const btnTypeImage = document.getElementById("btnTypeImage");
+  const promoContentType = document.getElementById("promoContentType");
+
+  const btnSourceUrl = document.getElementById("btnSourceUrl");
+  const btnSourceFile = document.getElementById("btnSourceFile");
+  const promoMediaSource = document.getElementById("promoMediaSource");
+  const sourceUrlGroup = document.getElementById("sourceUrlGroup");
+  const sourceFileGroup = document.getElementById("sourceFileGroup");
+
+  if (btnTypeVideo && btnTypeImage) {
+    btnTypeVideo.addEventListener("click", () => {
+      promoContentType.value = "video";
+      btnTypeVideo.style.background = "rgba(168, 85, 247, 0.2)";
+      btnTypeVideo.style.borderColor = "var(--neon-purple)";
+      btnTypeVideo.style.opacity = "1";
+      btnTypeImage.style.background = "";
+      btnTypeImage.style.borderColor = "";
+      btnTypeImage.style.opacity = "0.6";
+    });
+
+    btnTypeImage.addEventListener("click", () => {
+      promoContentType.value = "image";
+      btnTypeImage.style.background = "rgba(234, 179, 8, 0.2)";
+      btnTypeImage.style.borderColor = "#eab308";
+      btnTypeImage.style.opacity = "1";
+      btnTypeVideo.style.background = "";
+      btnTypeVideo.style.borderColor = "";
+      btnTypeVideo.style.opacity = "0.6";
+    });
+  }
+
+  if (btnSourceUrl && btnSourceFile) {
+    btnSourceUrl.addEventListener("click", () => {
+      promoMediaSource.value = "url";
+      sourceUrlGroup.style.display = "block";
+      sourceFileGroup.style.display = "none";
+      btnSourceUrl.style.background = "rgba(0, 243, 255, 0.2)";
+      btnSourceUrl.style.borderColor = "var(--neon-cyan)";
+      btnSourceUrl.style.opacity = "1";
+      btnSourceFile.style.background = "";
+      btnSourceFile.style.borderColor = "";
+      btnSourceFile.style.opacity = "0.6";
+    });
+
+    btnSourceFile.addEventListener("click", () => {
+      promoMediaSource.value = "file";
+      sourceUrlGroup.style.display = "none";
+      sourceFileGroup.style.display = "block";
+      btnSourceFile.style.background = "rgba(0, 243, 255, 0.2)";
+      btnSourceFile.style.borderColor = "var(--neon-cyan)";
+      btnSourceFile.style.opacity = "1";
+      btnSourceUrl.style.background = "";
+      btnSourceUrl.style.borderColor = "";
+      btnSourceUrl.style.opacity = "0.6";
+    });
+  }
+
+  const promoForm = document.getElementById("promoForm");
+  if (promoForm) {
+    promoForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btnPublish = document.getElementById("btnPublishPromo");
+      btnPublish.disabled = true;
+      btnPublish.innerText = "PUBLISHING...";
+
+      try {
+        const title = document.getElementById("promoTitle").value.trim();
+        const description = document.getElementById("promoDescription").value.trim();
+        const contentType = document.getElementById("promoContentType").value;
+        const mediaSource = document.getElementById("promoMediaSource").value;
+        const targetVisibility = document.getElementById("promoTargetVisibility").value;
+        const priority = parseInt(document.getElementById("promoPriority").value) || 1;
+
+        let mediaUrl = "";
+
+        if (mediaSource === "url") {
+          mediaUrl = document.getElementById("promoMediaUrl").value.trim();
+          if (!mediaUrl) {
+            alert("Please enter a valid video or image URL link.");
+            btnPublish.disabled = false;
+            btnPublish.innerText = "PUBLISH PROMO";
+            return;
+          }
+        } else {
+          const fileInput = document.getElementById("promoFileInput");
+          if (!fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a file to upload.");
+            btnPublish.disabled = false;
+            btnPublish.innerText = "PUBLISH PROMO";
+            return;
+          }
+          const file = fileInput.files[0];
+          mediaUrl = await readFileAsDataURL(file);
+        }
+
+        const promoId = `promo_${Date.now()}`;
+        const newPromo = {
+          id: promoId,
+          title: title,
+          description: description,
+          contentType: contentType,
+          mediaSource: mediaSource,
+          mediaUrl: mediaUrl,
+          targetVisibility: targetVisibility,
+          priority: priority,
+          uploadedBy: "Administrator",
+          createdAt: new Date().toISOString()
+        };
+
+        const docRef = doc(db, "promos", promoId);
+        await setDoc(docRef, newPromo);
+
+        alert(`Promo "${title}" published successfully!`);
+
+        document.getElementById("promoTitle").value = "";
+        document.getElementById("promoDescription").value = "";
+        document.getElementById("promoMediaUrl").value = "";
+
+        await loadPromosData();
+      } catch (err) {
+        console.error("Error publishing promo:", err);
+        alert("Failed to publish promo content.");
+      } finally {
+        btnPublish.disabled = false;
+        btnPublish.innerText = "PUBLISH PROMO";
+      }
+    });
+  }
+
+  const btnReloadPromos = document.getElementById("btnReloadPromos");
+  if (btnReloadPromos) {
+    btnReloadPromos.addEventListener("click", loadPromosData);
+  }
+
+  const searchPromoInput = document.getElementById("searchPromoInput");
+  const filterPromoTypeSelect = document.getElementById("filterPromoTypeSelect");
+  if (searchPromoInput) searchPromoInput.addEventListener("input", renderPromoLibrary);
+  if (filterPromoTypeSelect) filterPromoTypeSelect.addEventListener("change", renderPromoLibrary);
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadPromosData() {
+  try {
+    const querySnap = await getDocs(collection(db, "promos"));
+    allPromos = [];
+    querySnap.forEach(snap => {
+      allPromos.push(snap.data());
+    });
+    allPromos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+    renderPromoStats();
+    renderPromoLibrary();
+  } catch (err) {
+    console.error("Error loading promos:", err);
+  }
+}
+
+function renderPromoStats() {
+  const statTotalMedia = document.getElementById("statTotalMedia");
+  const statTotalVideos = document.getElementById("statTotalVideos");
+  const statTotalPosters = document.getElementById("statTotalPosters");
+  const statActivePromos = document.getElementById("statActivePromos");
+
+  if (!statTotalMedia) return;
+
+  const total = allPromos.length;
+  const videos = allPromos.filter(p => p.contentType === "video").length;
+  const posters = allPromos.filter(p => p.contentType === "image").length;
+
+  statTotalMedia.innerText = total;
+  statTotalVideos.innerText = videos;
+  statTotalPosters.innerText = posters;
+  statActivePromos.innerText = total;
+}
+
+function renderPromoLibrary() {
+  const grid = document.getElementById("promoLibraryGrid");
+  if (!grid) return;
+
+  const searchVal = (document.getElementById("searchPromoInput")?.value || "").toLowerCase();
+  const filterType = document.getElementById("filterPromoTypeSelect")?.value || "all";
+
+  let filtered = allPromos.filter(p => {
+    const matchesSearch = (p.title || "").toLowerCase().includes(searchVal) || (p.description || "").toLowerCase().includes(searchVal);
+    if (!matchesSearch) return false;
+    if (filterType !== "all" && p.contentType !== filterType) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px;">No promo media found.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => {
+    let previewHTML = "";
+    if (p.contentType === "video") {
+      const embedUrl = getEmbedMediaUrl(p.mediaUrl);
+      if (embedUrl.includes("youtube.com/embed")) {
+        previewHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 110px; border: none; border-radius: 6px;" allowfullscreen></iframe>`;
+      } else {
+        previewHTML = `<video src="${p.mediaUrl}" controls style="width: 100%; height: 110px; border-radius: 6px; object-fit: cover; background: #000;"></video>`;
+      }
+    } else {
+      previewHTML = `<img src="${p.mediaUrl}" style="width: 100%; height: 110px; border-radius: 6px; object-fit: cover;" alt="${p.title}">`;
+    }
+
+    const typeBadge = p.contentType === "video" 
+      ? `<span style="position: absolute; top: 8px; right: 8px; background: rgba(124, 58, 237, 0.85); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">VIDEO</span>`
+      : `<span style="position: absolute; top: 8px; right: 8px; background: rgba(234, 179, 8, 0.85); color: #000; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">IMAGE</span>`;
+
+    return `
+      <div class="cyber-corners" style="position: relative; background: rgba(10, 15, 30, 0.8); border: 1px solid rgba(0, 243, 255, 0.2); padding: 8px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+        ${typeBadge}
+        <div style="margin-bottom: 8px;">
+          ${previewHTML}
+          <h4 style="font-size: 0.85rem; color: #fff; margin: 8px 0 2px 0; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${p.title}</h4>
+          <p style="font-size: 0.75rem; color: var(--text-sub); margin: 0; line-clamp: 2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${p.description || "No description"}</p>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; font-size: 0.7rem; color: var(--text-sub);">
+          <span>Prio: ${p.priority || 1}</span>
+          <button class="cyber-btn cyber-btn-red" style="font-size: 0.65rem; padding: 2px 6px;" onclick="deletePromo('${p.id}')">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.deletePromo = async function(promoId) {
+  if (!confirm("Are you sure you want to delete this promo item?")) return;
+  try {
+    await deleteDoc(doc(db, "promos", promoId));
+    alert("Promo item deleted.");
+    await loadPromosData();
+  } catch (err) {
+    console.error("Error deleting promo:", err);
+    alert("Failed to delete promo.");
+  }
+};
 
 // Run initial configurations
 document.addEventListener("DOMContentLoaded", init);
