@@ -282,10 +282,13 @@ function setupEventForm() {
   eventForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
-    const id = eventIdInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    const titleVal = eventTitleInput.value.trim();
+    let id = eventIdInput.value ? eventIdInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : "";
+    if (!id && titleVal) {
+      id = titleVal.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
     if (!id) {
-      alert("Please enter a valid alphanumeric Event ID.");
-      return;
+      id = `event_${Date.now()}`;
     }
 
     const eventData = {

@@ -1653,3 +1653,38 @@ body::before {
     color: #fff;
     box-shadow: 0 0 15px var(--neon-red);
 }
+
+/* ==========================================
+   CYBER CALENDAR DATE PICKER STYLING
+   ========================================== */
+input[type="date"] {
+    background: rgba(10, 15, 30, 0.9) !important;
+    border: 1px solid var(--neon-cyan) !important;
+    color: #ffffff !important;
+    font-family: 'Orbitron', sans-serif, monospace !important;
+    font-size: 0.9rem !important;
+    padding: 9px 12px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.15) !important;
+    transition: all 0.3s ease !important;
+}
+
+input[type="date"]:hover, input[type="date"]:focus {
+    border-color: var(--neon-purple) !important;
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.35) !important;
+    outline: none !important;
+}
+
+/* Neon Cyan Calendar Indicator Icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) sepia(100%) saturate(10000%) hue-rotate(170deg) brightness(1.2);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    transform: scale(1.25);
+}
