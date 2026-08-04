@@ -129,14 +129,17 @@ function setupSessionUI() {
     // Render Student Profile Dropdown Panel
     renderProfileDropdown();
 
-    document.getElementById("btnProfilePill").addEventListener("click", (e) => {
-      e.stopPropagation();
-      const dropdown = document.getElementById("studentProfileDropdown");
-      if (dropdown) {
-        dropdown.classList.toggle("active");
-        renderProfileEventsList();
-      }
-    });
+    const btnProfilePill = document.getElementById("btnProfilePill");
+    if (btnProfilePill) {
+      btnProfilePill.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dropdown = document.getElementById("studentProfileDropdown");
+        if (dropdown) {
+          dropdown.classList.toggle("active");
+          renderProfileEventsList();
+        }
+      });
+    }
 
     document.addEventListener("click", (e) => {
       const dropdown = document.getElementById("studentProfileDropdown");
@@ -213,27 +216,34 @@ function renderProfileDropdown() {
     <button type="button" class="profile-logout-btn" id="btnProfileLogout">Log Out</button>
   `;
 
-  document.getElementById("btnProfileLogout").addEventListener("click", () => {
-    localStorage.clear();
-    window.location.reload();
-  });
+  const btnProfileLogout = document.getElementById("btnProfileLogout");
+  if (btnProfileLogout) {
+    btnProfileLogout.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.reload();
+    });
+  }
 
-  document.getElementById("btnSaveProfileEmail").addEventListener("click", async () => {
-    const newEmail = document.getElementById("profileEmailInput").value.trim();
-    if (!newEmail || !newEmail.includes("@")) {
-      alert("Please enter a valid email address.");
-      return;
-    }
-    try {
-      const studentRef = doc(db, "students", username);
-      await updateDoc(studentRef, { email: newEmail });
-      localStorage.setItem("email", newEmail);
-      alert("Email address updated successfully!");
-    } catch (err) {
-      console.error("Error updating email:", err);
-      alert("Failed to update email address.");
-    }
-  });
+  const btnSaveProfileEmail = document.getElementById("btnSaveProfileEmail");
+  if (btnSaveProfileEmail) {
+    btnSaveProfileEmail.addEventListener("click", async () => {
+      const emailInput = document.getElementById("profileEmailInput");
+      const newEmail = emailInput ? emailInput.value.trim() : "";
+      if (!newEmail || !newEmail.includes("@")) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      try {
+        const studentRef = doc(db, "students", username);
+        await updateDoc(studentRef, { email: newEmail });
+        localStorage.setItem("email", newEmail);
+        alert("Email address updated successfully!");
+      } catch (err) {
+        console.error("Error updating email:", err);
+        alert("Failed to update email address.");
+      }
+    });
+  }
 }
 
 function renderProfileEventsList() {
