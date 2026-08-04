@@ -89,6 +89,7 @@ async function init() {
   setupEventListeners();
   setupOrgPromoStudio();
   await loadOrgPromosData();
+  setupCredentialsModal();
 
   const btnGoToMedia = document.getElementById("btnGoToMedia");
   if (btnGoToMedia) {
@@ -1978,6 +1979,136 @@ window.deleteOrgPromo = async function(promoId) {
     alert("Failed to delete promo.");
   }
 };
+
+// ==========================================
+// ORGANIZER CREDENTIALS MANAGEMENT
+// ==========================================
+function setupCredentialsModal() {
+  const btnEditCredentials = document.getElementById("btnEditCredentials");
+  const credentialsModal = document.getElementById("credentialsModal");
+  const credentialsModalCloseBtn = document.getElementById("credentialsModalCloseBtn");
+  const credentialsForm = document.getElementById("credentialsForm");
+
+  const editOrgName = document.getElementById("editOrgName");
+  const editOrgUsername = document.getElementById("editOrgUsername");
+  const editOrgPassword = document.getElementById("editOrgPassword");
+
+  if (btnEditCredentials && credentialsModal) {
+    btnEditCredentials.addEventListener("click", async () => {
+      editOrgName.value = organizerName || "";
+      editOrgUsername.value = organizerUsername || "";
+      
+      // Fetch current password from Firestore
+      try {
+        if (organizerUsername) {
+          const orgRef = doc(db, "organizers", organizerUsername);
+          const orgSnap = await getDoc(orgRef);
+          if (orgSnap.exists()) {
+            editOrgPassword.value = orgSnap.data().password || "";
+          } else {
+            editOrgPassword.value = "";
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching organizer credentials:", err);
+      }
+
+      credentialsModal.classList.add("active");
+    });
+  }
+
+  if (credentialsModalCloseBtn && credentialsModal) {
+    credentialsModalCloseBtn.addEventListener("click", () => {
+      credentialsModal.classList.remove("active");
+    });
+
+    credentialsModal.addEventListener("click", (e) => {
+      if (e.target === credentialsModal) {
+        credentialsModal.classList.remove("active");
+      }
+    });
+  }
+
+  if (credentialsForm) {
+    credentialsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const newName = editOrgName.value.trim();
+      const newUsername = editOrgUsername.value.trim().toLowerCase();
+      const newPassword = editOrgPassword.value.trim();
+
+      if (!newName || !newUsername || !newPassword) {
+        alert("Please fill in all fields (Name, Username, Password).");
+        return;
+      }
+
+      const oldUsername = organizerUsername;
+      const submitBtn = credentialsForm.querySelector("button[type='submit']");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "SAVING...";
+
+      try {
+        if (newUsername !== oldUsername) {
+          // Verify if new username already exists
+          const newOrgRef = doc(db, "organizers", newUsername);
+          const newOrgSnap = await getDoc(newOrgRef);
+          if (newOrgSnap.exists()) {
+            alert(`Username "${newUsername}" is already taken by another coordinator. Please choose a different username.`);
+            submitBtn.disabled = false;
+            submitBtn.innerText = "SAVE CREDENTIALS";
+            return;
+          }
+
+          // Read old doc data
+          const oldOrgRef = doc(db, "organizers", oldUsername);
+          const oldOrgSnap = await getDoc(oldOrgRef);
+          const oldData = oldOrgSnap.exists() ? oldOrgSnap.data() : {};
+
+          // Write to new doc
+          await setDoc(newOrgRef, {
+            ...oldData,
+            name: newName,
+            username: newUsername,
+            password: newPassword,
+            assignedEventId: assignedEventId || oldData.assignedEventId || ""
+          });
+
+          // Delete old doc
+          if (oldOrgSnap.exists()) {
+            await deleteDoc(oldOrgRef);
+          }
+        } else {
+          // Update existing doc
+          const orgRef = doc(db, "organizers", oldUsername);
+          await updateDoc(orgRef, {
+            name: newName,
+            password: newPassword
+          });
+        }
+
+        // Update localStorage and in-memory variables
+        localStorage.setItem("organizerUsername", newUsername);
+        localStorage.setItem("organizerName", newName);
+        organizerUsername = newUsername;
+        organizerName = newName;
+
+        // Update UI
+        if (orgUserBadge) {
+          orgUserBadge.innerText = `${newName} (${newUsername})`;
+        }
+
+        alert("Credentials updated successfully! You can now log in using your updated username and password.");
+        credentialsModal.classList.remove("active");
+      } catch (err) {
+        console.error("Error updating organizer credentials:", err);
+        alert("Failed to update credentials. Please try again.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "SAVE CREDENTIALS";
+      }
+    });
+  }
+}
 
 // Boot Dashboard
 document.addEventListener("DOMContentLoaded", init);
