@@ -177,6 +177,14 @@ async function loadEventData() {
       orgCriteria.value = eventData.criteria && eventData.criteria.length > 0 ? eventData.criteria.join(", ") : "";
     }
 
+    const assignJudgeEventName = document.getElementById("assignJudgeEventName");
+    if (assignJudgeEventName) {
+      assignJudgeEventName.innerText = eventData.title || assignedEventId;
+    }
+
+    renderJudgeAssignments();
+    renderRoundPromotions();
+
   } catch (error) {
     console.error("Error loading event details:", error);
   }
@@ -928,6 +936,104 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Handle Assign Judge Form Submit
+  const assignJudgeForm = document.getElementById("assignJudgeForm");
+  if (assignJudgeForm) {
+    assignJudgeForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const roundName = document.getElementById("selectAssignRound").value;
+      const judgeName = document.getElementById("assignJudgeNameInput").value.trim();
+
+      if (!judgeName) {
+        alert("Please enter judge name.");
+        return;
+      }
+
+      const link = `${window.location.protocol}//${window.location.host}/judge.html?event=${assignedEventId}&round=${encodeURIComponent(roundName)}&judge=${encodeURIComponent(judgeName)}`;
+
+      const judgeAssignments = eventData.judgeAssignments || [];
+      const newAsgn = {
+        id: Date.now().toString(),
+        round: roundName,
+        judgeName: judgeName,
+        link: link,
+        createdAt: new Date().toISOString()
+      };
+
+      judgeAssignments.push(newAsgn);
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, { judgeAssignments });
+        eventData.judgeAssignments = judgeAssignments;
+
+        document.getElementById("assignJudgeNameInput").value = "";
+        renderJudgeAssignments();
+        alert(`Judge ${judgeName} assigned for ${roundName}! Scoring link generated.`);
+      } catch (err) {
+        console.error("Error saving judge assignment:", err);
+        alert("Failed to save judge assignment.");
+      }
+    });
+  }
+
+  // Handle Promote Top N Students Form Submit
+  const promoteStudentsForm = document.getElementById("promoteStudentsForm");
+  if (promoteStudentsForm) {
+    promoteStudentsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fromRound = document.getElementById("fromRoundSelect").value;
+      const toRound = document.getElementById("toRoundSelect").value;
+      const topN = parseInt(document.getElementById("topNCountInput").value);
+
+      if (fromRound === toRound) {
+        alert("Target round (TO ROUND) must be different from source round (FROM ROUND).");
+        return;
+      }
+
+      if (!topN || topN < 1) {
+        alert("Please enter a valid number of students to promote (N).");
+        return;
+      }
+
+      // Calculate scores for fromRound
+      const studentScores = calculateStudentScoresForRound(fromRound);
+      if (studentScores.length === 0) {
+        alert(`No student scores found for ${fromRound}. Please make sure judges have entered and saved scores for ${fromRound} first.`);
+        return;
+      }
+
+      // Sort descending by average score
+      studentScores.sort((a, b) => b.avgScore - a.avgScore);
+
+      // Select top N
+      const promoted = studentScores.slice(0, topN);
+      const promotedRegNos = promoted.map(s => s.regNo);
+
+      const roundPromotions = eventData.roundPromotions || {};
+      roundPromotions[toRound] = {
+        fromRound: fromRound,
+        targetRound: toRound,
+        topN: topN,
+        promotedStudents: promotedRegNos,
+        promotedDetails: promoted.map(s => ({ regNo: s.regNo, name: s.name, class: s.class, avgScore: s.avgScore })),
+        promotedAt: new Date().toISOString()
+      };
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, { roundPromotions });
+        eventData.roundPromotions = roundPromotions;
+
+        renderRoundPromotions();
+        alert(`Success! Top ${promoted.length} students from ${fromRound} have been promoted to ${toRound}!`);
+      } catch (err) {
+        console.error("Error saving round promotion:", err);
+        alert("Failed to save round promotion.");
+      }
+    });
+  }
 }
 
 function renderMarksSheet() {
@@ -1029,6 +1135,168 @@ function calculateStudentTotal(regNo) {
     totalEl.innerText = sum;
   }
   return sum;
+}
+
+// ==========================================
+// ROUND & JUDGE MANAGEMENT FUNCTIONS
+// ==========================================
+
+function renderJudgeAssignments() {
+  const tableBody = document.getElementById("judgeAssignmentsTableBody");
+  if (!tableBody) return;
+
+  const judgeAssignments = eventData.judgeAssignments || [];
+  if (judgeAssignments.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub);">No judges assigned for this event yet.</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = judgeAssignments.map(asgn => {
+    const link = asgn.link || `${window.location.protocol}//${window.location.host}/judge.html?event=${assignedEventId}&round=${encodeURIComponent(asgn.round)}&judge=${encodeURIComponent(asgn.judgeName)}`;
+    return `
+      <tr>
+        <td><strong style="color: var(--neon-cyan);">${asgn.round}</strong></td>
+        <td><strong>${asgn.judgeName}</strong></td>
+        <td>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" readonly value="${link}" style="flex: 1; font-size: 0.8rem; padding: 4px 8px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); color: var(--neon-cyan); border-radius: 4px;" id="link-input-${asgn.id}">
+            <button class="cyber-btn" style="font-size: 0.75rem; padding: 4px 8px;" onclick="copyJudgeLink('${link}', this)">📋 Copy</button>
+          </div>
+        </td>
+        <td>
+          <button class="cyber-btn cyber-btn-red" style="font-size: 0.75rem; padding: 4px 8px;" onclick="deleteJudgeAssignment('${asgn.id}')">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+window.copyJudgeLink = function(link, btn) {
+  navigator.clipboard.writeText(link).then(() => {
+    const origText = btn.innerText;
+    btn.innerText = "✓ Copied!";
+    btn.style.color = "var(--neon-green)";
+    setTimeout(() => {
+      btn.innerText = origText;
+      btn.style.color = "";
+    }, 1500);
+  }).catch(err => {
+    alert("Scoring Link: " + link);
+  });
+};
+
+window.deleteJudgeAssignment = async function(asgnId) {
+  if (!confirm("Are you sure you want to delete this judge assignment link?")) return;
+
+  try {
+    const judgeAssignments = (eventData.judgeAssignments || []).filter(a => a.id !== asgnId);
+    const eventRef = doc(db, "events", assignedEventId);
+    await updateDoc(eventRef, { judgeAssignments });
+    eventData.judgeAssignments = judgeAssignments;
+    renderJudgeAssignments();
+    alert("Judge assignment deleted.");
+  } catch (error) {
+    console.error("Error deleting judge assignment:", error);
+    alert("Failed to delete judge assignment.");
+  }
+};
+
+function renderRoundPromotions() {
+  const tableBody = document.getElementById("roundPromotionsTableBody");
+  if (!tableBody) return;
+
+  const roundPromotions = eventData.roundPromotions || {};
+  const roundsList = Object.keys(roundPromotions);
+
+  if (roundsList.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-sub);">No round promotions created yet.</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = roundsList.map(targetRound => {
+    const promo = roundPromotions[targetRound];
+    const promotedDetails = promo.promotedDetails || [];
+    const promotedNames = promotedDetails.map(d => `${d.name} (${d.regNo})`).join(", ");
+
+    return `
+      <tr>
+        <td><strong style="color: var(--neon-purple);">${targetRound}</strong> <span style="font-size: 0.75rem; color: var(--text-sub);">(From ${promo.fromRound})</span></td>
+        <td style="text-align: center;"><strong style="color: var(--neon-green); font-size: 1.1rem;">${promo.promotedStudents.length} Students</strong></td>
+        <td>
+          <div style="max-height: 80px; overflow-y: auto; font-size: 0.85rem; color: #ddd;">
+            ${promotedNames || promo.promotedStudents.join(", ")}
+          </div>
+        </td>
+        <td>
+          <button class="cyber-btn cyber-btn-red" style="font-size: 0.75rem; padding: 4px 8px;" onclick="clearRoundPromotion('${targetRound}')">Reset Promotion</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+window.clearRoundPromotion = async function(targetRound) {
+  if (!confirm(`Are you sure you want to reset promotions for ${targetRound}?`)) return;
+
+  try {
+    const roundPromotions = eventData.roundPromotions || {};
+    delete roundPromotions[targetRound];
+    
+    const eventRef = doc(db, "events", assignedEventId);
+    await updateDoc(eventRef, { roundPromotions });
+    eventData.roundPromotions = roundPromotions;
+    renderRoundPromotions();
+    alert(`Promotions for ${targetRound} have been reset.`);
+  } catch (error) {
+    console.error("Error resetting round promotion:", error);
+    alert("Failed to reset promotion.");
+  }
+};
+
+function calculateStudentScoresForRound(roundName) {
+  let marksSheetToUse = {};
+  if (roundName === "Round 1") {
+    marksSheetToUse = (eventData.rounds && eventData.rounds["Round 1"] && eventData.rounds["Round 1"].marksSheet)
+      ? eventData.rounds["Round 1"].marksSheet
+      : (eventData.marksSheet || {});
+  } else if (eventData.rounds && eventData.rounds[roundName]) {
+    marksSheetToUse = eventData.rounds[roundName].marksSheet || {};
+  } else if (eventData.marksSheet) {
+    marksSheetToUse = eventData.marksSheet;
+  }
+
+  const resultsList = [];
+
+  registeredStudents.forEach(st => {
+    const studentEntry = marksSheetToUse[st.regNo] || {};
+    let totalSum = 0;
+    let judgeCount = 0;
+
+    if (studentEntry.scores !== undefined && studentEntry.total !== undefined) {
+      totalSum += studentEntry.total;
+      judgeCount = 1;
+    } else {
+      Object.keys(studentEntry).forEach(judgeKey => {
+        const jVal = studentEntry[judgeKey];
+        if (jVal && jVal.total !== undefined) {
+          totalSum += jVal.total;
+          judgeCount++;
+        }
+      });
+    }
+
+    if (judgeCount > 0) {
+      const avgScore = totalSum / judgeCount;
+      resultsList.push({
+        regNo: st.regNo,
+        name: st.name || st.regNo,
+        class: st.class || "N/A",
+        avgScore: parseFloat(avgScore.toFixed(2))
+      });
+    }
+  });
+
+  return resultsList;
 }
 
 // Boot Dashboard

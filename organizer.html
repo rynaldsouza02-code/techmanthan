@@ -245,6 +245,101 @@
                 </div>
             </div>
         </div>
+
+        <!-- Section 4: Assign Judge & Round Management -->
+        <div style="width: 100%; margin-top: 30px;" id="roundManagementSection">
+            <!-- Assign Judge Panel -->
+            <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 25px;">
+                <h3 class="form-title">Assign Judge for <span id="assignJudgeEventName" style="color: var(--neon-cyan);">Event</span></h3>
+                
+                <form id="assignJudgeForm" style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label for="selectAssignRound">SELECT ROUND</label>
+                        <select id="selectAssignRound" style="width: 100%;">
+                            <option value="Round 1">Round 1</option>
+                            <option value="Round 2">Round 2</option>
+                            <option value="Round 3">Round 3</option>
+                            <option value="Final Round">Final Round</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 2; min-width: 250px; margin-bottom: 0;">
+                        <label for="assignJudgeNameInput">JUDGE NAME</label>
+                        <input type="text" id="assignJudgeNameInput" placeholder="Enter judge name (e.g. Dr. Shetty)" required style="width: 100%;">
+                    </div>
+                    <button type="submit" class="cyber-btn cyber-btn-blue" style="padding: 10px 24px; font-size: 0.85rem; height: 42px;">ASSIGN & GENERATE LINK</button>
+                </form>
+
+                <h4 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; margin-bottom: 12px; font-size: 0.95rem;">Active Judge Assignments</h4>
+                <div class="table-container" style="margin-bottom: 0; overflow-x: auto;">
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th>ROUND</th>
+                                <th>JUDGE NAME</th>
+                                <th>SCORING LINK</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="judgeAssignmentsTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-sub);">No judges assigned for this event yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Promote Top Students Panel -->
+            <div class="form-panel cyber-corners" style="max-width: 100%;">
+                <h3 class="form-title">Promote Top Students to Next Round</h3>
+                <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px;">
+                    Select target round, enter the number of top-performing students/teams (N) from the previous round, and promote them. Only promoted participants will be available to score in that round.
+                </p>
+
+                <form id="promoteStudentsForm" style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
+                    <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
+                        <label for="fromRoundSelect">FROM ROUND</label>
+                        <select id="fromRoundSelect" style="width: 100%;">
+                            <option value="Round 1">Round 1</option>
+                            <option value="Round 2">Round 2</option>
+                            <option value="Round 3">Round 3</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
+                        <label for="toRoundSelect">TO ROUND (TARGET)</label>
+                        <select id="toRoundSelect" style="width: 100%;">
+                            <option value="Round 2">Round 2</option>
+                            <option value="Round 3">Round 3</option>
+                            <option value="Final Round">Final Round</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
+                        <label for="topNCountInput">NUMBER OF STUDENTS (N)</label>
+                        <input type="number" id="topNCountInput" placeholder="e.g. 10" min="1" required style="width: 100%;">
+                    </div>
+                    <button type="submit" class="cyber-btn cyber-btn-blue" style="padding: 10px 24px; font-size: 0.85rem; height: 42px;">FILTER & PROMOTE TOP N</button>
+                </form>
+
+                <h4 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; margin-bottom: 12px; font-size: 0.95rem;">Active Round Promotions</h4>
+                <div class="table-container" style="margin-bottom: 0; overflow-x: auto;">
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th>TARGET ROUND</th>
+                                <th>NUMBER OF PROMOTED STUDENTS</th>
+                                <th>PROMOTED ROLL NUMBERS & NAMES</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roundPromotionsTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-sub);">No round promotions created yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="organizer.js?v=3.1"></script>

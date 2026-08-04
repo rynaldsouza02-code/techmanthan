@@ -105,6 +105,14 @@ if (!eventId) {
   }
 }
 
+const currentRound = urlParams.get('round') || "Round 1";
+const urlJudgeName = urlParams.get('judge') || "";
+
+if (urlJudgeName) {
+  currentJudgeName = decodeURIComponent(urlJudgeName).trim();
+  sessionStorage.setItem("judgeName", currentJudgeName);
+}
+
 let eventData = null;
 let registeredStudents = [];
 let checkedInStudentIds = [];
@@ -138,9 +146,9 @@ async function loadEventData() {
     eventData = eventSnap.data();
     checkedInStudentIds = eventData.checkedInStudents || [];
     
-    // Update Title Info
-    assignedEventTitle.innerText = `Judging: ${eventData.title}`;
-    assignedEventSubtitle.innerText = `Evaluate checked-in students. Changes are saved directly.`;
+    // Update Title Info with Round Name
+    assignedEventTitle.innerText = `Judging: ${eventData.title} (${currentRound})`;
+    assignedEventSubtitle.innerText = `Evaluate students for ${currentRound}. Changes are saved directly.`;
 
     if (!eventData.criteria || eventData.criteria.length === 0) {
       criteriaInfo.innerText = "No criteria set by administrator yet.";
@@ -183,12 +191,24 @@ async function loadCheckedInStudents() {
     const q = query(collection(db, "students"), where("registeredEvents", "array-contains", eventId));
     const querySnap = await getDocs(q);
 
+    // Check if target round has promoted top N students list
+    const roundPromotions = (eventData.roundPromotions && eventData.roundPromotions[currentRound])
+      ? eventData.roundPromotions[currentRound].promotedStudents
+      : null;
+
     registeredStudents = [];
     querySnap.forEach(snap => {
       const data = snap.data();
-      // Only load students who are checked-in by the coordinator
-      if (checkedInStudentIds.includes(snap.id)) {
-        registeredStudents.push({ regNo: snap.id, ...data });
+      const isCheckedIn = checkedInStudentIds.includes(snap.id);
+
+      if (isCheckedIn) {
+        if (currentRound === "Round 1" || !roundPromotions) {
+          // Round 1 or if no explicit promotions set yet, include all checked-in students
+          registeredStudents.push({ regNo: snap.id, ...data });
+        } else if (roundPromotions && roundPromotions.includes(snap.id)) {
+          // Include ONLY top N promoted students for this round
+          registeredStudents.push({ regNo: snap.id, ...data });
+        }
       }
     });
 
@@ -200,13 +220,32 @@ async function loadCheckedInStudents() {
 }
 
 function renderScoringSheet() {
+  const roundPromotions = (eventData.roundPromotions && eventData.roundPromotions[currentRound])
+    ? eventData.roundPromotions[currentRound].promotedStudents
+    : null;
+
   if (registeredStudents.length === 0) {
-    scoringTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-sub);">No checked-in students available for evaluation yet.</td></tr>`;
+    if (currentRound !== "Round 1" && roundPromotions && roundPromotions.length === 0) {
+      scoringTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-sub);">No top performing students promoted to ${currentRound} yet by the organizer.</td></tr>`;
+    } else {
+      scoringTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-sub);">No checked-in students available for evaluation yet.</td></tr>`;
+    }
     return;
   }
 
   const criteria = eventData.criteria || [];
-  const marksSheet = eventData.marksSheet || {};
+  
+  // Pick marksheet for currentRound
+  let marksSheet = {};
+  if (currentRound === "Round 1") {
+    marksSheet = (eventData.rounds && eventData.rounds["Round 1"] && eventData.rounds["Round 1"].marksSheet)
+      ? eventData.rounds["Round 1"].marksSheet
+      : (eventData.marksSheet || {});
+  } else if (eventData.rounds && eventData.rounds[currentRound] && eventData.rounds[currentRound].marksSheet) {
+    marksSheet = eventData.rounds[currentRound].marksSheet;
+  } else {
+    marksSheet = eventData.marksSheet || {};
+  }
 
   scoringTableBody.innerHTML = registeredStudents.map(st => {
     const studentEntry = marksSheet[st.regNo] || {};
@@ -325,24 +364,36 @@ async function saveAllScores() {
     
     const freshEventData = eventSnap.data();
     const updatedMarksSheet = freshEventData.marksSheet || {};
-    
+    const rounds = freshEventData.rounds || {};
+    if (!rounds[currentRound]) rounds[currentRound] = {};
+    const roundMarksSheet = rounds[currentRound].marksSheet || {};
+
     const judgeKey = (currentJudgeName || "Default Judge").trim();
     
-    // Merge new scores into the marksSheet map, keeping other judges' and legacy scores untouched
+    // Merge new scores into both global and round-specific marksheet maps
     for (const regNo in newMarksSheetUpdate) {
       if (!updatedMarksSheet[regNo] || updatedMarksSheet[regNo].scores !== undefined) {
-        // legacy structure or empty
         updatedMarksSheet[regNo] = {};
       }
       updatedMarksSheet[regNo][judgeKey] = newMarksSheetUpdate[regNo];
+
+      if (!roundMarksSheet[regNo] || roundMarksSheet[regNo].scores !== undefined) {
+        roundMarksSheet[regNo] = {};
+      }
+      roundMarksSheet[regNo][judgeKey] = newMarksSheetUpdate[regNo];
     }
 
+    rounds[currentRound].marksSheet = roundMarksSheet;
+
     await updateDoc(eventRef, {
-      marksSheet: updatedMarksSheet
+      marksSheet: updatedMarksSheet,
+      rounds: rounds
     });
 
     // Update local copy
     eventData.marksSheet = updatedMarksSheet;
+    if (!eventData.rounds) eventData.rounds = {};
+    eventData.rounds[currentRound] = rounds[currentRound];
 
     btnSaveAll.innerText = "SAVED SUCCESSFULLY ✓";
     btnSaveAll.style.borderColor = "var(--neon-green)";
