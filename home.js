@@ -189,7 +189,7 @@ function parseToYYYYMMDD(dStr) {
 }
 
 function isRegistrationClosed(ev) {
-  if (!ev) return false;
+  if (!ev || !ev.registrationCloseDate) return false;
   
   const now = new Date();
   const year = now.getFullYear();
@@ -197,20 +197,9 @@ function isRegistrationClosed(ev) {
   const day = String(now.getDate()).padStart(2, '0');
   const todayStr = `${year}-${month}-${day}`;
 
-  // 1. Explicit registrationCloseDate if specified
-  if (ev.registrationCloseDate) {
-    const regCloseNorm = parseToYYYYMMDD(ev.registrationCloseDate);
-    if (regCloseNorm && todayStr >= regCloseNorm) {
-      return true; // Closed at 12:00 AM Midnight of registrationCloseDate
-    }
-  }
-
-  // 2. Default: Closes at 12:00 AM Midnight of the event date (ev.date)
-  if (ev.date) {
-    const eventDateNorm = parseToYYYYMMDD(ev.date);
-    if (eventDateNorm && todayStr >= eventDateNorm) {
-      return true; // Closed at 12:00 AM Midnight on event date
-    }
+  const regCloseNorm = parseToYYYYMMDD(ev.registrationCloseDate);
+  if (regCloseNorm && todayStr >= regCloseNorm) {
+    return true; // Closed at 12:00 AM Midnight of registrationCloseDate
   }
 
   return false;
@@ -255,10 +244,9 @@ function renderEvents() {
     }
 
     const isClosed = isRegistrationClosed(ev);
-    const closeDateStr = ev.registrationCloseDate || ev.date || "";
 
-    const regCloseHTML = closeDateStr
-      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> 12 AM Midnight (${closeDateStr}) ${isClosed ? '🔴 (Closed)' : ''}</div>`
+    const regCloseHTML = ev.registrationCloseDate
+      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> 12 AM Midnight (${ev.registrationCloseDate}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}</div>`
       : "";
 
     let posterHTML = `<div class="event-card-poster-fallback"><span>No Poster</span></div>`;
@@ -322,8 +310,9 @@ window.showEventDetails = function(eventId) {
   if (!ev) return;
 
   const isClosed = isRegistrationClosed(ev);
-  const closeDateStr = ev.registrationCloseDate || ev.date || "N/A";
-  const regCloseText = `12:00 AM Midnight (${closeDateStr}) ${isClosed ? '🔴 (Closed)' : ''}`;
+  const regCloseText = ev.registrationCloseDate 
+    ? `12:00 AM Midnight (${ev.registrationCloseDate}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}`
+    : "No closing date set (Open)";
 
   modalTitle.innerText = ev.title;
   
