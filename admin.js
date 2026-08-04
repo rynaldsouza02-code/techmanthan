@@ -772,24 +772,14 @@ function setupJudgingForm() {
   });
 }
 
-// Default College Class Sections for Pre-populating Standings
+// Default College Class Sections for Leaderboard (Strictly 6 Classes)
 const DEFAULT_COLLEGE_CLASSES = [
   "I BCA - A",
   "I BCA - B",
   "I BCA - C",
   "II BCA - A",
   "II BCA - B",
-  "III BCA - A",
-  "III BCA - B",
-  "I B.Com - A",
-  "I B.Com - B",
-  "II B.Com - A",
-  "II B.Com - B",
-  "III B.Com - A",
-  "III B.Com - B",
-  "I BBA",
-  "II BBA",
-  "III BBA"
+  "II BCA - C"
 ];
 
 function formatClassForLeaderboard(clsName) {
@@ -822,7 +812,7 @@ async function loadChampionshipLeaderboard() {
 
     const pointsMap = {};
 
-    // Pre-populate default classes so all classes appear in standings even with 0 pts
+    // Pre-populate only the 6 allowed BCA classes
     DEFAULT_COLLEGE_CLASSES.forEach(c => {
       pointsMap[c] = { gold: 0, silver: 0, bronze: 0, total: 0, totalWins: 0 };
     });
@@ -857,8 +847,8 @@ async function loadChampionshipLeaderboard() {
 
         if (firstReg) {
           const cls = studentClassMap[firstReg];
-          if (cls && cls !== "Unassigned") {
-            const entry = getOrCreateClass(cls);
+          if (cls && pointsMap[cls]) {
+            const entry = pointsMap[cls];
             entry.gold += 1;
             entry.totalWins += 1;
             entry.total += 5;
@@ -866,8 +856,8 @@ async function loadChampionshipLeaderboard() {
         }
         if (secondReg) {
           const cls = studentClassMap[secondReg];
-          if (cls && cls !== "Unassigned") {
-            const entry = getOrCreateClass(cls);
+          if (cls && pointsMap[cls]) {
+            const entry = pointsMap[cls];
             entry.silver += 1;
             entry.totalWins += 1;
             entry.total += 3;
@@ -875,8 +865,8 @@ async function loadChampionshipLeaderboard() {
         }
         if (thirdReg) {
           const cls = studentClassMap[thirdReg];
-          if (cls && cls !== "Unassigned") {
-            const entry = getOrCreateClass(cls);
+          if (cls && pointsMap[cls]) {
+            const entry = pointsMap[cls];
             entry.bronze += 1;
             entry.totalWins += 1;
             entry.total += 1;
@@ -885,8 +875,8 @@ async function loadChampionshipLeaderboard() {
       }
     });
 
-    // Convert map to sorted array
-    const standings = Object.keys(pointsMap).map(clsName => ({
+    // Convert map to sorted array (strictly the 6 specified classes)
+    const standings = DEFAULT_COLLEGE_CLASSES.map(clsName => ({
       className: clsName,
       ...pointsMap[clsName]
     }));
