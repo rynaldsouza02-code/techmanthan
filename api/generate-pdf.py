@@ -188,14 +188,14 @@ class handler(BaseHTTPRequestHandler):
             available_width = 540
             col_widths = [available_width / num_cols] * num_cols
         elif pdf_type in ['attendance', 'registrations']:
-            # Attendance columns: Sl No, Reg No, Student Name, Class, Email, Check-in/App Status, Signature
+            # Attendance columns: Sl No, Reg No, Student Name, Class, Email, Attendance, Signature
             table_data = [[
                 Paragraph("Sl No", header_cell_style),
                 Paragraph("Reg No", header_cell_style),
                 Paragraph("Student Name", header_cell_style),
                 Paragraph("Class", header_cell_style),
                 Paragraph("Email Address", header_cell_style),
-                Paragraph("App Status", header_cell_style),
+                Paragraph("Attendance", header_cell_style),
                 Paragraph("Signature / Sign", header_cell_style)
             ]]
             
