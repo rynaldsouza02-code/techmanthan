@@ -262,18 +262,36 @@ function renderProfileEventsList() {
   }).join("");
 }
 
+function isRestrictedClassStudent(studentClass) {
+  if (!studentClass) return false;
+  const cls = studentClass.toString().trim().toUpperCase();
+  const isBComOrBBA = /B\.?\s*COM|BCOM|BBA/i.test(cls);
+  const isBCA = /BCA/i.test(cls);
+  return isBComOrBBA && !isBCA;
+}
+
+function isVideographyEvent(ev) {
+  if (!ev) return false;
+  const title = (ev.title || "").toLowerCase();
+  const id = (ev.id || "").toLowerCase();
+  return title.includes("videography") || id.includes("videography") || title.includes("video") || id.includes("video");
+}
+
 // Fetch user registrations if student
 async function loadStudentRegisteredEvents() {
-  if (!username) return;
+  if (!studentUsername) return;
   try {
-    const studentRef = doc(db, "students", username);
+    const studentRef = doc(db, "students", studentUsername);
     const studentSnap = await getDoc(studentRef);
     if (studentSnap.exists()) {
       const data = studentSnap.data();
       registeredEventsIds = data.registeredEvents || [];
       if (data.email) localStorage.setItem("email", data.email);
       if (data.name) localStorage.setItem("name", data.name);
-      if (data.class) localStorage.setItem("userClass", data.class);
+      if (data.class) {
+        localStorage.setItem("userClass", data.class);
+        localStorage.setItem("studentClass", data.class);
+      }
       if (data.dob) localStorage.setItem("userDOB", data.dob);
       renderEvents();
     }
@@ -474,16 +492,27 @@ function renderEvents() {
                 : ""
             }
 
-            ${
-              isClosed
-                ? `<button class="btn-action" style="width: 100%; opacity: 0.5; cursor: not-allowed; background: #374151; border-color: #374151; color: #9ca3af;" disabled>Registration Closed</button>`
-                : (username 
-                    ? (isRegistered 
-                        ? `<button class="btn-action btn-danger" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>Leave Event</button>
-                           <p style="color: var(--text-sub); font-size: 0.75rem; margin-top: 4px; text-align: center;">Once registered, you cannot leave this event without organizer permission.</p>`
-                        : `<button class="btn-action btn-success" style="width: 100%;" onclick="registerEvent('${ev.id}')">Register for Event</button>`)
-                    : "")
-            }
+            ${(() => {
+              const currentStudentClass = localStorage.getItem("studentClass") || localStorage.getItem("userClass") || "";
+              const isRestrictedStudent = isRestrictedClassStudent(currentStudentClass);
+              const isVideoEv = isVideographyEvent(ev);
+
+              if (isClosed) {
+                return `<button class="btn-action" style="width: 100%; opacity: 0.5; cursor: not-allowed; background: #374151; border-color: #374151; color: #9ca3af;" disabled>Registration Closed</button>`;
+              }
+              if (username) {
+                if (isRegistered) {
+                  return `<button class="btn-action btn-danger" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>Leave Event</button>
+                          <p style="color: var(--text-sub); font-size: 0.75rem; margin-top: 4px; text-align: center;">Once registered, you cannot leave this event without organizer permission.</p>`;
+                }
+                if (isRestrictedStudent && !isVideoEv) {
+                  return `<button class="btn-action" style="width: 100%; opacity: 0.65; cursor: not-allowed; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--neon-red); color: #fca5a5;" disabled>Restricted to BCA (View Only)</button>
+                          <p style="color: var(--neon-red); font-size: 0.72rem; margin-top: 4px; text-align: center;">B.Com & BBA students are eligible for Videography only.</p>`;
+                }
+                return `<button class="btn-action btn-success" style="width: 100%;" onclick="registerEvent('${ev.id}')">Register for Event</button>`;
+              }
+              return "";
+            })()}
           </div>
         </div>
       </div>
@@ -559,6 +588,12 @@ window.registerEvent = async function(eventId) {
   const ev = eventsList.find(e => e.id === eventId);
   if (ev && isRegistrationClosed(ev)) {
     alert("Registration for this event closed at 12:00 AM Midnight.");
+    return;
+  }
+
+  const currentStudentClass = localStorage.getItem("studentClass") || localStorage.getItem("userClass") || "";
+  if (isRestrictedClassStudent(currentStudentClass) && !isVideographyEvent(ev)) {
+    alert(`Registration Restriction:\n\nStudents from ${currentStudentClass || "B.Com / BBA"} are eligible to register for the Videography event only.\n\nYou may view rules, guidelines, and photos for all other events.`);
     return;
   }
 

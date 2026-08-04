@@ -182,6 +182,8 @@ loginForm.addEventListener("submit", async (e) => {
       localStorage.setItem("username", studentDocId);
       localStorage.setItem("name", nameVal);
       localStorage.setItem("email", emailVal);
+      localStorage.setItem("userClass", classVal);
+      localStorage.setItem("studentClass", classVal);
 
       submitBtn.innerHTML = "REGISTRATION SUCCESSFUL ✓";
 
@@ -214,6 +216,8 @@ loginForm.addEventListener("submit", async (e) => {
       localStorage.setItem("username", studentDocId);
       localStorage.setItem("name", studentData.name || "");
       localStorage.setItem("email", studentData.email || "");
+      localStorage.setItem("userClass", studentData.class || "");
+      localStorage.setItem("studentClass", studentData.class || "");
 
       submitBtn.innerHTML = "ACCESS GRANTED";
 
