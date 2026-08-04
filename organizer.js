@@ -1992,6 +1992,19 @@ function setupCredentialsModal() {
   const editOrgName = document.getElementById("editOrgName");
   const editOrgUsername = document.getElementById("editOrgUsername");
   const editOrgPassword = document.getElementById("editOrgPassword");
+  const btnToggleOrgPassword = document.getElementById("btnToggleOrgPassword");
+
+  if (btnToggleOrgPassword && editOrgPassword) {
+    btnToggleOrgPassword.addEventListener("click", () => {
+      if (editOrgPassword.type === "password") {
+        editOrgPassword.type = "text";
+        btnToggleOrgPassword.innerText = "🙈";
+      } else {
+        editOrgPassword.type = "password";
+        btnToggleOrgPassword.innerText = "👁️";
+      }
+    });
+  }
 
   if (btnEditCredentials && credentialsModal) {
     btnEditCredentials.addEventListener("click", async () => {
