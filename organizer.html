@@ -118,7 +118,7 @@
                         <div class="form-group">
                             <label for="maxPerClassInput">Max Registrations Per Class (Global Limit)</label>
                             <input type="number" id="maxPerClassInput" min="0" placeholder="e.g. 2 (Leave empty or 0 for no limit)" style="width: 100%;">
-                            <span style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; display: block;">Example: Setting to 2 allows maximum 2 students from 'III BCA (A)', 2 from 'III BCA (B)', 2 from 'II BCA (A)', etc.</span>
+                            <span style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; display: block;">Example: Setting to 2 allows maximum 2 students from 'II BCA (A)', 2 from 'II BCA (B)', 2 from 'I BCA (A)', etc.</span>
                         </div>
 
                         <div style="border-top: 1px dashed rgba(255,255,255,0.15); margin: 15px 0; padding-top: 15px;">
@@ -127,8 +127,6 @@
                                 <div class="form-group">
                                     <label for="limitClassSelect">Select Class Section</label>
                                     <select id="limitClassSelect" style="width: 100%;">
-                                        <option value="III BCA (A)">III BCA (A)</option>
-                                        <option value="III BCA (B)">III BCA (B)</option>
                                         <option value="II BCA (A)">II BCA (A)</option>
                                         <option value="II BCA (B)">II BCA (B)</option>
                                         <option value="I BCA (A)">I BCA (A)</option>
@@ -419,7 +417,7 @@
                     <span id="studentCoordCountBadge" style="font-weight: bold; color: var(--neon-cyan); font-size: 0.9rem;">Assigned: 0 / 2</span>
                 </div>
                 <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px;">
-                    Assign up to 2 student coordinators from <strong>III BCA (A)</strong> or <strong>III BCA (B)</strong> to assist with managing this event.
+                    Assign up to 2 student coordinators from <strong>BCA</strong> classes to assist with managing this event.
                 </p>
 
                 <form id="addStudentCoordForm" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
@@ -435,8 +433,10 @@
                         <label for="scClassSelect">CLASS</label>
                         <select id="scClassSelect" required style="width: 100%; height: 42px; background: rgba(10, 15, 30, 0.9); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 0 10px;">
                             <option value="">-- Select Class --</option>
-                            <option value="III BCA (A)">III BCA (A)</option>
-                            <option value="III BCA (B)">III BCA (B)</option>
+                            <option value="II BCA (A)">II BCA (A)</option>
+                            <option value="II BCA (B)">II BCA (B)</option>
+                            <option value="I BCA (A)">I BCA (A)</option>
+                            <option value="I BCA (B)">I BCA (B)</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1.5; min-width: 150px; margin-bottom: 0;">
