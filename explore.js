@@ -280,6 +280,16 @@ function renderEvents() {
       `;
     }
 
+    let promotionBadgeHTML = "";
+    if (studentUsername && ev.roundPromotions) {
+      Object.keys(ev.roundPromotions).forEach(targetRound => {
+        const promo = ev.roundPromotions[targetRound];
+        if (promo && promo.promotedStudents && promo.promotedStudents.includes(studentUsername)) {
+          promotionBadgeHTML += `<span class="reg-badge" style="background: rgba(168, 85, 247, 0.25); border: 1px solid var(--neon-purple); color: #e9d5ff; font-weight: bold; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);">🎉 QUALIFIED: ${targetRound}</span>`;
+        }
+      });
+    }
+
     return `
       <div class="event-card cyber-card-scan cyber-corners" id="card-${ev.id}">
         <div>
@@ -288,6 +298,7 @@ function renderEvents() {
             <h3>${ev.title}</h3>
             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
               ${isRegistered ? `<span class="reg-badge">Registered</span>` : ""}
+              ${promotionBadgeHTML}
               ${isStarted ? `<span class="reg-badge" style="background: rgba(34, 197, 94, 0.2); border: 1px solid var(--neon-green); color: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); text-shadow: 0 0 5px var(--neon-green);">LIVE</span>` : ""}
             </div>
           </div>
@@ -354,7 +365,22 @@ window.openDetails = function(eventId) {
     studentCoordinatorsHTML = `<div style="grid-column: 1/-1;">🎓 <strong>Student Coordinators:</strong> ${scList}</div>`;
   }
 
+  let qualificationNoticeHTML = "";
+  if (studentUsername && ev.roundPromotions) {
+    Object.keys(ev.roundPromotions).forEach(targetRound => {
+      const promo = ev.roundPromotions[targetRound];
+      if (promo && promo.promotedStudents && promo.promotedStudents.includes(studentUsername)) {
+        qualificationNoticeHTML += `
+          <div style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--neon-purple); border-radius: 8px; padding: 12px 16px; margin-bottom: 15px; color: #e9d5ff;">
+            🎉 <strong>CONGRATULATIONS!</strong> You have qualified and been promoted to <strong>${targetRound}</strong> (from ${promo.fromRound})! Please report to ${ev.venue || 'the event venue'} on time.
+          </div>
+        `;
+      }
+    });
+  }
+
   let modalHTML = `
+    ${qualificationNoticeHTML}
     <p><strong>Description:</strong> ${ev.description}</p>
     <div class="event-details" style="margin: 20px 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px;">
       <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>

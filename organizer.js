@@ -1147,7 +1147,52 @@ function setupEventListeners() {
         eventData.roundPromotions = roundPromotions;
 
         renderRoundPromotions();
-        alert(`Success! Top ${promoted.length} students from ${fromRound} have been promoted to ${toRound}!`);
+
+        // Broadcast email notification to promoted students
+        const emails = promoted.map(p => {
+          const st = registeredStudents.find(s => s.regNo === p.regNo);
+          return st ? st.email : null;
+        }).filter(e => e && e.includes("@"));
+
+        if (emails.length > 0) {
+          const htmlMessage = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+              <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 25px 20px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 22px; font-weight: 700;">🎉 Round Qualification Notice!</h1>
+                <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">Tech Manthan 6.0 - ${eventData.title}</p>
+              </div>
+              <div style="padding: 25px; color: #1e293b; line-height: 1.6;">
+                <p style="font-size: 16px; margin-top: 0;">Congratulations!</p>
+                <p>Based on your performance in <strong>${fromRound}</strong>, you have been selected and officially promoted to <strong>${toRound}</strong> in <strong>${eventData.title}</strong>!</p>
+                <div style="background-color: #f8fafc; border-left: 4px solid #7c3aed; padding: 15px; margin: 20px 0; border-radius: 0 6px 6px 0;">
+                  <p style="margin: 0; font-weight: 600; color: #475569; font-size: 13px;">QUALIFICATION DETAILS</p>
+                  <p style="margin: 5px 0 0 0; color: #0f172a; font-weight: 500;">
+                    🏆 Event: ${eventData.title}<br>
+                    🎯 Target Round: ${toRound}<br>
+                    📍 Venue: ${eventData.venue || "Event Venue"}<br>
+                    📅 Date: ${eventData.date || "Scheduled Date"}
+                  </p>
+                </div>
+                <p>Please report to the venue on time for <strong>${toRound}</strong>. Good luck!</p>
+              </div>
+              <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+                This is an automated notification from Tech Manthan 6.0 Event Coordinators.
+              </div>
+            </div>
+          `;
+
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bcc: emails.join(', '),
+              subject: `🎉 Congratulations! You qualified for ${toRound} in ${eventData.title}`,
+              html: htmlMessage
+            })
+          }).catch(err => console.error("Email notification error:", err));
+        }
+
+        alert(`Success! Top ${promoted.length} students from ${fromRound} have been promoted to ${toRound}! Email notifications have been dispatched.`);
       } catch (err) {
         console.error("Error saving round promotion:", err);
         alert("Failed to save round promotion.");
@@ -1438,25 +1483,51 @@ function renderRoundPromotions() {
 
   tableBody.innerHTML = roundsList.map(targetRound => {
     const promo = roundPromotions[targetRound];
-    const promotedDetails = promo.promotedDetails || [];
-    const promotedNames = promotedDetails.map(d => `${d.name} (${d.regNo})`).join(", ");
 
     return `
       <tr>
         <td><strong style="color: var(--neon-purple);">${targetRound}</strong> <span style="font-size: 0.75rem; color: var(--text-sub);">(From ${promo.fromRound})</span></td>
         <td style="text-align: center;"><strong style="color: var(--neon-green); font-size: 1.1rem;">${promo.promotedStudents.length} Students</strong></td>
-        <td>
-          <div style="max-height: 80px; overflow-y: auto; font-size: 0.85rem; color: #ddd;">
-            ${promotedNames || promo.promotedStudents.join(", ")}
-          </div>
+        <td style="text-align: center;">
+          <button class="cyber-btn cyber-btn-blue" style="font-size: 0.8rem; padding: 6px 12px;" onclick="downloadPromotedStudentsExcel('${targetRound}')">
+            📊 Download Excel List (.csv)
+          </button>
         </td>
-        <td>
-          <button class="cyber-btn cyber-btn-red" style="font-size: 0.75rem; padding: 4px 8px;" onclick="clearRoundPromotion('${targetRound}')">Reset Promotion</button>
+        <td style="text-align: center;">
+          <button class="cyber-btn cyber-btn-red" style="font-size: 0.75rem; padding: 6px 10px;" onclick="clearRoundPromotion('${targetRound}')">Reset Promotion</button>
         </td>
       </tr>
     `;
   }).join("");
 }
+
+window.downloadPromotedStudentsExcel = function(targetRound) {
+  const roundPromotions = eventData.roundPromotions || {};
+  const promo = roundPromotions[targetRound];
+  if (!promo) {
+    alert("No promotion data found for " + targetRound);
+    return;
+  }
+
+  const promotedDetails = promo.promotedDetails || [];
+  const headers = ["Sl No", "Reg No / Roll No", "Student Name", "Class", `Average Score in ${promo.fromRound}`];
+  let csvContent = "\uFEFF" + headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
+
+  promotedDetails.forEach((d, idx) => {
+    const row = [idx + 1, d.regNo, d.name || "N/A", d.class || "N/A", d.avgScore || "N/A"];
+    csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `${eventData.title.toLowerCase().replace(/ /g, "_")}_${targetRound.toLowerCase().replace(/ /g, "_")}_promoted_students.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 window.clearRoundPromotion = async function(targetRound) {
   if (!confirm(`Are you sure you want to reset promotions for ${targetRound}?`)) return;
