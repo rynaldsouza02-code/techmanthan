@@ -166,7 +166,11 @@ async function loadEventData() {
     eventCoordinatorInput.value = eventData.coordinator || "";
     eventRulesInput.value = eventData.rules || "";
 
-    // Class Limits setup
+    // Class Limits setup (Event Specific)
+    const classLimitsPanelTitle = document.getElementById("classLimitsPanelTitle");
+    if (classLimitsPanelTitle) {
+      classLimitsPanelTitle.innerText = `Class Registration Limits (${eventData.title || assignedEventId})`;
+    }
     if (document.getElementById("maxPerClassInput")) {
       document.getElementById("maxPerClassInput").value = eventData.maxPerClass || "";
     }
@@ -2195,7 +2199,7 @@ function renderActiveClassLimits() {
 
   const keys = Object.keys(tempClassLimits);
   if (keys.length === 0) {
-    container.innerHTML = `<span style="font-size: 0.75rem; color: var(--text-sub); font-style: italic;">No custom per-class overrides set. Global limit applies to all.</span>`;
+    container.innerHTML = `<span style="font-size: 0.75rem; color: var(--text-sub); font-style: italic;">No custom per-class overrides set for this event. Event limit applies to all classes.</span>`;
     return;
   }
 

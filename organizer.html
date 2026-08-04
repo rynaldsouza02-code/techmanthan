@@ -111,18 +111,18 @@
 
                 <!-- Class-Wise Registration Limit Settings -->
                 <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0; border: 1px solid var(--neon-cyan); box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);">
-                    <h3 class="form-title" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">Class Registration Limits</h3>
-                    <p style="color: var(--text-sub); font-size: 0.8rem; margin-bottom: 15px; font-family: monospace;">[CAPACITY PROTOCOL] // Restrict maximum number of student registrations allowed per class section for this event.</p>
+                    <h3 class="form-title" id="classLimitsPanelTitle" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">Class Registration Limits (This Event Only)</h3>
+                    <p style="color: var(--text-sub); font-size: 0.8rem; margin-bottom: 15px; font-family: monospace;">[EVENT CAPACITY PROTOCOL] // Restrict maximum student registrations per class section specifically for this event. These limits do not affect any other events.</p>
 
                     <form id="classLimitForm">
                         <div class="form-group">
-                            <label for="maxPerClassInput">Max Registrations Per Class (Global Limit)</label>
+                            <label for="maxPerClassInput">Max Registrations Per Class (For This Event)</label>
                             <input type="number" id="maxPerClassInput" min="0" placeholder="e.g. 2 (Leave empty or 0 for no limit)" style="width: 100%;">
-                            <span style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; display: block;">Example: Setting to 2 allows maximum 2 students from 'II BCA (A)', 2 from 'II BCA (B)', 2 from 'I BCA (A)', etc.</span>
+                            <span style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; display: block;">Example: Setting to 2 allows maximum 2 students per class section (e.g. 2 from 'II BCA (A)', 2 from 'II BCA (B)') for THIS EVENT ONLY.</span>
                         </div>
 
                         <div style="border-top: 1px dashed rgba(255,255,255,0.15); margin: 15px 0; padding-top: 15px;">
-                            <h4 style="font-size: 0.85rem; color: var(--neon-purple); margin-bottom: 10px; font-family: 'Orbitron', sans-serif;">Custom Per-Class Overrides (Optional)</h4>
+                            <h4 style="font-size: 0.85rem; color: var(--neon-purple); margin-bottom: 10px; font-family: 'Orbitron', sans-serif;">Custom Per-Class Overrides (For This Event Only)</h4>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="limitClassSelect">Select Class Section</label>
@@ -153,7 +153,7 @@
 
                             <!-- List of Active Per-Class Overrides -->
                             <div id="activeClassLimitsList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
-                                <span style="font-size: 0.75rem; color: var(--text-sub); font-style: italic;">No custom per-class overrides set. Global limit applies to all.</span>
+                                <span style="font-size: 0.75rem; color: var(--text-sub); font-style: italic;">No custom per-class overrides set for this event. Event limit applies to all classes.</span>
                             </div>
                         </div>
 
