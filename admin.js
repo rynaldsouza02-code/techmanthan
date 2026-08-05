@@ -241,15 +241,27 @@ function renderOverview() {
   }
 
   overviewEventsTable.innerHTML = allEvents.map(ev => {
-    const orgs = allOrganizers.filter(o => o.assignedEventId === ev.id);
-    const orgName = orgs.length > 0 ? orgs.map(o => `${o.name} (@${o.username})`).join(", ") : "Unassigned";
+    let studentCoordsHTML = "";
+    if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
+      studentCoordsHTML = ev.studentCoordinators.map(sc => 
+        `<span class="user-badge" style="border-color: var(--neon-cyan); color: var(--neon-cyan); margin-bottom: 4px; display: inline-block;">🎓 ${sc.name} (${sc.studentClass} - 📞 ${sc.phone})</span>`
+      ).join("<br>");
+    } else {
+      const orgs = allOrganizers.filter(o => o.assignedEventId === ev.id);
+      if (orgs.length > 0) {
+        studentCoordsHTML = orgs.map(o => `<span class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple); margin-bottom: 4px; display: inline-block;">👤 ${o.name} (@${o.username})</span>`).join("<br>");
+      } else {
+        studentCoordsHTML = `<span style="font-size: 0.8rem; color: var(--text-sub); font-style: italic;">None Assigned</span>`;
+      }
+    }
+
     return `
       <tr>
         <td><strong>${ev.title}</strong></td>
         <td>📅 ${ev.date} at ${ev.time}</td>
         <td>📍 ${ev.venue}</td>
-        <td>👤 ${ev.coordinator}</td>
-        <td><span class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple);">${orgName}</span></td>
+        <td>👤 ${ev.coordinator || "N/A"}</td>
+        <td>${studentCoordsHTML}</td>
       </tr>
     `;
   }).join("");
@@ -258,24 +270,32 @@ function renderOverview() {
 // ----------------- EVENTS MANAGEMENT -----------------
 function renderEvents() {
   if (allEvents.length === 0) {
-    eventsListTable.innerHTML = `<tr><td colspan="4" style="text-align: center;">No events in database.</td></tr>`;
+    eventsListTable.innerHTML = `<tr><td colspan="5" style="text-align: center;">No events in database.</td></tr>`;
     return;
   }
 
-  eventsListTable.innerHTML = allEvents.map(ev => `
-    <tr>
-      <td><strong>${ev.title}</strong></td>
-      <td>📅 ${ev.date} | 🕒 ${ev.time}</td>
-      <td>📍 ${ev.venue}</td>
-      <td>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn-action btn-success" onclick="editEvent('${ev.id}')">Edit</button>
-          <button class="btn-action btn-danger" onclick="deleteEvent('${ev.id}')">Delete</button>
-          <button class="btn-action" onclick="window.location.href='explore.html?event=${ev.id}'" style="background: var(--neon-purple); border-color: var(--neon-purple); color: #fff;">Media</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+  eventsListTable.innerHTML = allEvents.map(ev => {
+    let studentCoordsText = "None";
+    if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
+      studentCoordsText = ev.studentCoordinators.map(sc => `🎓 ${sc.name} (${sc.studentClass})`).join(", ");
+    }
+
+    return `
+      <tr>
+        <td><strong>${ev.title}</strong></td>
+        <td>📅 ${ev.date} | 🕒 ${ev.time}</td>
+        <td>📍 ${ev.venue}</td>
+        <td><span style="font-size: 0.82rem; color: var(--neon-cyan); font-weight: 500;">${studentCoordsText}</span></td>
+        <td>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-action btn-success" onclick="editEvent('${ev.id}')">Edit</button>
+            <button class="btn-action btn-danger" onclick="deleteEvent('${ev.id}')">Delete</button>
+            <button class="btn-action" onclick="window.location.href='explore.html?event=${ev.id}'" style="background: var(--neon-purple); border-color: var(--neon-purple); color: #fff;">Media</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
 function setupEventForm() {
