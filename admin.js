@@ -547,7 +547,7 @@ function setupOrganizerForm() {
 
     const username = orgUsernameInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
     const name = orgNameInput.value.trim();
-    const password = orgPasswordInput.value.trim();
+    const password = orgPasswordInput.value.trim() || "12345";
     const assignedEventId = orgEventSelect.value;
 
     if (!username) {
