@@ -218,6 +218,44 @@
 
             <!-- Column 2: Registrations list, Winners Announcement & Email Notifications -->
             <div style="flex: 1.2; min-width: 280px; display: flex; flex-direction: column; gap: 30px;">
+                <!-- Gaming Event Squad Rosters Container (Gaming Event Only) -->
+                <div id="gamingTeamsPanel" class="form-panel cyber-corners" style="display: none; max-width: 100%; margin-bottom: 0; border: 1.5px solid var(--neon-cyan);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 class="form-title" style="margin-bottom: 2px; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">🎮 GAMING SQUAD ROSTERS</h3>
+                            <p style="color: var(--text-sub); font-size: 0.8rem; margin: 0;">Registered 4-member squads for Free Fire & BGMI.</p>
+                        </div>
+                        <button id="btnExportGamingTeams" class="cyber-btn" style="font-size: 0.8rem; padding: 6px 12px; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700;">📥 Export Gaming Squads (CSV)</button>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button type="button" class="cyber-btn gaming-tab-btn active" data-game="all" style="padding: 6px 14px; font-size: 0.8rem;">All Games (<span id="countGamingAll">0</span>)</button>
+                        <button type="button" class="cyber-btn gaming-tab-btn" data-game="Free Fire" style="padding: 6px 14px; font-size: 0.8rem;">🔥 Free Fire (<span id="countGamingFF">0</span>)</button>
+                        <button type="button" class="cyber-btn gaming-tab-btn" data-game="BGMI" style="padding: 6px 14px; font-size: 0.8rem;">🪖 BGMI (<span id="countGamingBGMI">0</span>)</button>
+                    </div>
+
+                    <div class="table-container" style="margin-bottom: 0; overflow-y: auto; max-height: 420px;">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Game Selected</th>
+                                    <th>Class</th>
+                                    <th>Team Leader</th>
+                                    <th>Squad Members (4)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gamingTeamsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-sub);">Loading gaming squad rosters...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Registrants Directory & Attendance Check-in -->
                 <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">

@@ -147,6 +147,74 @@
                 </div>
             </div>
         </div>
+    <!-- Gaming Team Registration Modal -->
+    <div class="modal-overlay" id="gamingTeamModal">
+        <div class="modal-content cyber-corners" style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px;">
+            <button class="modal-close" id="gamingTeamModalCloseBtn">&times;</button>
+            
+            <div style="text-align: center; margin-bottom: 18px;">
+                <div style="font-size: 2rem; margin-bottom: 4px;">🎮</div>
+                <h3 class="modal-title" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.25rem; margin: 0;">GAMING EVENT REGISTRATION</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register a 4-member squad. You will be registered as the <strong>Team Leader</strong>.</p>
+            </div>
+
+            <form id="gamingTeamForm">
+                <!-- 1. Game Selection -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">1. SELECT GAME (Choose One)</label>
+                    <div style="display: flex; gap: 12px;">
+                        <label style="flex: 1; background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: #fff;">
+                            <input type="radio" name="gameVariant" value="Free Fire" required style="accent-color: var(--neon-cyan);"> 🔥 Free Fire
+                        </label>
+                        <label style="flex: 1; background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: #fff;">
+                            <input type="radio" name="gameVariant" value="BGMI" required style="accent-color: var(--neon-cyan);"> 🪖 BGMI
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 2. Team Name -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="gamingTeamName" style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">2. TEAM NAME</label>
+                    <input type="text" id="gamingTeamName" required placeholder="e.g. Cyber Warriors" style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                </div>
+
+                <!-- 3. Squad Roster (4 Members) -->
+                <div style="margin-bottom: 18px;">
+                    <label style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">3. SQUAD ROSTER (4 Members)</label>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Member 1 (Team Leader) -->
+                        <div style="background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.7rem; color: var(--neon-cyan); font-weight: 800; display: block;">MEMBER 1 (TEAM LEADER)</span>
+                                <strong id="gamingLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student Name</strong>
+                                <span id="gamingLeaderEmailDisplay" style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
+                            </div>
+                            <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
+                        </div>
+
+                        <!-- Member 2 -->
+                        <div>
+                            <input type="text" id="gamingMember2" required placeholder="Member 2 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Member 3 -->
+                        <div>
+                            <input type="text" id="gamingMember3" required placeholder="Member 3 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Member 4 -->
+                        <div>
+                            <input type="text" id="gamingMember4" required placeholder="Member 4 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmitGamingTeam" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+                    SUBMIT GAMING SQUAD REGISTRATION
+                </button>
+            </form>
+        </div>
     </div>
 
     <!-- Firebase and Explore Logic module -->

@@ -225,6 +225,7 @@ async function loadRegistrants() {
     renderRegistrants();
     populateWinnerDropdowns();
     renderMarksSheet();
+    await loadGamingTeams();
   } catch (error) {
     console.error("Error loading registrants:", error);
     registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--neon-red);">Failed to load registrants.</td></tr>`;
@@ -2384,6 +2385,146 @@ window.deleteEventRound = async function(idx) {
   } catch (err) {
     console.error("Error deleting event round:", err);
     alert("Failed to delete event round.");
+  }
+};
+
+let gamingTeamsList = [];
+let currentGamingFilter = "all";
+
+async function loadGamingTeams() {
+  const panel = document.getElementById("gamingTeamsPanel");
+  if (!panel) return;
+
+  if (assignedEventId !== "gaming") {
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.style.display = "block";
+
+  try {
+    const qSnap = await getDocs(collection(db, "gamingTeams"));
+    gamingTeamsList = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderGamingTeams();
+    setupGamingTabsAndExport();
+  } catch (err) {
+    console.error("Error loading gaming teams:", err);
+  }
+}
+
+function renderGamingTeams() {
+  const tableBody = document.getElementById("gamingTeamsTableBody");
+  const countAll = document.getElementById("countGamingAll");
+  const countFF = document.getElementById("countGamingFF");
+  const countBGMI = document.getElementById("countGamingBGMI");
+
+  if (!tableBody) return;
+
+  const totalAll = gamingTeamsList.length;
+  const totalFF = gamingTeamsList.filter(t => t.gameVariant === "Free Fire").length;
+  const totalBGMI = gamingTeamsList.filter(t => t.gameVariant === "BGMI").length;
+
+  if (countAll) countAll.innerText = totalAll;
+  if (countFF) countFF.innerText = totalFF;
+  if (countBGMI) countBGMI.innerText = totalBGMI;
+
+  let filtered = gamingTeamsList;
+  if (currentGamingFilter !== "all") {
+    filtered = gamingTeamsList.filter(t => t.gameVariant === currentGamingFilter);
+  }
+
+  if (filtered.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No gaming squads found for filter "${currentGamingFilter}".</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = filtered.map(t => {
+    const members = t.members || [];
+    const membersHTML = members.map((m, i) => `
+      <div style="font-size: 0.8rem; margin-bottom: 2px;">
+        <span style="color: var(--neon-cyan); font-weight: bold;">M${i+1}:</span> ${m} ${i === 0 ? '👑' : ''}
+      </div>
+    `).join("");
+
+    const badgeColor = t.gameVariant === "Free Fire" ? "#f97316" : "#38bdf8";
+
+    return `
+      <tr>
+        <td><strong style="color: #fff; font-size: 0.95rem;">${t.teamName || "N/A"}</strong></td>
+        <td>
+          <span style="background: rgba(15, 23, 42, 0.8); border: 1px solid ${badgeColor}; color: ${badgeColor}; font-weight: bold; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; display: inline-block;">
+            ${t.gameVariant === "Free Fire" ? "🔥 Free Fire" : "🪖 BGMI"}
+          </span>
+        </td>
+        <td><strong>${t.studentClass || "N/A"}</strong></td>
+        <td>
+          <div style="font-weight: 600; color: #fff;">${t.leaderName || "N/A"}</div>
+          <div style="font-size: 0.75rem; color: var(--text-sub);">${t.leaderEmail || "N/A"}</div>
+        </td>
+        <td>${membersHTML}</td>
+        <td style="text-align: center;">
+          <button class="btn-action btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="removeGamingTeam('${t.id}', '${(t.teamName || '').replace(/'/g, "\\'")}')">Remove Squad</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function setupGamingTabsAndExport() {
+  const tabBtns = document.querySelectorAll(".gaming-tab-btn");
+  tabBtns.forEach(btn => {
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = "true";
+      btn.addEventListener("click", () => {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentGamingFilter = btn.dataset.game;
+        renderGamingTeams();
+      });
+    }
+  });
+
+  const exportBtn = document.getElementById("btnExportGamingTeams");
+  if (exportBtn && !exportBtn.dataset.bound) {
+    exportBtn.dataset.bound = "true";
+    exportBtn.addEventListener("click", () => {
+      if (gamingTeamsList.length === 0) {
+        alert("No gaming squads registered yet.");
+        return;
+      }
+
+      let csv = "Team Name,Game Variant,Class,Leader Name,Leader Email,Member 1,Member 2,Member 3,Member 4,Registration Date\n";
+      gamingTeamsList.forEach(t => {
+        const m = t.members || [];
+        csv += `"${t.teamName || ''}","${t.gameVariant || ''}","${t.studentClass || ''}","${t.leaderName || ''}","${t.leaderEmail || ''}","${m[0] || ''}","${m[1] || ''}","${m[2] || ''}","${m[3] || ''}","${t.registeredAt || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Gaming_Squad_Rosters_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    });
+  }
+}
+
+window.removeGamingTeam = async function(teamId, teamName) {
+  if (!confirm(`Are you sure you want to remove the gaming squad "${teamName}"?`)) return;
+
+  try {
+    await deleteDoc(doc(db, "gamingTeams", teamId));
+    // Also remove gaming from student document
+    const studentRef = doc(db, "students", teamId);
+    await updateDoc(studentRef, {
+      registeredEvents: arrayRemove("gaming")
+    });
+    alert(`Squad "${teamName}" removed successfully.`);
+    await loadGamingTeams();
+    await loadRegistrants();
+  } catch (err) {
+    console.error("Error removing gaming team:", err);
+    alert("Could not remove gaming team.");
   }
 };
 

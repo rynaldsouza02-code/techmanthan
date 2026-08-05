@@ -633,6 +633,12 @@ window.registerEvent = async function(eventId) {
     return;
   }
 
+  // Special Handling for Gaming Event
+  if (eventId === "gaming") {
+    openGamingTeamRegistrationModal(ev);
+    return;
+  }
+
   const registerBtn = document.querySelector(`#card-${eventId} .btn-success`);
   if (registerBtn) {
     registerBtn.disabled = true;
@@ -688,6 +694,213 @@ window.registerEvent = async function(eventId) {
     renderEvents();
   }
 };
+
+function openGamingTeamRegistrationModal(ev) {
+  const modal = document.getElementById("gamingTeamModal");
+  const modalClose = document.getElementById("gamingTeamModalCloseBtn");
+  const form = document.getElementById("gamingTeamForm");
+  const leaderNameDisplay = document.getElementById("gamingLeaderNameDisplay");
+  const leaderEmailDisplay = document.getElementById("gamingLeaderEmailDisplay");
+
+  if (!modal || !form) return;
+
+  const studentName = localStorage.getItem("name") || username;
+  const studentEmail = localStorage.getItem("email") || "No email stored";
+  const currentStudentClass = localStorage.getItem("studentClass") || localStorage.getItem("userClass") || "";
+
+  if (leaderNameDisplay) leaderNameDisplay.innerText = studentName;
+  if (leaderEmailDisplay) leaderEmailDisplay.innerText = studentEmail;
+
+  if (modalClose && !modalClose.dataset.bound) {
+    modalClose.dataset.bound = "true";
+    modalClose.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  }
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const selectedRadio = form.querySelector("input[name='gameVariant']:checked");
+    if (!selectedRadio) {
+      alert("Please select a game: Free Fire or BGMI.");
+      return;
+    }
+
+    const gameVariant = selectedRadio.value;
+    const teamName = document.getElementById("gamingTeamName").value.trim();
+    const member2 = document.getElementById("gamingMember2").value.trim();
+    const member3 = document.getElementById("gamingMember3").value.trim();
+    const member4 = document.getElementById("gamingMember4").value.trim();
+
+    if (!teamName || !member2 || !member3 || !member4) {
+      alert("Please provide the Team Name and all 4 Squad Members' full names.");
+      return;
+    }
+
+    const submitBtn = document.getElementById("btnSubmitGamingTeam");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Registering Squad...";
+    }
+
+    // Check Class Limit for Gaming Teams
+    const classLimit = getClassRegistrationLimit(ev, currentStudentClass);
+    if (classLimit !== null && classLimit > 0) {
+      try {
+        const q = query(collection(db, "students"), where("registeredEvents", "array-contains", "gaming"));
+        const querySnap = await getDocs(q);
+        
+        const normClass = normalizeClassName(currentStudentClass);
+        let currentClassTeamCount = 0;
+        querySnap.forEach(docSnap => {
+          const st = docSnap.data();
+          if (st.class && normalizeClassName(st.class) === normClass) {
+            currentClassTeamCount++;
+          }
+        });
+
+        if (currentClassTeamCount >= classLimit) {
+          alert(`Class Registration Limit Reached!\n\nYour class (${currentStudentClass}) has already registered ${currentClassTeamCount} team(s) for Gaming.\n\nMaximum allowed teams per class is ${classLimit}.`);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "SUBMIT GAMING SQUAD REGISTRATION";
+          }
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking class team limit:", err);
+      }
+    }
+
+    const squadMembers = [studentName, member2, member3, member4];
+
+    try {
+      // 1. Save team in gamingTeams collection
+      const teamRef = doc(db, "gamingTeams", username);
+      await setDoc(teamRef, {
+        eventId: "gaming",
+        gameVariant: gameVariant,
+        teamName: teamName,
+        leaderUsername: username,
+        leaderName: studentName,
+        leaderEmail: studentEmail,
+        studentClass: currentStudentClass,
+        members: squadMembers,
+        registeredAt: new Date().toISOString()
+      });
+
+      // 2. Update student document registeredEvents & gamingTeam details
+      const studentRef = doc(db, "students", username);
+      await updateDoc(studentRef, {
+        registeredEvents: arrayUnion("gaming"),
+        gamingTeam: {
+          teamName: teamName,
+          gameVariant: gameVariant,
+          members: squadMembers
+        }
+      });
+
+      registeredEventsIds.push("gaming");
+      renderEvents();
+
+      // 3. Dispatch confirmation email to Team Leader
+      sendGamingTeamEmail(ev, gameVariant, teamName, squadMembers);
+
+      modal.classList.remove("active");
+      alert(`🎉 Squad Registered Successfully!\n\nTeam: ${teamName}\nGame: ${gameVariant}\nLeader: ${studentName}\n\nA confirmation email has been dispatched to ${studentEmail}.`);
+    } catch (err) {
+      console.error("Error registering gaming squad:", err);
+      alert("Failed to register squad. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "SUBMIT GAMING SQUAD REGISTRATION";
+      }
+    }
+  };
+
+  modal.classList.add("active");
+}
+
+async function sendGamingTeamEmail(ev, gameVariant, teamName, members) {
+  const email = localStorage.getItem("email");
+  const leaderName = localStorage.getItem("name") || username;
+  if (!email) return;
+
+  const subject = `🎮 Gaming Squad Registration Confirmed: ${teamName} (${gameVariant}) - Tech Manthan 6.0`;
+  const membersListHTML = members.map((m, idx) => `
+    <li style="margin-bottom: 4px;">
+      <strong>Member ${idx + 1}:</strong> ${m} ${idx === 0 ? '<span style="color: #06b6d4; font-size: 0.8rem; font-weight: bold;">(Team Leader)</span>' : ''}
+    </li>
+  `).join("");
+
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #0f172a; padding: 25px; text-align: center; border-bottom: 3px solid #06b6d4;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">TECH MANTHAN 6.0</h1>
+        <p style="color: #06b6d4; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">Dr. B.B Hegde First Grade College, Kundapura</p>
+      </div>
+      
+      <div style="padding: 30px; color: #334155; line-height: 1.6;">
+        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">🎮 Gaming Squad Registration Confirmed!</h2>
+        <p>Dear <strong>${leaderName}</strong>,</p>
+        <p>Your squad <strong>"${teamName}"</strong> has been successfully registered for the <strong>Gaming (${gameVariant})</strong> event at Tech Manthan 6.0!</p>
+        
+        <div style="margin: 25px 0; padding: 20px; background-color: #f8fafc; border-left: 4px solid #06b6d4; border-radius: 4px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 6px 0; width: 140px; font-weight: bold; color: #475569;">🛡️ Team Name:</td>
+              <td style="padding: 6px 0; color: #0f172a; font-weight: bold;">${teamName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">🎯 Selected Game:</td>
+              <td style="padding: 6px 0; color: #06b6d4; font-weight: bold; font-size: 15px;">${gameVariant}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📅 Event Date:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.date || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">🕒 Event Time:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.time || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📍 Venue:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.venue || "N/A"}</td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 12px;">
+            <strong style="color: #0f172a; display: block; margin-bottom: 6px;">👥 Squad Members (4 Members):</strong>
+            <ul style="margin: 0; padding-left: 20px; color: #334155;">
+              ${membersListHTML}
+            </ul>
+          </div>
+        </div>
+        
+        <p style="margin-top: 25px;">Please ensure all 4 squad members report to the gaming venue on time with their college ID cards.</p>
+        
+        <p style="margin-bottom: 0;">Best regards,<br><strong>Tech Manthan 6.0 Gaming Committee</strong></p>
+      </div>
+      
+      <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        This is an automated confirmation notification. Please do not reply directly to this email.
+      </div>
+    </div>
+  `;
+
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: email, subject, html })
+    });
+  } catch (err) {
+    console.error("Error sending gaming squad confirmation email:", err);
+  }
+}
 
 async function sendRegistrationEmail(ev) {
   const email = localStorage.getItem("email");
