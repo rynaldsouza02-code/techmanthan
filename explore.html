@@ -217,6 +217,70 @@
         </div>
     </div>
 
+    <!-- Cultural Team Registration Modal -->
+    <div class="modal-overlay" id="culturalTeamModal">
+        <div class="modal-content cyber-corners" style="max-width: 540px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-purple); box-shadow: 0 0 35px rgba(168, 85, 247, 0.35); border-radius: 16px;">
+            <button class="modal-close" id="culturalTeamModalCloseBtn">&times;</button>
+            
+            <div style="text-align: center; margin-bottom: 18px;">
+                <div style="font-size: 2rem; margin-bottom: 4px;">💃</div>
+                <h3 class="modal-title" style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; font-size: 1.25rem; margin: 0;">CULTURAL EVENT REGISTRATION</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register your class performance team. <strong>Min 5 to Max 10 participants allowed</strong>. Only <strong>1 team per class</strong>.</p>
+            </div>
+
+            <form id="culturalTeamForm">
+                <!-- 1. Team Name -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="culturalTeamName" style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1. PERFORMANCE TEAM NAME</label>
+                    <input type="text" id="culturalTeamName" required placeholder="e.g. Natya Taranga" style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                </div>
+
+                <!-- 2. Team Roster (Min 5, Max 10) -->
+                <div style="margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="color: #fff; font-weight: 700; font-size: 0.85rem; margin: 0;">2. TEAM PARTICIPANTS (<span id="culturalCountDisplay">5</span> / 10)</label>
+                        <span style="font-size: 0.72rem; color: var(--neon-purple); font-weight: bold; background: rgba(168, 85, 247, 0.15); border: 1px solid var(--neon-purple); padding: 2px 8px; border-radius: 12px;">Min 5 - Max 10</span>
+                    </div>
+                    
+                    <div id="culturalMembersContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Member 1 (Team Leader) -->
+                        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.7rem; color: var(--neon-purple); font-weight: 800; display: block;">MEMBER 1 (TEAM LEADER)</span>
+                                <strong id="culturalLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student Name</strong>
+                                <span id="culturalLeaderEmailDisplay" style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
+                            </div>
+                            <span style="background: var(--neon-purple); color: #fff; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
+                        </div>
+
+                        <!-- Member 2 -->
+                        <input type="text" class="cultural-member-input" required placeholder="Member 2 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+
+                        <!-- Member 3 -->
+                        <input type="text" class="cultural-member-input" required placeholder="Member 3 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+
+                        <!-- Member 4 -->
+                        <input type="text" class="cultural-member-input" required placeholder="Member 4 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+
+                        <!-- Member 5 -->
+                        <input type="text" class="cultural-member-input" required placeholder="Member 5 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                    </div>
+
+                    <!-- Add Participant Button -->
+                    <div style="margin-top: 12px;">
+                        <button type="button" id="btnAddCulturalMember" class="cyber-btn" style="width: 100%; padding: 8px; font-size: 0.82rem; background: rgba(168, 85, 247, 0.15); border-color: var(--neon-purple); color: var(--neon-purple); font-weight: bold; border-radius: 8px;">
+                            ➕ Add Participant
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmitCulturalTeam" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-purple); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);">
+                    SUBMIT CULTURAL TEAM REGISTRATION
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Firebase and Explore Logic module -->
     <script type="module" src="explore.js?v=3.1"></script>
     <script src="cyber-bg.js"></script>

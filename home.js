@@ -641,6 +641,12 @@ window.registerEvent = async function(eventId) {
     return;
   }
 
+  // Special Handling for Cultural Event: Require 1 Team per Class (Min 5, Max 10 Members)
+  if (eventId === "cultural") {
+    openCulturalTeamRegistrationModal(ev);
+    return;
+  }
+
   const registerButton = document.querySelector(`#card-${eventId} .btn-success`);
   if (registerButton) {
     registerButton.disabled = true;
@@ -902,6 +908,265 @@ async function sendGamingTeamEmail(ev, gameVariant, teamName, members) {
     });
   } catch (err) {
     console.error("Error sending gaming squad confirmation email:", err);
+  }
+}
+
+function openCulturalTeamRegistrationModal(ev) {
+  const modal = document.getElementById("culturalTeamModal");
+  const modalClose = document.getElementById("culturalTeamModalCloseBtn");
+  const form = document.getElementById("culturalTeamForm");
+  const leaderNameDisplay = document.getElementById("culturalLeaderNameDisplay");
+  const leaderEmailDisplay = document.getElementById("culturalLeaderEmailDisplay");
+  const membersContainer = document.getElementById("culturalMembersContainer");
+  const addBtn = document.getElementById("btnAddCulturalMember");
+  const countDisplay = document.getElementById("culturalCountDisplay");
+
+  if (!modal || !form || !membersContainer) return;
+
+  const studentName = localStorage.getItem("name") || username;
+  const studentEmail = localStorage.getItem("email") || "No email stored";
+  const currentStudentClass = localStorage.getItem("studentClass") || localStorage.getItem("userClass") || "";
+
+  if (leaderNameDisplay) leaderNameDisplay.innerText = studentName;
+  if (leaderEmailDisplay) leaderEmailDisplay.innerText = studentEmail;
+
+  const updateMemberCount = () => {
+    const dynamicInputs = membersContainer.querySelectorAll(".cultural-member-input");
+    const totalCount = dynamicInputs.length + 1; // +1 for Leader
+    if (countDisplay) countDisplay.innerText = totalCount;
+
+    if (addBtn) {
+      if (totalCount >= 10) {
+        addBtn.disabled = true;
+        addBtn.innerText = "🛑 Maximum 10 Participants Reached";
+        addBtn.style.opacity = "0.6";
+      } else {
+        addBtn.disabled = false;
+        addBtn.innerText = "➕ Add Participant";
+        addBtn.style.opacity = "1";
+      }
+    }
+  };
+
+  if (addBtn && !addBtn.dataset.bound) {
+    addBtn.dataset.bound = "true";
+    addBtn.addEventListener("click", () => {
+      const dynamicInputs = membersContainer.querySelectorAll(".cultural-member-input");
+      if (dynamicInputs.length + 1 >= 10) return;
+
+      const nextNum = dynamicInputs.length + 2;
+      const row = document.createElement("div");
+      row.className = "cultural-dynamic-row";
+      row.style.display = "flex";
+      row.style.gap = "8px";
+      row.style.alignItems = "center";
+
+      row.innerHTML = `
+        <input type="text" class="cultural-member-input" required placeholder="Member ${nextNum} Full Name" style="flex: 1; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+        <button type="button" class="btn-remove-member" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 0.8rem;">❌</button>
+      `;
+
+      row.querySelector(".btn-remove-member").addEventListener("click", () => {
+        const currentDynamic = membersContainer.querySelectorAll(".cultural-member-input");
+        if (currentDynamic.length + 1 <= 5) {
+          alert("Minimum 5 participants are required for Cultural event registration.");
+          return;
+        }
+        row.remove();
+        updateMemberCount();
+      });
+
+      membersContainer.appendChild(row);
+      updateMemberCount();
+    });
+  }
+
+  if (modalClose && !modalClose.dataset.bound) {
+    modalClose.dataset.bound = "true";
+    modalClose.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  }
+
+  updateMemberCount();
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const teamName = document.getElementById("culturalTeamName").value.trim();
+    const dynamicInputs = Array.from(membersContainer.querySelectorAll(".cultural-member-input"));
+    const teammates = dynamicInputs.map(inp => inp.value.trim()).filter(Boolean);
+    const allMembers = [studentName, ...teammates];
+
+    if (!teamName) {
+      alert("Please enter a Performance Team Name.");
+      return;
+    }
+
+    if (allMembers.length < 5) {
+      alert(`Minimum 5 participants required. Current team size is ${allMembers.length}. Please add more members.`);
+      return;
+    }
+
+    if (allMembers.length > 10) {
+      alert(`Maximum 10 participants allowed. Current team size is ${allMembers.length}. Please remove extra members.`);
+      return;
+    }
+
+    const submitBtn = document.getElementById("btnSubmitCulturalTeam");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Registering Cultural Team...";
+    }
+
+    // Check Class Limit: Only 1 team per class allowed for Cultural Event
+    try {
+      const q = query(collection(db, "students"), where("registeredEvents", "array-contains", "cultural"));
+      const querySnap = await getDocs(q);
+      
+      const normClass = normalizeClassName(currentStudentClass);
+      let currentClassTeamCount = 0;
+      querySnap.forEach(docSnap => {
+        const st = docSnap.data();
+        if (st.class && normalizeClassName(st.class) === normClass) {
+          currentClassTeamCount++;
+        }
+      });
+
+      if (currentClassTeamCount >= 1) {
+        alert(`❌ Class Registration Limit Reached!\n\nOnly 1 team is allowed per class section for the Cultural Event.\n\nA team from your class section (${currentStudentClass}) has already been registered.`);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "SUBMIT CULTURAL TEAM REGISTRATION";
+        }
+        return;
+      }
+    } catch (err) {
+      console.error("Error checking cultural class team limit:", err);
+    }
+
+    try {
+      // 1. Save team in culturalTeams collection
+      const teamRef = doc(db, "culturalTeams", username);
+      await setDoc(teamRef, {
+        eventId: "cultural",
+        teamName: teamName,
+        leaderUsername: username,
+        leaderName: studentName,
+        leaderEmail: studentEmail,
+        studentClass: currentStudentClass,
+        members: allMembers,
+        registeredAt: new Date().toISOString()
+      });
+
+      // 2. Update student document registeredEvents & culturalTeam details
+      const studentRef = doc(db, "students", username);
+      await updateDoc(studentRef, {
+        registeredEvents: arrayUnion("cultural"),
+        culturalTeam: {
+          teamName: teamName,
+          members: allMembers
+        }
+      });
+
+      registeredEventsIds.push("cultural");
+      renderEvents();
+
+      // 3. Dispatch confirmation email to Team Leader
+      sendCulturalTeamEmail(ev, teamName, allMembers);
+
+      modal.classList.remove("active");
+      alert(`🎉 Cultural Team Registered Successfully!\n\nTeam Name: ${teamName}\nLeader: ${studentName}\nTotal Participants: ${allMembers.length}\n\nA confirmation email has been sent to ${studentEmail}.`);
+    } catch (err) {
+      console.error("Error registering cultural team:", err);
+      alert("Failed to register cultural team. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "SUBMIT CULTURAL TEAM REGISTRATION";
+      }
+    }
+  };
+
+  modal.classList.add("active");
+}
+
+async function sendCulturalTeamEmail(ev, teamName, members) {
+  const email = localStorage.getItem("email");
+  const leaderName = localStorage.getItem("name") || username;
+  if (!email) return;
+
+  const subject = `💃 Cultural Event Registration Confirmed: ${teamName} - Tech Manthan 6.0`;
+  const membersListHTML = members.map((m, idx) => `
+    <li style="margin-bottom: 4px;">
+      <strong>Participant ${idx + 1}:</strong> ${m} ${idx === 0 ? '<span style="color: #a855f7; font-size: 0.8rem; font-weight: bold;">(Team Leader)</span>' : ''}
+    </li>
+  `).join("");
+
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #0f172a; padding: 25px; text-align: center; border-bottom: 3px solid #a855f7;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">TECH MANTHAN 6.0</h1>
+        <p style="color: #a855f7; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">Dr. B.B Hegde First Grade College, Kundapura</p>
+      </div>
+      
+      <div style="padding: 30px; color: #334155; line-height: 1.6;">
+        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">💃 Cultural Performance Team Confirmed!</h2>
+        <p>Dear <strong>${leaderName}</strong>,</p>
+        <p>Your team <strong>"${teamName}"</strong> has been successfully registered for the <strong>Cultural Event (Group Dance)</strong> at Tech Manthan 6.0!</p>
+        
+        <div style="margin: 25px 0; padding: 20px; background-color: #f8fafc; border-left: 4px solid #a855f7; border-radius: 4px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 6px 0; width: 140px; font-weight: bold; color: #475569;">🎭 Team Name:</td>
+              <td style="padding: 6px 0; color: #0f172a; font-weight: bold; font-size: 15px;">${teamName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">👥 Team Size:</td>
+              <td style="padding: 6px 0; color: #a855f7; font-weight: bold;">${members.length} Members (Min 5 - Max 10)</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📅 Event Date:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev ? (ev.date || "N/A") : "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">🕒 Event Time:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev ? (ev.time || "N/A") : "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📍 Venue:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev ? (ev.venue || "N/A") : "N/A"}</td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 12px;">
+            <strong style="color: #0f172a; display: block; margin-bottom: 6px;">💃 Registered Participants (${members.length}):</strong>
+            <ul style="margin: 0; padding-left: 20px; color: #334155;">
+              ${membersListHTML}
+            </ul>
+          </div>
+        </div>
+        
+        <p style="margin-top: 25px;">Please ensure all team members report to the stage venue on time with college ID cards and required audio tracks.</p>
+        
+        <p style="margin-bottom: 0;">Best regards,<br><strong>Tech Manthan 6.0 Cultural Committee</strong></p>
+      </div>
+      
+      <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        This is an automated confirmation notification. Please do not reply directly to this email.
+      </div>
+    </div>
+  `;
+
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: email, subject, html })
+    });
+  } catch (err) {
+    console.error("Error sending cultural team confirmation email:", err);
   }
 }
 

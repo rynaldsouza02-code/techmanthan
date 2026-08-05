@@ -256,6 +256,37 @@
                     </div>
                 </div>
 
+                <!-- Cultural Event Team Rosters Container (Cultural Event Only) -->
+                <div id="culturalTeamsPanel" class="form-panel cyber-corners" style="display: none; max-width: 100%; margin-bottom: 0; border: 1.5px solid var(--neon-purple);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 class="form-title" style="margin-bottom: 2px; color: var(--neon-purple); font-family: 'Orbitron', sans-serif;">💃 CULTURAL TEAM ROSTERS</h3>
+                            <p style="color: var(--text-sub); font-size: 0.8rem; margin: 0;">Registered performance teams (1 team per class, 5-10 members).</p>
+                        </div>
+                        <button id="btnExportCulturalTeams" class="cyber-btn" style="font-size: 0.8rem; padding: 6px 12px; background: rgba(168, 85, 247, 0.15); border-color: var(--neon-purple); color: var(--neon-purple); font-weight: 700;">📥 Export Cultural Teams (CSV)</button>
+                    </div>
+
+                    <div class="table-container" style="margin-bottom: 0; overflow-y: auto; max-height: 420px;">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Class</th>
+                                    <th>Team Leader</th>
+                                    <th>Total Members</th>
+                                    <th>Participants List</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="culturalTeamsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-sub);">Loading cultural team rosters...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Registrants Directory & Attendance Check-in -->
                 <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">

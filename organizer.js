@@ -226,6 +226,7 @@ async function loadRegistrants() {
     populateWinnerDropdowns();
     renderMarksSheet();
     await loadGamingTeams();
+    await loadCulturalTeams();
   } catch (error) {
     console.error("Error loading registrants:", error);
     registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--neon-red);">Failed to load registrants.</td></tr>`;
@@ -2525,6 +2526,113 @@ window.removeGamingTeam = async function(teamId, teamName) {
   } catch (err) {
     console.error("Error removing gaming team:", err);
     alert("Could not remove gaming team.");
+  }
+};
+
+let culturalTeamsList = [];
+
+async function loadCulturalTeams() {
+  const panel = document.getElementById("culturalTeamsPanel");
+  if (!panel) return;
+
+  if (assignedEventId !== "cultural") {
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.style.display = "block";
+
+  try {
+    const qSnap = await getDocs(collection(db, "culturalTeams"));
+    culturalTeamsList = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCulturalTeams();
+    setupCulturalExport();
+  } catch (err) {
+    console.error("Error loading cultural teams:", err);
+  }
+}
+
+function renderCulturalTeams() {
+  const tableBody = document.getElementById("culturalTeamsTableBody");
+  if (!tableBody) return;
+
+  if (culturalTeamsList.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No performance teams registered for Cultural event yet.</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = culturalTeamsList.map(t => {
+    const members = t.members || [];
+    const membersHTML = members.map((m, i) => `
+      <div style="font-size: 0.8rem; margin-bottom: 2px;">
+        <span style="color: var(--neon-purple); font-weight: bold;">P${i+1}:</span> ${m} ${i === 0 ? '👑' : ''}
+      </div>
+    `).join("");
+
+    return `
+      <tr>
+        <td><strong style="color: #fff; font-size: 0.95rem;">${t.teamName || "N/A"}</strong></td>
+        <td><strong style="color: var(--neon-purple);">${t.studentClass || "N/A"}</strong></td>
+        <td>
+          <div style="font-weight: 600; color: #fff;">${t.leaderName || "N/A"}</div>
+          <div style="font-size: 0.75rem; color: var(--text-sub);">${t.leaderEmail || "N/A"}</div>
+        </td>
+        <td>
+          <span style="background: rgba(168, 85, 247, 0.2); border: 1px solid var(--neon-purple); color: #fff; font-weight: bold; font-size: 0.8rem; padding: 2px 8px; border-radius: 12px;">
+            ${members.length} Members
+          </span>
+        </td>
+        <td>${membersHTML}</td>
+        <td style="text-align: center;">
+          <button class="btn-action btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="removeCulturalTeam('${t.id}', '${(t.teamName || '').replace(/'/g, "\\'")}')">Remove Team</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function setupCulturalExport() {
+  const exportBtn = document.getElementById("btnExportCulturalTeams");
+  if (exportBtn && !exportBtn.dataset.bound) {
+    exportBtn.dataset.bound = "true";
+    exportBtn.addEventListener("click", () => {
+      if (culturalTeamsList.length === 0) {
+        alert("No cultural teams registered yet.");
+        return;
+      }
+
+      let csv = "Team Name,Class,Leader Name,Leader Email,Total Members,Participants Roster,Registration Date\n";
+      culturalTeamsList.forEach(t => {
+        const m = (t.members || []).join(" | ");
+        csv += `"${t.teamName || ''}","${t.studentClass || ''}","${t.leaderName || ''}","${t.leaderEmail || ''}","${(t.members || []).length}","${m}","${t.registeredAt || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Cultural_Team_Rosters_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    });
+  }
+}
+
+window.removeCulturalTeam = async function(teamId, teamName) {
+  if (!confirm(`Are you sure you want to remove the cultural team "${teamName}"?`)) return;
+
+  try {
+    await deleteDoc(doc(db, "culturalTeams", teamId));
+    // Also remove cultural from student document
+    const studentRef = doc(db, "students", teamId);
+    await updateDoc(studentRef, {
+      registeredEvents: arrayRemove("cultural")
+    });
+    alert(`Cultural team "${teamName}" removed successfully.`);
+    await loadCulturalTeams();
+    await loadRegistrants();
+  } catch (err) {
+    console.error("Error removing cultural team:", err);
+    alert("Could not remove cultural team.");
   }
 };
 
