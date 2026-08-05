@@ -1279,11 +1279,25 @@ let allPromos = [];
 
 function getEmbedMediaUrl(url) {
   if (!url) return "";
-  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
-  }
-  return url;
+  const cleaned = url.trim();
+
+  // 1. YouTube Shorts
+  const ytShorts = cleaned.match(/youtube\.com\/shorts\/([\w-]{11})/i);
+  if (ytShorts && ytShorts[1]) return `https://www.youtube.com/embed/${ytShorts[1]}`;
+
+  // 2. YouTube standard & short links
+  const ytStandard = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+  if (ytStandard && ytStandard[1]) return `https://www.youtube.com/embed/${ytStandard[1]}`;
+
+  // 3. Google Drive
+  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i);
+  if (gdrive && gdrive[1]) return `https://drive.google.com/file/d/${gdrive[1]}/preview`;
+
+  // 4. Vimeo
+  const vimeo = cleaned.match(/vimeo\.com\/(\d+)/i);
+  if (vimeo && vimeo[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+  return cleaned;
 }
 
 function setupPromoStudio() {

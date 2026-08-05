@@ -1109,23 +1109,35 @@ async function saveMediaToFirestore() {
 
 function getEmbedMediaUrl(url) {
   if (!url) return "";
-  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
-  }
-  return url;
+  const cleaned = url.trim();
+
+  // 1. YouTube Shorts
+  const ytShorts = cleaned.match(/youtube\.com\/shorts\/([\w-]{11})/i);
+  if (ytShorts && ytShorts[1]) return `https://www.youtube.com/embed/${ytShorts[1]}`;
+
+  // 2. YouTube standard & short links
+  const ytStandard = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+  if (ytStandard && ytStandard[1]) return `https://www.youtube.com/embed/${ytStandard[1]}`;
+
+  // 3. Google Drive
+  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i);
+  if (gdrive && gdrive[1]) return `https://drive.google.com/file/d/${gdrive[1]}/preview`;
+
+  // 4. Vimeo
+  const vimeo = cleaned.match(/vimeo\.com\/(\d+)/i);
+  if (vimeo && vimeo[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+  return cleaned;
 }
 
 async function loadPromosForExplore() {
+  const section = document.getElementById("promoGallerySection");
+  const grid = document.getElementById("promoGridExplore");
+  if (!section || !grid) return;
+
   try {
     const promoSnap = await getDocs(collection(db, "promos"));
-    const promos = [];
-    promoSnap.forEach(snap => promos.push(snap.data()));
-
-    const section = document.getElementById("promoGallerySection");
-    const grid = document.getElementById("promoGridExplore");
-
-    if (!section || !grid) return;
+    const promos = promoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     if (promos.length === 0) {
       section.style.display = "none";
@@ -1138,11 +1150,15 @@ async function loadPromosForExplore() {
     grid.innerHTML = promos.map(p => {
       let mediaHTML = "";
       if (p.contentType === "video") {
-        const embedUrl = getEmbedMediaUrl(p.mediaUrl);
-        if (embedUrl.includes("youtube.com/embed")) {
-          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><iframe src="${embedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
+        const processedUrl = getEmbedMediaUrl(p.mediaUrl);
+        const lowerUrl = processedUrl.toLowerCase();
+        const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".ogg") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+        const isEmbedService = lowerUrl.includes("youtube.com") || lowerUrl.includes("drive.google.com") || lowerUrl.includes("vimeo.com") || !isDirectVideoFile;
+
+        if (isEmbedService) {
+          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><iframe src="${processedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
         } else {
-          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
+          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls playsinline style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
         }
       } else {
         mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><img src="${p.mediaUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;

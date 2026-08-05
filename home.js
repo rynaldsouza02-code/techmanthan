@@ -835,11 +835,33 @@ async function checkAndRenderChampionship() {
 
 function getEmbedMediaUrl(url) {
   if (!url) return "";
-  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
+  const cleaned = url.trim();
+
+  // 1. YouTube Shorts: youtube.com/shorts/VIDEO_ID
+  const ytShorts = cleaned.match(/youtube\.com\/shorts\/([\w-]{11})/i);
+  if (ytShorts && ytShorts[1]) {
+    return `https://www.youtube.com/embed/${ytShorts[1]}`;
   }
-  return url;
+
+  // 2. YouTube standard & short links
+  const ytStandard = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+  if (ytStandard && ytStandard[1]) {
+    return `https://www.youtube.com/embed/${ytStandard[1]}`;
+  }
+
+  // 3. Google Drive file view links: drive.google.com/file/d/FILE_ID/view
+  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i);
+  if (gdrive && gdrive[1]) {
+    return `https://drive.google.com/file/d/${gdrive[1]}/preview`;
+  }
+
+  // 4. Vimeo links: vimeo.com/VIDEO_ID
+  const vimeo = cleaned.match(/vimeo\.com\/(\d+)/i);
+  if (vimeo && vimeo[1]) {
+    return `https://player.vimeo.com/video/${vimeo[1]}`;
+  }
+
+  return cleaned;
 }
 
 async function loadPromosForHome() {
@@ -868,19 +890,25 @@ async function loadPromosForHome() {
   // Set up Promo Modal Close Handler
   const modal = document.getElementById("promoMediaModal");
   const modalClose = document.getElementById("promoMediaModalCloseBtn");
-  if (modalClose && modal) {
-    modalClose.addEventListener("click", () => modal.classList.remove("active"));
+  if (modalClose && modal && !modalClose.dataset.bound) {
+    modalClose.dataset.bound = "true";
+    const closeMediaModal = () => {
+      modal.classList.remove("active");
+      const modalBody = document.getElementById("promoMediaModalBody");
+      if (modalBody) modalBody.innerHTML = "";
+    };
+    modalClose.addEventListener("click", closeMediaModal);
     modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.classList.remove("active");
+      if (e.target === modal) closeMediaModal();
     });
   }
 
   let promos = [];
   try {
     const promoSnap = await getDocs(collection(db, "promos"));
-    promoSnap.forEach(snap => promos.push(snap.data()));
+    promos = promoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (err) {
-    console.error("Error loading promos for homepage:", err);
+    console.warn("Could not fetch promos from Firestore:", err);
   }
 
   if (promos.length === 0) {
@@ -888,14 +916,15 @@ async function loadPromosForHome() {
     return;
   }
 
+  // Sort by priority
   promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
   section.style.display = "block";
 
   track.innerHTML = promos.map((p, idx) => {
-    const badgeText = p.badge || `${promos.length - idx}${['TH','ST','ND','RD'][(promos.length - idx)%10 > 3 ? 0 : (promos.length - idx)%10] || 'TH'}`;
-    const subtitleText = p.subtitle || (p.contentType === "video" ? "Promo Broadcast" : "Promo Poster");
-    const thumbUrl = p.thumbnail || p.mediaUrl || "TC1.png";
     const isVideo = p.contentType === "video";
+    const thumbUrl = p.thumbnail || (isVideo ? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop" : p.mediaUrl);
+    const badgeText = p.badge || `PROMO #${idx + 1}`;
+    const subtitleText = p.subtitle || (isVideo ? "Official Video Reel" : "Official Event Poster");
     const iconSymbol = isVideo ? "▶" : "👁";
 
     return `
@@ -935,21 +964,38 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
   modalTitle.innerText = `TECH MANTHANA 6.0 PROMO: ${title}`;
 
   if (contentType === "video") {
-    const embedUrl = getEmbedMediaUrl(mediaUrl);
-    if (embedUrl.includes("youtube.com/embed")) {
+    const processedUrl = getEmbedMediaUrl(mediaUrl);
+    const lowerUrl = processedUrl.toLowerCase();
+    
+    // Direct video files vs embeddable services
+    const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".ogg") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+
+    const isEmbedService = lowerUrl.includes("youtube.com") || lowerUrl.includes("drive.google.com") || lowerUrl.includes("vimeo.com") || !isDirectVideoFile;
+
+    if (isEmbedService) {
+      const finalEmbedUrl = lowerUrl.includes("youtube.com") 
+        ? (processedUrl.includes("?") ? `${processedUrl}&autoplay=1&rel=0` : `${processedUrl}?autoplay=1&rel=0`)
+        : processedUrl;
+
       modalBody.innerHTML = `
         <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
-          <iframe src="${embedUrl}?autoplay=1" style="width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          <iframe src="${finalEmbedUrl}" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
     } else {
       modalBody.innerHTML = `
         <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
-          <video src="${mediaUrl}" controls autoplay style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
+          <video src="${mediaUrl}" controls playsinline preload="auto" autoplay style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
         </div>
         ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
+      const videoEl = modalBody.querySelector("video");
+      if (videoEl) {
+        videoEl.play().catch(err => {
+          console.warn("Autoplay required user interaction:", err);
+        });
+      }
     }
   } else {
     modalBody.innerHTML = `
