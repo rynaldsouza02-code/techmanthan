@@ -899,14 +899,14 @@ async function loadPromosForHome() {
     const iconSymbol = isVideo ? "▶" : "👁";
 
     return `
-      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 300px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
         <!-- Top Badge -->
         <div style="position: absolute; top: 12px; left: 12px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.4); font-weight: 800; border-radius: 4px; padding: 3px 9px; font-size: 0.75rem; font-family: monospace; letter-spacing: 1px;">
           ${badgeText}
         </div>
 
-        <!-- Thumbnail Aspect Box -->
-        <div style="position: relative; width: 100%; height: 170px; background: #000; overflow: hidden;">
+        <!-- Thumbnail 16:9 Aspect Box -->
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden;">
           <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title}">
           
           <!-- Center Play / Eye Action Button -->
@@ -938,20 +938,24 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
     const embedUrl = getEmbedMediaUrl(mediaUrl);
     if (embedUrl.includes("youtube.com/embed")) {
       modalBody.innerHTML = `
-        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; border: 1px solid var(--neon-cyan);">
-          <iframe src="${embedUrl}?autoplay=1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
+          <iframe src="${embedUrl}?autoplay=1" style="width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
         ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
     } else {
       modalBody.innerHTML = `
-        <video src="${mediaUrl}" controls autoplay style="width: 100%; max-height: 450px; border-radius: 12px; border: 1px solid var(--neon-cyan); background: #000;"></video>
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
+          <video src="${mediaUrl}" controls autoplay style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
+        </div>
         ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
     }
   } else {
     modalBody.innerHTML = `
-      <img src="${mediaUrl}" style="max-width: 100%; max-height: 500px; border-radius: 12px; border: 1px solid var(--neon-cyan); object-fit: contain;" alt="${title}">
+      <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center;">
+        <img src="${mediaUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${title}">
+      </div>
       ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
     `;
   }

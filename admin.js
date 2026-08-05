@@ -1494,12 +1494,12 @@ function renderPromoLibrary() {
     if (p.contentType === "video") {
       const embedUrl = getEmbedMediaUrl(p.mediaUrl);
       if (embedUrl.includes("youtube.com/embed")) {
-        previewHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 110px; border: none; border-radius: 6px;" allowfullscreen></iframe>`;
+        previewHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #000;"><iframe src="${embedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
       } else {
-        previewHTML = `<video src="${p.mediaUrl}" controls style="width: 100%; height: 110px; border-radius: 6px; object-fit: cover; background: #000;"></video>`;
+        previewHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
       }
     } else {
-      previewHTML = `<img src="${p.mediaUrl}" style="width: 100%; height: 110px; border-radius: 6px; object-fit: cover;" alt="${p.title}">`;
+      previewHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #000;"><img src="${p.mediaUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;
     }
 
     const typeBadge = p.contentType === "video" 

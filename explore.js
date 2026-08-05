@@ -1140,12 +1140,12 @@ async function loadPromosForExplore() {
       if (p.contentType === "video") {
         const embedUrl = getEmbedMediaUrl(p.mediaUrl);
         if (embedUrl.includes("youtube.com/embed")) {
-          mediaHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 200px; border: none; border-radius: 8px;" allowfullscreen></iframe>`;
+          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><iframe src="${embedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
         } else {
-          mediaHTML = `<video src="${p.mediaUrl}" controls style="width: 100%; height: 200px; border-radius: 8px; object-fit: cover; background: #000;"></video>`;
+          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
         }
       } else {
-        mediaHTML = `<img src="${p.mediaUrl}" style="width: 100%; height: 200px; border-radius: 8px; object-fit: cover;" alt="${p.title}">`;
+        mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><img src="${p.mediaUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;
       }
 
       return `
