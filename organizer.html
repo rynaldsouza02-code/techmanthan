@@ -160,6 +160,60 @@
                         <button type="submit" class="cyber-btn cyber-btn-purple" style="width: 100%; margin-top: 10px; padding: 10px; font-weight: bold; background: linear-gradient(135deg, #7c3aed, #06b6d4);">SAVE CLASS LIMITS</button>
                     </form>
                 </div>
+
+                <!-- Event Rounds Configuration Card -->
+                <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0; border-color: rgba(0, 243, 255, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <h3 class="form-title" style="margin-bottom: 0; color: var(--neon-cyan);">🎯 Event Rounds Management</h3>
+                        <button type="button" class="cyber-btn" id="btnToggleAddRoundForm" style="padding: 4px 12px; font-size: 0.8rem; background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan);">+ Add Round</button>
+                    </div>
+                    <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 15px;">Configure rounds, schedule, venue, and status progression for this event.</p>
+
+                    <!-- Add/Edit Round Form (Hidden by default) -->
+                    <div id="addRoundFormPanel" style="display: none; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--neon-cyan); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);">
+                        <h4 style="font-size: 0.9rem; color: var(--neon-cyan); margin-bottom: 12px; font-family: 'Orbitron', sans-serif;" id="roundFormTitle">Add New Event Round</h4>
+                        <form id="orgRoundForm">
+                            <input type="hidden" id="roundEditIndex" value="-1">
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label for="roundNameInput">Round Name / Title *</label>
+                                <input type="text" id="roundNameInput" required placeholder="e.g. Round 1: Preliminary Quiz">
+                            </div>
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="roundVenueInput">Venue / Location</label>
+                                    <input type="text" id="roundVenueInput" placeholder="e.g. Lab 301 / Main Stage">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="roundTimeInput">Schedule / Time</label>
+                                    <input type="text" id="roundTimeInput" placeholder="e.g. 10:30 AM - 11:30 AM">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label for="roundStatusSelect">Round Status</label>
+                                <select id="roundStatusSelect" style="width: 100%;">
+                                    <option value="Upcoming">Upcoming</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label for="roundDescInput">Description & Rules / Instructions</label>
+                                <textarea id="roundDescInput" rows="2" placeholder="Topics covered, qualification rules, or details for students..."></textarea>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <button type="submit" class="cyber-btn cyber-btn-glow" style="flex: 1; padding: 8px; font-weight: bold;">Save Round</button>
+                                <button type="button" class="cyber-btn" id="btnCancelRoundForm" style="padding: 8px 15px; background: rgba(255,255,255,0.1);">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Configured Rounds List -->
+                    <div id="eventRoundsList" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="color: var(--text-sub); font-size: 0.85rem; font-style: italic; text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                            No rounds created yet for this event. Click '+ Add Round' to configure event rounds.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Column 2: Registrations list, Winners Announcement & Email Notifications -->

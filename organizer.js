@@ -177,6 +177,11 @@ async function loadEventData() {
     tempClassLimits = eventData.classLimits || {};
     renderActiveClassLimits();
 
+    // Event Rounds Setup
+    currentEventRounds = eventData.rounds || [];
+    setupEventRoundsHandlers();
+    renderEventRounds();
+
     // Judging Labels
     if (judgesLabel) {
       judgesLabel.innerText = eventData.judges && eventData.judges.length > 0 ? eventData.judges.join(", ") : "None Allotted";
@@ -2214,6 +2219,172 @@ function renderActiveClassLimits() {
 window.removeClassLimitOverride = function(cls) {
   delete tempClassLimits[cls];
   renderActiveClassLimits();
+};
+
+// ==========================================
+// EVENT ROUNDS MANAGEMENT LOGIC
+// ==========================================
+
+let currentEventRounds = [];
+
+function setupEventRoundsHandlers() {
+  const btnToggle = document.getElementById("btnToggleAddRoundForm");
+  const formPanel = document.getElementById("addRoundFormPanel");
+  const btnCancel = document.getElementById("btnCancelRoundForm");
+  const form = document.getElementById("orgRoundForm");
+
+  if (btnToggle && formPanel) {
+    btnToggle.addEventListener("click", () => {
+      document.getElementById("roundFormTitle").innerText = "Add New Event Round";
+      document.getElementById("roundEditIndex").value = "-1";
+      if (form) form.reset();
+      formPanel.style.display = formPanel.style.display === "none" ? "block" : "none";
+    });
+  }
+
+  if (btnCancel && formPanel) {
+    btnCancel.addEventListener("click", () => {
+      formPanel.style.display = "none";
+      if (form) form.reset();
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!assignedEventId) {
+        alert("No event assigned!");
+        return;
+      }
+
+      const editIdx = parseInt(document.getElementById("roundEditIndex").value);
+      const name = document.getElementById("roundNameInput").value.trim();
+      const venue = document.getElementById("roundVenueInput").value.trim();
+      const time = document.getElementById("roundTimeInput").value.trim();
+      const status = document.getElementById("roundStatusSelect").value;
+      const desc = document.getElementById("roundDescInput").value.trim();
+
+      if (!name) {
+        alert("Please provide a round name!");
+        return;
+      }
+
+      const roundObj = {
+        name,
+        venue,
+        time,
+        status,
+        desc,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (editIdx >= 0 && editIdx < currentEventRounds.length) {
+        currentEventRounds[editIdx] = roundObj;
+      } else {
+        currentEventRounds.push(roundObj);
+      }
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, {
+          rounds: currentEventRounds
+        });
+
+        alert("Event rounds updated successfully!");
+        form.reset();
+        formPanel.style.display = "none";
+        renderEventRounds();
+      } catch (err) {
+        console.error("Error saving event round:", err);
+        alert("Failed to save event round.");
+      }
+    });
+  }
+}
+
+function renderEventRounds() {
+  const container = document.getElementById("eventRoundsList");
+  if (!container) return;
+
+  if (!currentEventRounds || currentEventRounds.length === 0) {
+    container.innerHTML = `
+      <div style="color: var(--text-sub); font-size: 0.85rem; font-style: italic; text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+        No rounds created yet for this event. Click '+ Add Round' to configure event rounds.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = currentEventRounds.map((rd, idx) => {
+    let statusBadgeColor = "var(--neon-cyan)";
+    let statusBg = "rgba(0, 243, 255, 0.1)";
+
+    if (rd.status === "In Progress") {
+      statusBadgeColor = "#38bdf8";
+      statusBg = "rgba(56, 189, 248, 0.2)";
+    } else if (rd.status === "Completed") {
+      statusBadgeColor = "#4ade80";
+      statusBg = "rgba(74, 222, 128, 0.2)";
+    } else if (rd.status === "Upcoming") {
+      statusBadgeColor = "#fbbf24";
+      statusBg = "rgba(251, 191, 36, 0.2)";
+    }
+
+    return `
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+              <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;">R${idx + 1}</span>
+              <strong style="color: #fff; font-size: 0.95rem;">${rd.name}</strong>
+              <span style="font-size: 0.72rem; font-weight: bold; color: ${statusBadgeColor}; background: ${statusBg}; border: 1px solid ${statusBadgeColor}; padding: 2px 8px; border-radius: 12px;">${rd.status || 'Upcoming'}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; gap: 15px; flex-wrap: wrap;">
+              ${rd.venue ? `<span>📍 ${rd.venue}</span>` : ''}
+              ${rd.time ? `<span>⏰ ${rd.time}</span>` : ''}
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="cyber-btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="editEventRound(${idx})">Edit</button>
+            <button type="button" class="cyber-btn cyber-btn-red" style="padding: 2px 8px; font-size: 0.75rem;" onclick="deleteEventRound(${idx})">Delete</button>
+          </div>
+        </div>
+        ${rd.desc ? `<div style="font-size: 0.82rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; border-left: 2px solid var(--neon-cyan); margin-top: 4px;">${rd.desc}</div>` : ''}
+      </div>
+    `;
+  }).join("");
+}
+
+window.editEventRound = function(idx) {
+  const rd = currentEventRounds[idx];
+  if (!rd) return;
+
+  const formPanel = document.getElementById("addRoundFormPanel");
+  if (formPanel) formPanel.style.display = "block";
+
+  document.getElementById("roundFormTitle").innerText = `Edit Round ${idx + 1}`;
+  document.getElementById("roundEditIndex").value = idx.toString();
+  document.getElementById("roundNameInput").value = rd.name || "";
+  document.getElementById("roundVenueInput").value = rd.venue || "";
+  document.getElementById("roundTimeInput").value = rd.time || "";
+  document.getElementById("roundStatusSelect").value = rd.status || "Upcoming";
+  document.getElementById("roundDescInput").value = rd.desc || "";
+};
+
+window.deleteEventRound = async function(idx) {
+  if (!confirm(`Are you sure you want to delete Round ${idx + 1}?`)) return;
+
+  currentEventRounds.splice(idx, 1);
+  try {
+    const eventRef = doc(db, "events", assignedEventId);
+    await updateDoc(eventRef, {
+      rounds: currentEventRounds
+    });
+    renderEventRounds();
+  } catch (err) {
+    console.error("Error deleting event round:", err);
+    alert("Failed to delete event round.");
+  }
 };
 
 // Boot Dashboard

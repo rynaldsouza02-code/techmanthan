@@ -546,6 +546,49 @@ window.showEventDetails = function(eventId) {
       });
     }
 
+    let roundsHTML = "";
+    if (ev.rounds && ev.rounds.length > 0) {
+      roundsHTML = `
+        <h4 style="color: var(--neon-cyan); margin-top: 20px; font-family: 'Orbitron', sans-serif; display: flex; align-items: center; gap: 8px;">
+          🎯 Event Progression & Rounds
+        </h4>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+          ${ev.rounds.map((rd, idx) => {
+            let statusBadgeColor = "var(--neon-cyan)";
+            let statusBg = "rgba(0, 243, 255, 0.1)";
+
+            if (rd.status === "In Progress") {
+              statusBadgeColor = "#38bdf8";
+              statusBg = "rgba(56, 189, 248, 0.2)";
+            } else if (rd.status === "Completed") {
+              statusBadgeColor = "#4ade80";
+              statusBg = "rgba(74, 222, 128, 0.2)";
+            } else if (rd.status === "Upcoming") {
+              statusBadgeColor = "#fbbf24";
+              statusBg = "rgba(251, 191, 36, 0.2)";
+            }
+
+            return `
+              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;">R${idx + 1}</span>
+                    <strong style="color: #fff; font-size: 0.95rem;">${rd.name}</strong>
+                  </div>
+                  <span style="font-size: 0.72rem; font-weight: bold; color: ${statusBadgeColor}; background: ${statusBg}; border: 1px solid ${statusBadgeColor}; padding: 2px 8px; border-radius: 12px;">${rd.status || 'Upcoming'}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; gap: 15px; flex-wrap: wrap;">
+                  ${rd.venue ? `<span>📍 ${rd.venue}</span>` : ''}
+                  ${rd.time ? `<span>⏰ ${rd.time}</span>` : ''}
+                </div>
+                ${rd.desc ? `<div style="font-size: 0.82rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; border-left: 2px solid var(--neon-cyan); margin-top: 4px;">${rd.desc}</div>` : ''}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
     let modalHTML = `
       ${qualificationNoticeHTML}
       <p><strong>Description:</strong> ${ev.description}</p>
@@ -557,7 +600,8 @@ window.showEventDetails = function(eventId) {
         ${studentCoordinatorsHTML}
         <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'inherit'};">⏳ <strong>Registration Close:</strong> ${regCloseText}</div>
       </div>
-      <h4>Rules & Guidelines</h4>
+      ${roundsHTML}
+      <h4 style="margin-top: 20px;">Rules & Guidelines</h4>
     <pre>${ev.rules || "No rules specified for this event."}</pre>
   `;
 
