@@ -1551,13 +1551,22 @@ async function checkAndRenderChampionship() {
   }
 }
 
-function getDirectImageUrl(url) {
+function getDirectVideoThumbnailUrl(url) {
   if (!url) return "";
   const cleaned = url.trim();
+
+  // 1. YouTube & YouTube Shorts
+  const ytMatch = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/i);
+  if (ytMatch && ytMatch[1]) {
+    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+  }
+
+  // 2. Google Drive video or image file
   const gdriveMatch = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i) || cleaned.match(/drive\.google\.com\/uc\?.*id=([^\&]+)/i);
   if (gdriveMatch && gdriveMatch[1]) {
     return `https://lh3.googleusercontent.com/d/${gdriveMatch[1]}`;
   }
+
   return cleaned;
 }
 
@@ -1655,11 +1664,23 @@ async function loadPromosForHome() {
 
   track.innerHTML = promos.map((p, idx) => {
     const isVideo = p.contentType === "video";
-    const rawThumb = p.thumbnail || (isVideo ? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop" : p.mediaUrl);
-    const thumbUrl = getDirectImageUrl(rawThumb);
+    const rawMediaUrl = p.mediaUrl || "";
+    const rawThumb = p.thumbnail || rawMediaUrl;
+    const thumbUrl = getDirectVideoThumbnailUrl(rawThumb);
+
+    const lowerMediaUrl = rawMediaUrl.toLowerCase();
+    const isDirectMp4 = isVideo && (lowerMediaUrl.endsWith(".mp4") || lowerMediaUrl.endsWith(".webm") || lowerMediaUrl.endsWith(".ogg") || (lowerMediaUrl.includes("firebasestorage.googleapis.com") && !lowerMediaUrl.includes("drive.google.com")));
+
     const badgeText = p.badge || `PROMO #${idx + 1}`;
     const subtitleText = p.subtitle || (isVideo ? "Official Video Reel" : "Official Event Poster");
     const iconSymbol = isVideo ? "▶" : "👁";
+
+    let mediaPreviewHTML = "";
+    if (isDirectMp4 && !p.thumbnail) {
+      mediaPreviewHTML = `<video src="${rawMediaUrl}#t=0.5" preload="metadata" muted style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.85;"></video>`;
+    } else {
+      mediaPreviewHTML = `<img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">`;
+    }
 
     return `
       <div class="promo-card-item" onclick="openPromoMediaById('${p.id}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
@@ -1670,7 +1691,7 @@ async function loadPromosForHome() {
 
         <!-- Thumbnail 4:3 Aspect Box -->
         <div style="position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; overflow: hidden;">
-          <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">
+          ${mediaPreviewHTML}
           
           <!-- Center Play / Eye Action Button -->
           <div style="width: 46px; height: 46px; border-radius: 50%; background: rgba(10, 15, 30, 0.85); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">

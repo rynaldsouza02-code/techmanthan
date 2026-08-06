@@ -1555,13 +1555,22 @@ async function saveMediaToFirestore() {
   }
 }
 
-function getDirectImageUrl(url) {
+function getDirectVideoThumbnailUrl(url) {
   if (!url) return "";
   const cleaned = url.trim();
+
+  // 1. YouTube & YouTube Shorts
+  const ytMatch = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/i);
+  if (ytMatch && ytMatch[1]) {
+    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+  }
+
+  // 2. Google Drive video or image file
   const gdriveMatch = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i) || cleaned.match(/drive\.google\.com\/uc\?.*id=([^\&]+)/i);
   if (gdriveMatch && gdriveMatch[1]) {
     return `https://lh3.googleusercontent.com/d/${gdriveMatch[1]}`;
   }
+
   return cleaned;
 }
 
