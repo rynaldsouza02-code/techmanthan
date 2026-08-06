@@ -1853,17 +1853,23 @@ async function loadPromosForExplore() {
 
   try {
     const promoSnap = await getDocs(collection(db, "promos"));
-    const promos = promoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Filter promos uploaded by Event Coordinators for Explore Channels & Media
+    const coordPromos = promos.filter(p => {
+      if (p.uploadedByRole === "coordinator") return true;
+      if (p.uploadedByRole === "admin") return false;
+      if (p.uploadedBy && p.uploadedBy !== "Administrator" && !p.uploadedBy.toLowerCase().includes("admin")) return true;
+      return false;
+    });
 
-    if (promos.length === 0) {
+    if (coordPromos.length === 0) {
       section.style.display = "none";
       return;
     }
 
-    promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+    coordPromos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
     section.style.display = "block";
 
-    grid.innerHTML = promos.map(p => {
+    grid.innerHTML = coordPromos.map(p => {
       let mediaHTML = "";
       if (p.contentType === "video") {
         const processedUrl = getEmbedMediaUrl(p.mediaUrl);

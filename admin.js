@@ -1516,6 +1516,7 @@ function setupPromoStudio() {
           targetVisibility: targetVisibility,
           priority: priority,
           uploadedBy: "Administrator",
+          uploadedByRole: "admin",
           createdAt: new Date().toISOString()
         };
 

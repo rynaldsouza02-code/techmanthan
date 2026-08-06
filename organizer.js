@@ -1974,11 +1974,15 @@ function setupOrgPromoStudio() {
       let mediaUrl = "";
 
       if (mediaSource === "url") {
-        mediaUrl = document.getElementById("orgPromoMediaUrl").value.trim();
-        if (!mediaUrl) {
+        let raw = document.getElementById("orgPromoMediaUrl").value.trim();
+        if (!raw) {
           alert("Please enter a valid video or image URL link.");
           return;
         }
+        if (!raw.startsWith("http://") && !raw.startsWith("https://") && !raw.startsWith("data:")) {
+          raw = "https://" + raw;
+        }
+        mediaUrl = raw;
       } else {
         const fileInput = document.getElementById("orgPromoFileInput");
         if (!fileInput.files || fileInput.files.length === 0) {
@@ -1986,6 +1990,10 @@ function setupOrgPromoStudio() {
           return;
         }
         const file = fileInput.files[0];
+        if (contentType === "video" && file.size > 850 * 1024) {
+          alert("Video file size is " + (file.size / (1024 * 1024)).toFixed(1) + "MB. Database limit for direct video uploads is 850KB.\n\nTip: Switch to 'URL Link' mode and paste a YouTube or Google Drive video link!");
+          return;
+        }
         mediaUrl = await readFileAsDataURL(file);
       }
 
@@ -1999,7 +2007,8 @@ function setupOrgPromoStudio() {
         mediaUrl: mediaUrl,
         targetVisibility: "all",
         priority: priority,
-        uploadedBy: organizerName || "Organizer",
+        uploadedBy: organizerName || "Faculty Event Coordinator",
+        uploadedByRole: "coordinator",
         eventId: assignedEventId,
         createdAt: new Date().toISOString()
       };

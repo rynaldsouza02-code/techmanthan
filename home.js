@@ -1658,21 +1658,29 @@ async function loadPromosForHome() {
     console.warn("Could not fetch promos from Firestore:", err);
   }
 
-  if (promos.length === 0) {
+  // Filter promos added by Admin for TECH MANTHANA 6.0 PROMO & TEASERS
+  const adminPromos = promos.filter(p => {
+    if (p.uploadedByRole === "admin") return true;
+    if (p.uploadedByRole === "coordinator") return false;
+    if (p.uploadedBy === "Administrator" || (p.uploadedBy && p.uploadedBy.toLowerCase().includes("admin"))) return true;
+    return !p.uploadedByRole; // Legacy admin fallback
+  });
+
+  if (adminPromos.length === 0) {
     section.style.display = "none";
     return;
   }
 
   // Sort by priority
-  promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+  adminPromos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
   section.style.display = "block";
 
   // Store in global lookup for bulletproof click handler
   const promosMap = {};
-  promos.forEach(p => { promosMap[p.id] = p; });
+  adminPromos.forEach(p => { promosMap[p.id] = p; });
   window.currentHomePromosMap = promosMap;
 
-  track.innerHTML = promos.map((p, idx) => {
+  track.innerHTML = adminPromos.map((p, idx) => {
     const isVideo = p.contentType === "video";
     const rawMediaUrl = p.mediaUrl || "";
     const rawThumb = p.thumbnail || rawMediaUrl;
