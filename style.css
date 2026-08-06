@@ -472,7 +472,7 @@ body::before {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 16px;
-    padding: 24px;
+    padding: 24px 24px 30px 24px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     display: flex;
@@ -564,10 +564,15 @@ body::before {
 .event-actions {
     display: flex;
     gap: 12px;
+    position: relative;
+    z-index: 15;
+    margin-bottom: 2px;
 }
 
 .event-actions button {
     flex: 1;
+    position: relative;
+    z-index: 15;
 }
 
 /* Winner Banner in Event Card */

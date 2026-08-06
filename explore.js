@@ -618,6 +618,22 @@ window.openDetails = function(eventId) {
 };
 
 // Student registration action
+function isDuoTeamEvent(eventId) {
+  if (!eventId) return false;
+  const norm = eventId.toLowerCase().trim();
+  return (
+    norm === "coding" ||
+    norm === "ungoogling" ||
+    norm === "ungoogle" ||
+    norm === "tech-quiz" ||
+    norm === "techquiz" ||
+    norm === "it-melody" ||
+    norm === "itmelody" ||
+    norm === "treasure-hunt" ||
+    norm === "treasurehunt"
+  );
+}
+
 window.registerEvent = async function(eventId) {
   if (!username) return;
 
@@ -640,8 +656,7 @@ window.registerEvent = async function(eventId) {
   }
 
   // Special Handling for Duo 2-Member Team Events
-  const DUO_EVENT_IDS = ["coding", "ungoogling", "tech-quiz", "it-melody", "treasure-hunt"];
-  if (DUO_EVENT_IDS.includes(eventId)) {
+  if (isDuoTeamEvent(eventId)) {
     openDuoTeamRegistrationModal(ev);
     return;
   }
