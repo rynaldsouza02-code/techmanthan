@@ -1555,6 +1555,16 @@ async function saveMediaToFirestore() {
   }
 }
 
+function getDirectImageUrl(url) {
+  if (!url) return "";
+  const cleaned = url.trim();
+  const gdriveMatch = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i) || cleaned.match(/drive\.google\.com\/uc\?.*id=([^\&]+)/i);
+  if (gdriveMatch && gdriveMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${gdriveMatch[1]}`;
+  }
+  return cleaned;
+}
+
 function getEmbedMediaUrl(url) {
   if (!url) return "";
   const cleaned = url.trim();
@@ -1609,7 +1619,8 @@ async function loadPromosForExplore() {
           mediaHTML = `<div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls playsinline style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
         }
       } else {
-        mediaHTML = `<div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #000;"><img src="${p.mediaUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;
+        const directImg = getDirectImageUrl(p.mediaUrl);
+        mediaHTML = `<div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #000;"><img src="${directImg}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;
       }
 
       return `

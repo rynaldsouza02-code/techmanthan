@@ -1551,6 +1551,16 @@ async function checkAndRenderChampionship() {
   }
 }
 
+function getDirectImageUrl(url) {
+  if (!url) return "";
+  const cleaned = url.trim();
+  const gdriveMatch = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i) || cleaned.match(/drive\.google\.com\/uc\?.*id=([^\&]+)/i);
+  if (gdriveMatch && gdriveMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${gdriveMatch[1]}`;
+  }
+  return cleaned;
+}
+
 function getEmbedMediaUrl(url) {
   if (!url) return "";
   const cleaned = url.trim();
@@ -1638,15 +1648,21 @@ async function loadPromosForHome() {
   promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
   section.style.display = "block";
 
+  // Store in global lookup for bulletproof click handler
+  const promosMap = {};
+  promos.forEach(p => { promosMap[p.id] = p; });
+  window.currentHomePromosMap = promosMap;
+
   track.innerHTML = promos.map((p, idx) => {
     const isVideo = p.contentType === "video";
-    const thumbUrl = p.thumbnail || (isVideo ? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop" : p.mediaUrl);
+    const rawThumb = p.thumbnail || (isVideo ? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop" : p.mediaUrl);
+    const thumbUrl = getDirectImageUrl(rawThumb);
     const badgeText = p.badge || `PROMO #${idx + 1}`;
     const subtitleText = p.subtitle || (isVideo ? "Official Video Reel" : "Official Event Poster");
     const iconSymbol = isVideo ? "▶" : "👁";
 
     return `
-      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+      <div class="promo-card-item" onclick="openPromoMediaById('${p.id}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
         <!-- Top Badge -->
         <div style="position: absolute; top: 10px; left: 10px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.4); font-weight: 800; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; font-family: monospace; letter-spacing: 1px;">
           ${badgeText}
@@ -1654,7 +1670,7 @@ async function loadPromosForHome() {
 
         <!-- Thumbnail 4:3 Aspect Box -->
         <div style="position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; overflow: hidden;">
-          <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title}">
+          <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">
           
           <!-- Center Play / Eye Action Button -->
           <div style="width: 46px; height: 46px; border-radius: 50%; background: rgba(10, 15, 30, 0.85); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
@@ -1664,13 +1680,20 @@ async function loadPromosForHome() {
 
         <!-- Card Text Info -->
         <div style="padding: 12px 14px;">
-          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; margin: 0 0 4px 0;">${p.title}</h3>
+          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; margin: 0 0 4px 0;">${p.title || 'Promo'}</h3>
           <p style="color: #94a3b8; font-size: 0.78rem; margin: 0; font-family: 'Inter', sans-serif;">${subtitleText}</p>
         </div>
       </div>
     `;
   }).join("");
 }
+
+window.openPromoMediaById = function(promoId) {
+  const p = window.currentHomePromosMap ? window.currentHomePromosMap[promoId] : null;
+  if (p) {
+    openPromoMedia(p.title, p.contentType, p.mediaUrl, p.description);
+  }
+};
 
 window.openPromoMedia = function(title, contentType, mediaUrl, description) {
   const modal = document.getElementById("promoMediaModal");
@@ -1679,7 +1702,7 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
 
   if (!modal || !modalTitle || !modalBody) return;
 
-  modalTitle.innerText = `TECH MANTHANA 6.0 PROMO: ${title}`;
+  modalTitle.innerText = `TECH MANTHANA 6.0 PROMO: ${title || 'View Media'}`;
 
   if (contentType === "video") {
     const processedUrl = getEmbedMediaUrl(mediaUrl);
@@ -1716,9 +1739,10 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
       }
     }
   } else {
+    const directImg = getDirectImageUrl(mediaUrl);
     modalBody.innerHTML = `
       <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center;">
-        <img src="${mediaUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${title}">
+        <img src="${directImg}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${title || 'Poster'}">
       </div>
       ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
     `;
