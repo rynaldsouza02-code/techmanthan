@@ -3321,6 +3321,14 @@ async function setupMultiEventSelection() {
     });
   }
 
+  // Deduplicate and filter valid events
+  const seenIds = new Set();
+  organizerAssignedEvents = organizerAssignedEvents.filter(e => {
+    if (!e || !e.id || !e.title || seenIds.has(e.id)) return false;
+    seenIds.add(e.id);
+    return true;
+  });
+
   // If no assignedEventId is currently selected, pick first
   if (!currentAssignedEventId && organizerAssignedEvents.length > 0) {
     currentAssignedEventId = organizerAssignedEvents[0].id;
@@ -3328,7 +3336,7 @@ async function setupMultiEventSelection() {
     localStorage.setItem("assignedEventId", currentAssignedEventId);
   }
 
-  // Populate Header Switcher & Modal if multiple events found
+  // Populate Header Switcher & Modal ONLY if multiple (2+) events found
   const switcherContainer = document.getElementById("eventSwitcherContainer");
   const headerSelect = document.getElementById("headerEventSelect");
 
@@ -3336,7 +3344,7 @@ async function setupMultiEventSelection() {
     if (switcherContainer) switcherContainer.style.display = "flex";
     if (headerSelect) {
       headerSelect.innerHTML = organizerAssignedEvents.map(e => `
-        <option value="${e.id}" ${e.id === currentAssignedEventId ? "selected" : ""}>${e.title}</option>
+        <option value="${e.id}" ${e.id === currentAssignedEventId ? "selected" : ""} style="background-color: #0f172a; color: #ffffff; padding: 6px;">${e.title}</option>
       `).join("");
 
       headerSelect.onchange = (e) => {
