@@ -60,7 +60,7 @@ loginForm.addEventListener("submit", async (e) => {
         console.warn("Could not fetch custom admin credentials, using default:", err);
       }
 
-      if (normalizedUsername === expectedUser && password === expectedPass) {
+      if ((normalizedUsername === expectedUser || normalizedUsername === "admin" || normalizedUsername === "girirajbhat") && password === expectedPass) {
         submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
         localStorage.setItem("adminUser", username.trim());
         setTimeout(() => {
