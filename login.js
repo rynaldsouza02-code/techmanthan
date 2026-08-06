@@ -45,12 +45,14 @@ loginForm.addEventListener("submit", async (e) => {
     const normalizedPassword = normalizeDOB(password);
 
     // ADMIN LOGIN
+    const cleanNormUser = normalizedUsername.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
+
     let expectedAdminUser = "girirajbhat";
     let expectedAdminPass = "12345";
     try {
       const adminDocRef = doc(db, "settings", "adminCredentials");
       const adminDocSnap = await getDoc(adminDocRef);
-      if (adminDocSnap.exists()) {
+      if (adminDocSnap && adminDocSnap.exists()) {
         const data = adminDocSnap.data();
         if (data.username) expectedAdminUser = data.username.toLowerCase().trim();
         if (data.password) expectedAdminPass = data.password.trim();
@@ -59,20 +61,20 @@ loginForm.addEventListener("submit", async (e) => {
       console.warn("Could not fetch custom admin credentials, using default:", err);
     }
 
-    const cleanNormUser = normalizedUsername.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
-
-    const isUserAdminMatch = (
+    const isAdminUsername = (
       roleId === 'adminRoleBtn' ||
       normalizedUsername === expectedAdminUser ||
       normalizedUsername === "admin" ||
       normalizedUsername === "girirajbhat" ||
       cleanNormUser === "girirajbhat" ||
-      cleanNormUser === "admin"
+      cleanNormUser === "admin" ||
+      cleanNormUser.includes("giriraj")
     );
 
-    const isPasswordAdminMatch = (password === expectedAdminPass || password === "12345");
+    const isAdminPassword = (password === expectedAdminPass || password === "12345");
 
-    if (isUserAdminMatch && isPasswordAdminMatch && (roleId === 'adminRoleBtn' || normalizedUsername === "admin" || normalizedUsername === "girirajbhat" || cleanNormUser === "girirajbhat")) {
+    if (isAdminUsername && isAdminPassword && (roleId === 'adminRoleBtn' || normalizedUsername === "admin" || normalizedUsername === "girirajbhat" || cleanNormUser === "girirajbhat" || cleanNormUser === "admin")) {
+      console.log("Admin login granted for:", username);
       submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
       localStorage.setItem("adminUser", "girirajbhat");
       localStorage.setItem("adminName", "Mr. Giriraj Bhat");
