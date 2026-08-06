@@ -100,16 +100,19 @@ function setupSessionUI() {
         window.location.href = "login.html";
       });
     }
-  } else if (username && name) {
+  } else if (username || name) {
     // Student
-    const firstInitial = (name.charAt(0) || "S").toUpperCase();
+    const displayName = name || username || "Student";
+    const firstInitial = (displayName.charAt(0) || "S").toUpperCase();
 
-    navUserArea.innerHTML = `
-      <div class="profile-pill-btn" id="btnProfilePill">
-        <div class="avatar-circle-sm">${firstInitial}</div>
-        <span class="profile-name-text">${name}</span>
-      </div>
-    `;
+    if (navUserArea) {
+      navUserArea.innerHTML = `
+        <div class="profile-pill-btn" id="btnProfilePill">
+          <div class="avatar-circle-sm">${firstInitial}</div>
+          <span class="profile-name-text">${displayName}</span>
+        </div>
+      `;
+    }
     loadStudentRegisteredEvents();
 
     // Add "My Registrations" tab dynamically

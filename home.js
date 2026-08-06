@@ -70,7 +70,7 @@ const defaultOrganizers = [
 ];
 
 async function initializeApp() {
-  await seedDatabaseIfNeeded();
+  seedDatabaseIfNeeded().catch(err => console.error("Non-blocking seed error:", err));
   setupSessionUI();
   await loadUserData();
   await loadEvents();
@@ -103,15 +103,21 @@ async function seedDatabaseIfNeeded() {
 }
 
 function setupSessionUI() {
-  if (username && name) {
-    const firstInitial = (name.charAt(0) || "S").toUpperCase();
+  const currentUsername = localStorage.getItem("username") || localStorage.getItem("user") || "";
+  const currentName = localStorage.getItem("name") || currentUsername || "";
 
-    navUserArea.innerHTML = `
-      <div class="profile-pill-btn" id="btnProfilePill">
-        <div class="avatar-circle-sm">${firstInitial}</div>
-        <span class="profile-name-text">${name}</span>
-      </div>
-    `;
+  if (currentUsername) {
+    const displayName = currentName || currentUsername || "Student";
+    const firstInitial = (displayName.charAt(0) || "S").toUpperCase();
+
+    if (navUserArea) {
+      navUserArea.innerHTML = `
+        <div class="profile-pill-btn" id="btnProfilePill">
+          <div class="avatar-circle-sm">${firstInitial}</div>
+          <span class="profile-name-text">${displayName}</span>
+        </div>
+      `;
+    }
     
     // Add "My Registrations" filter button
     if (filterToggles && !document.getElementById("btnMyEvents")) {
@@ -348,14 +354,15 @@ async function loadEvents() {
     eventsQuery.forEach((docSnap) => {
       eventsList.push(docSnap.data());
     });
+    if (eventsList.length === 0) {
+      console.warn("No events returned from Firestore. Using defaultEvents fallback.");
+      eventsList = [...defaultEvents];
+    }
     renderEvents();
   } catch (error) {
-    console.error("Error loading events:", error);
-    eventGrid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--neon-red);">
-        Failed to load events. Please refresh the page.
-      </div>
-    `;
+    console.error("Error loading events from Firestore:", error);
+    eventsList = [...defaultEvents];
+    renderEvents();
   }
 }
 
