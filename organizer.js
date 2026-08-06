@@ -148,8 +148,7 @@ function setupOrganizerProfileProtocol() {
     modal.style.display = "none";
   };
 
-  btnProfile.addEventListener("click", (e) => {
-    e.stopPropagation();
+  btnProfile.addEventListener("click", () => {
     const isVisible = modal.style.display === "block";
     if (isVisible) {
       closeModal();
@@ -165,11 +164,16 @@ function setupOrganizerProfileProtocol() {
     modal.style.display = "block";
   });
 
-  if (modalClose) modalClose.addEventListener("click", closeModal);
+  if (modalClose) modalClose.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
 
-  // Close when clicking outside the popover
+  // Close when clicking outside the popover (handle child spans inside button too)
   document.addEventListener("click", (e) => {
-    if (modal.style.display === "block" && !modal.contains(e.target) && e.target !== btnProfile) {
+    if (modal.style.display === "block"
+        && !modal.contains(e.target)
+        && !btnProfile.contains(e.target)) {
       closeModal();
     }
   });
