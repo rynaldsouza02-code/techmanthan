@@ -97,6 +97,7 @@ async function init() {
   setupCredentialsModal();
   setupClassLimitsForm();
   setupOrgMediaModal();
+  setupDedicatedPosterCard();
 }
 
 function handleLogout() {
@@ -267,6 +268,7 @@ async function loadEventData() {
     }
     tempClassLimits = eventData.classLimits || {};
     renderActiveClassLimits();
+    updateDedicatedPosterUI();
 
     // Event Rounds Setup
     // Normalize rounds — Firestore may store it as a map/object instead of an array
@@ -3139,6 +3141,122 @@ async function saveOrgMediaToFirestore() {
       btnSave.disabled = false;
       btnSave.innerText = "SYNC MEDIA TO STUDENT DASHBOARD & EXPLORE";
     }
+  }
+}
+
+function setupDedicatedPosterCard() {
+  const form = document.getElementById("dedicatedPosterForm");
+  const fileBtn = document.getElementById("btnSelectDedicatedPosterFile");
+  const fileInput = document.getElementById("dedicatedPosterFileInput");
+  const urlInput = document.getElementById("dedicatedPosterUrlInput");
+
+  if (!form) return;
+
+  if (fileBtn && fileInput) {
+    fileBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        compressImage(file, (dataUrl) => {
+          orgTempPoster = dataUrl;
+          if (urlInput) urlInput.value = "[Local Image File Queued]";
+          const img = document.getElementById("dedicatedPosterImg");
+          const noTxt = document.getElementById("dedicatedNoPosterText");
+          if (img) {
+            img.src = dataUrl;
+            img.style.display = "inline-block";
+          }
+          if (noTxt) noTxt.style.display = "none";
+        });
+      }
+    });
+  }
+
+  if (urlInput) {
+    urlInput.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      if (val && !val.includes("[Local Image File Queued]")) {
+        const directImg = getOrgDirectImageUrl(val);
+        const img = document.getElementById("dedicatedPosterImg");
+        const noTxt = document.getElementById("dedicatedNoPosterText");
+        if (img) {
+          img.src = directImg;
+          img.style.display = "inline-block";
+        }
+        if (noTxt) noTxt.style.display = "none";
+      }
+    });
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!assignedEventId) {
+      alert("No event assigned to your organizer account.");
+      return;
+    }
+
+    const saveBtn = document.getElementById("btnSaveDedicatedPoster");
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerText = "PUBLISHING POSTER...";
+    }
+
+    try {
+      let finalPoster = orgTempPoster;
+      if (urlInput && urlInput.value.trim() && !urlInput.value.includes("[Local Image File Queued]")) {
+        finalPoster = getOrgDirectImageUrl(urlInput.value.trim());
+      }
+
+      if (!finalPoster) {
+        alert("Please select a local image file or enter a valid poster URL.");
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = "PUBLISH COVER POSTER";
+        }
+        return;
+      }
+
+      const eventRef = doc(db, "events", assignedEventId);
+      await updateDoc(eventRef, { poster: finalPoster });
+
+      if (assignedEventData) {
+        assignedEventData.poster = finalPoster;
+      }
+
+      alert("Cover Poster published successfully! It is now live on Student Dashboard & Explore.");
+
+    } catch (err) {
+      console.error("Error publishing cover poster:", err);
+      alert("Failed to publish poster: " + (err.message || "Database write error."));
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "PUBLISH COVER POSTER";
+      }
+    }
+  });
+}
+
+function updateDedicatedPosterUI() {
+  const img = document.getElementById("dedicatedPosterImg");
+  const noTxt = document.getElementById("dedicatedNoPosterText");
+  const urlInput = document.getElementById("dedicatedPosterUrlInput");
+
+  const poster = assignedEventData ? assignedEventData.poster : "";
+  if (poster) {
+    if (img) {
+      img.src = poster;
+      img.style.display = "inline-block";
+    }
+    if (noTxt) noTxt.style.display = "none";
+    if (urlInput) urlInput.value = poster;
+  } else {
+    if (img) {
+      img.src = "";
+      img.style.display = "none";
+    }
+    if (noTxt) noTxt.style.display = "block";
+    if (urlInput) urlInput.value = "";
   }
 }
 

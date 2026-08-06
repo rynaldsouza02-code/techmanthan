@@ -49,11 +49,45 @@
         <div id="portalContent" style="display: flex; gap: 30px; flex-wrap: wrap;">
             <!-- Column 1: Event Details Form & Winner input -->
             <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 30px;">
+                <!-- Dedicated Event Cover Poster Upload Card -->
+                <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);">
+                    <h3 class="form-title" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; display: flex; align-items: center; gap: 8px;">
+                        <span>🖼️</span> Event Cover Poster Upload
+                    </h3>
+                    <p style="color: var(--text-sub); font-size: 0.82rem; margin-bottom: 14px; font-family: monospace;">
+                        Upload a local poster image file or paste a Google Drive link. Reflected on Student Dashboard & Explore cards.
+                    </p>
+
+                    <!-- Poster Live Preview Box -->
+                    <div style="background: rgba(15, 23, 42, 0.9); border: 1px dashed rgba(0, 243, 255, 0.4); border-radius: 10px; padding: 12px; text-align: center; margin-bottom: 14px;" id="dedicatedPosterPreviewBox">
+                        <div style="font-size: 0.72rem; color: var(--text-sub); font-family: monospace; margin-bottom: 6px;">CURRENT ACTIVE POSTER:</div>
+                        <img id="dedicatedPosterImg" src="" style="max-width: 100%; max-height: 160px; border-radius: 8px; border: 1px solid var(--neon-cyan); display: none;">
+                        <div id="dedicatedNoPosterText" style="font-size: 0.8rem; color: var(--text-sub); font-family: monospace;">No poster published for this event yet</div>
+                    </div>
+
+                    <form id="dedicatedPosterForm">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="font-size: 0.8rem; color: var(--neon-cyan);">Option A: Paste Google Drive / Image URL Link</label>
+                            <input type="text" id="dedicatedPosterUrlInput" placeholder="Paste Google Drive link or image URL..." style="width: 100%; padding: 9px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label style="font-size: 0.8rem; color: var(--neon-purple);">Option B: Upload Local Poster File</label>
+                            <input type="file" id="dedicatedPosterFileInput" accept="image/*" style="display: none;">
+                            <button type="button" class="cyber-btn" id="btnSelectDedicatedPosterFile" style="width: 100%; padding: 8px; font-size: 0.8rem;">📁 Select Image File from Device</button>
+                        </div>
+
+                        <button type="submit" id="btnSaveDedicatedPoster" class="cyber-btn" style="width: 100%; padding: 11px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);">
+                            PUBLISH COVER POSTER
+                        </button>
+                    </form>
+                </div>
+
                 <!-- Event Photos & Media Card -->
                 <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0; border: 1px solid var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.15);">
-                    <h3 class="form-title" style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif;">Event Photos & Media</h3>
-                    <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 15px; font-family: monospace;">[MEDIA NODE ACTIVE] // Upload posters and manage event photos for the showcase gallery.</p>
-                    <button type="button" class="cyber-btn" id="btnGoToMedia" style="width: 100%; background: rgba(188, 19, 254, 0.15); border-color: var(--neon-purple); color: #fff; box-shadow: 0 0 10px rgba(188, 19, 254, 0.1);">Manage Photos & Poster</button>
+                    <h3 class="form-title" style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif;">Event Photos & Teaser Videos</h3>
+                    <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 15px; font-family: monospace;">[MEDIA NODE ACTIVE] // Manage photo galleries and video teasers for your event.</p>
+                    <button type="button" class="cyber-btn" id="btnGoToMedia" style="width: 100%; background: rgba(188, 19, 254, 0.15); border-color: var(--neon-purple); color: #fff; box-shadow: 0 0 10px rgba(188, 19, 254, 0.1);">Manage Photos & Video Teasers</button>
                 </div>
 
                 <!-- Event Controls / Status Panel -->
@@ -790,7 +824,7 @@
     </div>
 
     <!-- Organizer script -->
-    <script type="module" src="organizer.js?v=5.0"></script>
+    <script type="module" src="organizer.js?v=5.1"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>
