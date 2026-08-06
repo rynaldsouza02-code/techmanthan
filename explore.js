@@ -537,7 +537,7 @@ function renderEvents() {
           <div class="event-actions" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; gap: 10px; width: 100%;">
               <button class="btn-action" style="flex: 1;" onclick="openDetails('${ev.id}')">Rules & Details</button>
-              <button class="btn-action btn-success" style="flex: 1;" onclick="openPhotos('${ev.id}')">View Photos</button>
+              <button class="btn-action btn-success" style="flex: 1; font-weight: bold; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(0, 243, 255, 0.2)); border-color: var(--neon-cyan); color: #fff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.25);" onclick="openPhotos('${ev.id}')">🎬 Watch Photos & Videos</button>
             </div>
             
             ${
@@ -1730,6 +1730,31 @@ function setupEventListeners() {
 
   // Save to database
   btnSaveMedia.addEventListener("click", saveMediaToFirestore);
+
+  // Add Cloud / Google Drive Photo URL link
+  const btnAddPhotoUrl = document.getElementById("btnAddPhotoUrl");
+  if (btnAddPhotoUrl) {
+    btnAddPhotoUrl.addEventListener("click", () => {
+      const input = document.getElementById("photoUrlInput");
+      if (!input) return;
+      let val = input.value.trim();
+      if (!val) {
+        alert("Please enter an image URL or Google Drive link.");
+        return;
+      }
+      if (!val.startsWith("http://") && !val.startsWith("https://") && !val.startsWith("data:")) {
+        val = "https://" + val;
+      }
+      val = getDirectImageUrl(val);
+      if (tempPhotos.length >= MAX_GALLERY_PHOTOS) {
+        alert("Maximum limit of 8 event gallery photos reached.");
+        return;
+      }
+      tempPhotos.push(val);
+      input.value = "";
+      updateUploadModalPreviews();
+    });
+  }
 }
 
 function handlePhotosUpload(files) {
@@ -1845,7 +1870,10 @@ function getDirectVideoThumbnailUrl(url) {
 
 function getEmbedMediaUrl(url) {
   if (!url) return "";
-  const cleaned = url.trim();
+  let cleaned = url.trim();
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://") && !cleaned.startsWith("data:")) {
+    cleaned = "https://" + cleaned;
+  }
 
   // 1. YouTube Shorts
   const ytShorts = cleaned.match(/youtube\.com\/shorts\/([\w-]{11})/i);
@@ -1855,14 +1883,30 @@ function getEmbedMediaUrl(url) {
   const ytStandard = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
   if (ytStandard && ytStandard[1]) return `https://www.youtube.com/embed/${ytStandard[1]}`;
 
-  // 3. Google Drive
-  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i);
-  if (gdrive && gdrive[1]) return `https://drive.google.com/file/d/${gdrive[1]}/preview`;
+  // 3. Google Drive file/d/ID, open?id=ID, uc?id=ID
+  const gdrive1 = cleaned.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  if (gdrive1 && gdrive1[1]) return `https://drive.google.com/file/d/${gdrive1[1]}/preview`;
+
+  const gdrive2 = cleaned.match(/drive\.google\.com\/(?:open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/i);
+  if (gdrive2 && gdrive2[1]) return `https://drive.google.com/file/d/${gdrive2[1]}/preview`;
 
   // 4. Vimeo
   const vimeo = cleaned.match(/vimeo\.com\/(\d+)/i);
   if (vimeo && vimeo[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
 
+  return cleaned;
+}
+
+function getDirectImageUrl(url) {
+  if (!url) return "";
+  let cleaned = url.trim();
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://") && !cleaned.startsWith("data:")) {
+    cleaned = "https://" + cleaned;
+  }
+  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  if (gdrive && gdrive[1]) {
+    return `https://drive.google.com/uc?export=view&id=${gdrive[1]}`;
+  }
   return cleaned;
 }
 

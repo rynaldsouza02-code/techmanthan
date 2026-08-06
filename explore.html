@@ -166,6 +166,12 @@
                     <input type="file" id="photosFileInput" accept="image/*" multiple style="display: none;">
                 </div>
                 
+                <!-- Cloud / Google Drive Image URL Input -->
+                <div style="display: flex; gap: 8px; margin-top: 8px; margin-bottom: 8px;">
+                    <input type="text" id="photoUrlInput" placeholder="Or paste Google Drive / Image URL link..." style="flex: 1; padding: 7px 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 6px; color: #fff; font-size: 0.78rem; outline: none;">
+                    <button type="button" id="btnAddPhotoUrl" class="cyber-btn" style="padding: 6px 12px; font-size: 0.75rem; white-space: nowrap;">➕ Add URL</button>
+                </div>
+                
                 <!-- Thumbnails preview slot -->
                 <div id="photosPreviewArea">
                     <div style="font-size: 0.7rem; color: var(--text-sub); margin-bottom: 5px;">Uploaded Photos (<span id="photoCountText">0</span>/8):</div>
@@ -362,7 +368,7 @@
     </div>
 
     <!-- Firebase and Explore Logic module -->
-    <script type="module" src="explore.js?v=4.7"></script>
+    <script type="module" src="explore.js?v=4.8"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>
