@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css?v=2.9">
     <script>
         // Inline auth check before page load to prevent flash of content
-        if (localStorage.getItem("adminUser") !== "admin") {
+        if (!localStorage.getItem("adminUser")) {
             window.location.href = "login.html";
         }
     </script>
@@ -731,7 +731,7 @@
     </div>
 
     <!-- Firebase SDK Imports and Admin Dashboard Logic -->
-    <script type="module" src="admin.js?v=3.5"></script>
+    <script type="module" src="admin.js?v=3.6"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>
