@@ -561,64 +561,117 @@ function renderEvents() {
 
 // Global functions exposed to window
 window.openDetails = function(eventId) {
-  const ev = eventsList.find(e => e.id === eventId);
-  if (!ev) return;
+  try {
+    const ev = eventsList.find(e => e.id === eventId);
+    if (!ev) return;
 
-  const isClosed = isRegistrationClosed(ev);
-  const regCloseText = ev.registrationCloseDate 
-    ? `12:00 AM Midnight (${ev.registrationCloseDate}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}`
-    : "No closing date set (Open)";
+    const isClosed = isRegistrationClosed(ev);
+    const regCloseText = ev.registrationCloseDate 
+      ? `12:00 AM Midnight (${ev.registrationCloseDate}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}`
+      : "No closing date set (Open)";
 
-  modalTitle.innerText = ev.title;
-  let studentCoordinatorsHTML = "";
-  if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
-    const scList = ev.studentCoordinators.map(sc => `<strong>${sc.name}</strong> (${sc.studentClass} - 📞 ${sc.phone})`).join(", ");
-    studentCoordinatorsHTML = `<div style="grid-column: 1/-1;">🎓 <strong>Student Coordinators:</strong> ${scList}</div>`;
-  }
+    if (modalTitle) modalTitle.innerText = ev.title;
+    let studentCoordinatorsHTML = "";
+    if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
+      const scList = ev.studentCoordinators.map(sc => `<strong>${sc.name}</strong> (${sc.studentClass} - 📞 ${sc.phone})`).join(", ");
+      studentCoordinatorsHTML = `<div style="grid-column: 1/-1;">🎓 <strong>Student Coordinators:</strong> ${scList}</div>`;
+    }
 
-  let qualificationNoticeHTML = "";
-  if (studentUsername && ev.roundPromotions) {
-    Object.keys(ev.roundPromotions).forEach(targetRound => {
-      const promo = ev.roundPromotions[targetRound];
-      if (promo && promo.promotedStudents && promo.promotedStudents.includes(studentUsername)) {
-        qualificationNoticeHTML += `
-          <div style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--neon-purple); border-radius: 8px; padding: 12px 16px; margin-bottom: 15px; color: #e9d5ff;">
-            🎉 <strong>CONGRATULATIONS!</strong> You have qualified and been promoted to <strong>${targetRound}</strong> (from ${promo.fromRound})! Please report to ${ev.venue || 'the event venue'} on time.
-          </div>
-        `;
-      }
-    });
-  }
+    let qualificationNoticeHTML = "";
+    if (studentUsername && ev.roundPromotions) {
+      Object.keys(ev.roundPromotions).forEach(targetRound => {
+        const promo = ev.roundPromotions[targetRound];
+        if (promo && promo.promotedStudents && promo.promotedStudents.includes(studentUsername)) {
+          qualificationNoticeHTML += `
+            <div style="background: rgba(168, 85, 247, 0.15); border: 1px solid var(--neon-purple); border-radius: 8px; padding: 12px 16px; margin-bottom: 15px; color: #e9d5ff;">
+              🎉 <strong>CONGRATULATIONS!</strong> You have qualified and been promoted to <strong>${targetRound}</strong> (from ${promo.fromRound})! Please report to ${ev.venue || 'the event venue'} on time.
+            </div>
+          `;
+        }
+      });
+    }
 
-  let modalHTML = `
-    ${qualificationNoticeHTML}
-    <p><strong>Description:</strong> ${ev.description}</p>
-    <div class="event-details" style="margin: 20px 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px;">
-      <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
-      <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
-      <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
-      <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
-      ${studentCoordinatorsHTML}
-      <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'inherit'};">⏳ <strong>Registration Close Date:</strong> ${regCloseText}</div>
-    </div>
-    <h4>Rules & Guidelines</h4>
-    <pre>${ev.rules || "No rules specified for this event."}</pre>
-  `;
+    let roundsHTML = "";
+    const rawRounds = Array.isArray(ev.rounds) 
+      ? ev.rounds 
+      : (ev.rounds && typeof ev.rounds === "object" ? Object.values(ev.rounds) : []);
 
-  if (ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third)) {
-    modalHTML += `
-      <h4>Event Winners</h4>
-      <div class="winner-card-banner" style="font-size: 0.9rem; padding: 15px; margin-top: 10px;">
-        ${ev.results.first ? `<div style="margin-bottom: 8px;">🥇 <strong>First Place:</strong> ${ev.results.first}</div>` : ""}
-        ${ev.results.second ? `<div style="margin-bottom: 8px;">🥈 <strong>Second Place:</strong> ${ev.results.second}</div>` : ""}
-        ${ev.results.third ? `<div>🥉 <strong>Third Place:</strong> ${ev.results.third}</div>` : ""}
+    if (rawRounds && rawRounds.length > 0) {
+      roundsHTML = `
+        <h4 style="color: var(--neon-cyan); margin-top: 20px; font-family: 'Orbitron', sans-serif; display: flex; align-items: center; gap: 8px;">
+          🎯 Event Progression & Rounds
+        </h4>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+          ${rawRounds.map((rd, idx) => {
+            let statusBadgeColor = "var(--neon-cyan)";
+            let statusBg = "rgba(0, 243, 255, 0.1)";
+
+            if (rd.status === "In Progress") {
+              statusBadgeColor = "#38bdf8";
+              statusBg = "rgba(56, 189, 248, 0.2)";
+            } else if (rd.status === "Completed") {
+              statusBadgeColor = "#4ade80";
+              statusBg = "rgba(74, 222, 128, 0.2)";
+            } else if (rd.status === "Upcoming") {
+              statusBadgeColor = "#fbbf24";
+              statusBg = "rgba(251, 191, 36, 0.2)";
+            }
+
+            return `
+              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;">R${idx + 1}</span>
+                    <strong style="color: #fff; font-size: 0.95rem;">${rd.name || 'Round ' + (idx + 1)}</strong>
+                  </div>
+                  <span style="font-size: 0.72rem; font-weight: bold; color: ${statusBadgeColor}; background: ${statusBg}; border: 1px solid ${statusBadgeColor}; padding: 2px 8px; border-radius: 12px;">${rd.status || 'Upcoming'}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; gap: 15px; flex-wrap: wrap;">
+                  ${rd.venue ? `<span>📍 ${rd.venue}</span>` : ''}
+                  ${rd.time ? `<span>⏰ ${rd.time}</span>` : ''}
+                </div>
+                ${rd.desc ? `<div style="font-size: 0.82rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; border-left: 2px solid var(--neon-cyan); margin-top: 4px;">${rd.desc}</div>` : ''}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    let modalHTML = `
+      ${qualificationNoticeHTML}
+      <p><strong>Description:</strong> ${ev.description || 'No description available.'}</p>
+      <div class="event-details" style="margin: 20px 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px;">
+        <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
+        <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
+        <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
+        <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
+        ${studentCoordinatorsHTML}
+        <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'inherit'};">⏳ <strong>Registration Close Date:</strong> ${regCloseText}</div>
       </div>
+      ${roundsHTML}
+      <h4 style="margin-top: 20px; color: var(--neon-purple); font-family: 'Orbitron', sans-serif;">📋 Rules & Guidelines</h4>
+      <pre style="white-space: pre-wrap; font-family: inherit; line-height: 1.6; color: #e2e8f0; background: rgba(0,0,0,0.4); padding: 14px; border-radius: 8px; border-left: 3px solid var(--neon-cyan); margin-top: 8px; font-size: 0.88rem;">${ev.rules || "No rules specified for this event."}</pre>
     `;
-  }
 
-  modalBody.innerHTML = modalHTML;
-  detailModal.classList.add("active");
+    if (ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third)) {
+      modalHTML += `
+        <h4 style="margin-top: 20px; color: var(--neon-cyan);">🏆 Event Winners</h4>
+        <div class="winner-card-banner" style="font-size: 0.9rem; padding: 15px; margin-top: 10px;">
+          ${ev.results.first ? `<div style="margin-bottom: 8px;">🥇 <strong>First Place:</strong> ${ev.results.first}</div>` : ""}
+          ${ev.results.second ? `<div style="margin-bottom: 8px;">🥈 <strong>Second Place:</strong> ${ev.results.second}</div>` : ""}
+          ${ev.results.third ? `<div>🥉 <strong>Third Place:</strong> ${ev.results.third}</div>` : ""}
+        </div>
+      `;
+    }
+
+    if (modalBody) modalBody.innerHTML = modalHTML;
+    if (detailModal) detailModal.classList.add("active");
+  } catch (err) {
+    console.error("Error opening event details:", err);
+  }
 };
+window.showEventDetails = window.openDetails;
 
 // Student registration action
 function isDuoTeamEvent(eventId) {
