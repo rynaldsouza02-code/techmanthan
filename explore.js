@@ -639,6 +639,13 @@ window.registerEvent = async function(eventId) {
     return;
   }
 
+  // Special Handling for Duo 2-Member Team Events
+  const DUO_EVENT_IDS = ["coding", "ungoogling", "tech-quiz", "it-melody", "treasure-hunt"];
+  if (DUO_EVENT_IDS.includes(eventId)) {
+    openDuoTeamRegistrationModal(ev);
+    return;
+  }
+
   const registerBtn = document.querySelector(`#card-${eventId} .btn-success`);
   if (registerBtn) {
     registerBtn.disabled = true;
@@ -899,6 +906,216 @@ async function sendGamingTeamEmail(ev, gameVariant, teamName, members) {
     });
   } catch (err) {
     console.error("Error sending gaming squad confirmation email:", err);
+  }
+}
+
+function openDuoTeamRegistrationModal(ev) {
+  const modal = document.getElementById("duoTeamModal");
+  const modalClose = document.getElementById("duoTeamModalCloseBtn");
+  const form = document.getElementById("duoTeamForm");
+  const titleDisplay = document.getElementById("duoEventTitle");
+  const iconDisplay = document.getElementById("duoEventIcon");
+  const leaderNameDisplay = document.getElementById("duoLeaderNameDisplay");
+  const leaderEmailDisplay = document.getElementById("duoLeaderEmailDisplay");
+
+  if (!modal || !form) return;
+
+  const studentName = localStorage.getItem("name") || username;
+  const studentEmail = localStorage.getItem("email") || "No email stored";
+  const currentStudentClass = localStorage.getItem("studentClass") || localStorage.getItem("userClass") || "";
+
+  if (titleDisplay) titleDisplay.innerText = `${(ev.title || "DUO EVENT").toUpperCase()} REGISTRATION`;
+  if (leaderNameDisplay) leaderNameDisplay.innerText = studentName;
+  if (leaderEmailDisplay) leaderEmailDisplay.innerText = studentEmail;
+
+  const iconsMap = {
+    coding: "💻",
+    ungoogling: "🔍",
+    "tech-quiz": "🧠",
+    "it-melody": "🎵",
+    "treasure-hunt": "🗺️"
+  };
+  if (iconDisplay) iconDisplay.innerText = iconsMap[ev.id] || "👥";
+
+  if (modalClose && !modalClose.dataset.bound) {
+    modalClose.dataset.bound = "true";
+    modalClose.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  }
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const teamName = document.getElementById("duoTeamName").value.trim();
+    const member2 = document.getElementById("duoMember2").value.trim();
+
+    if (!teamName || !member2) {
+      alert("Please provide the Team Name and Teammate's Full Name.");
+      return;
+    }
+
+    const submitBtn = document.getElementById("btnSubmitDuoTeam");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Registering Duo Team...";
+    }
+
+    // Check Class Registration Limit for this event if configured by organizer
+    const classLimit = getClassRegistrationLimit(ev, currentStudentClass);
+    if (classLimit !== null && classLimit > 0) {
+      try {
+        const q = query(collection(db, "students"), where("registeredEvents", "array-contains", ev.id));
+        const querySnap = await getDocs(q);
+        
+        const normClass = normalizeClassName(currentStudentClass);
+        let currentClassCount = 0;
+        querySnap.forEach(docSnap => {
+          const st = docSnap.data();
+          if (st.class && normalizeClassName(st.class) === normClass) {
+            currentClassCount++;
+          }
+        });
+
+        if (currentClassCount >= classLimit) {
+          alert(`Class Registration Limit Reached!\n\nYour class (${currentStudentClass}) has already registered ${currentClassCount} team(s) for "${ev.title}".\n\nMaximum allowed teams per class is ${classLimit}.`);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "SUBMIT DUO TEAM REGISTRATION";
+          }
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking class duo limit:", err);
+      }
+    }
+
+    const duoMembers = [studentName, member2];
+
+    try {
+      // 1. Save team in duoTeams collection
+      const teamDocId = `${username}_${ev.id}`;
+      const teamRef = doc(db, "duoTeams", teamDocId);
+      await setDoc(teamRef, {
+        eventId: ev.id,
+        eventTitle: ev.title,
+        teamName: teamName,
+        leaderUsername: username,
+        leaderName: studentName,
+        leaderEmail: studentEmail,
+        studentClass: currentStudentClass,
+        members: duoMembers,
+        registeredAt: new Date().toISOString()
+      });
+
+      // 2. Update student document registeredEvents & duoTeams data
+      const studentRef = doc(db, "students", username);
+      await updateDoc(studentRef, {
+        registeredEvents: arrayUnion(ev.id),
+        [`duoTeam_${ev.id}`]: {
+          teamName: teamName,
+          members: duoMembers
+        }
+      });
+
+      registeredEventsIds.push(ev.id);
+      renderEvents();
+
+      // 3. Dispatch confirmation email to Team Leader
+      sendDuoTeamEmail(ev, teamName, duoMembers);
+
+      modal.classList.remove("active");
+      alert(`🎉 Duo Team Registered Successfully!\n\nEvent: ${ev.title}\nTeam Name: ${teamName}\nLeader: ${studentName}\nTeammate: ${member2}\n\nA confirmation email has been sent to ${studentEmail}.`);
+    } catch (err) {
+      console.error("Error registering duo team:", err);
+      alert("Failed to register duo team. Please try again.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "SUBMIT DUO TEAM REGISTRATION";
+      }
+    }
+  };
+
+  modal.classList.add("active");
+}
+
+async function sendDuoTeamEmail(ev, teamName, members) {
+  const email = localStorage.getItem("email");
+  const leaderName = localStorage.getItem("name") || username;
+  if (!email) return;
+
+  const subject = `👥 ${ev.title} Registration Confirmed: ${teamName} - Tech Manthan 6.0`;
+  const membersListHTML = members.map((m, idx) => `
+    <li style="margin-bottom: 4px;">
+      <strong>Member ${idx + 1}:</strong> ${m} ${idx === 0 ? '<span style="color: #06b6d4; font-size: 0.8rem; font-weight: bold;">(Team Leader)</span>' : ''}
+    </li>
+  `).join("");
+
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+      <div style="background-color: #0f172a; padding: 25px; text-align: center; border-bottom: 3px solid #06b6d4;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px;">TECH MANTHAN 6.0</h1>
+        <p style="color: #06b6d4; margin: 5px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">Dr. B.B Hegde First Grade College, Kundapura</p>
+      </div>
+      
+      <div style="padding: 30px; color: #334155; line-height: 1.6;">
+        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">👥 ${ev.title} Registration Confirmed!</h2>
+        <p>Dear <strong>${leaderName}</strong>,</p>
+        <p>Your team <strong>"${teamName}"</strong> has been successfully registered for <strong>${ev.title}</strong> at Tech Manthan 6.0!</p>
+        
+        <div style="margin: 25px 0; padding: 20px; background-color: #f8fafc; border-left: 4px solid #06b6d4; border-radius: 4px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 6px 0; width: 140px; font-weight: bold; color: #475569;">🛡️ Team Name:</td>
+              <td style="padding: 6px 0; color: #0f172a; font-weight: bold; font-size: 15px;">${teamName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">🎯 Event Title:</td>
+              <td style="padding: 6px 0; color: #06b6d4; font-weight: bold;">${ev.title}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📅 Event Date:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.date || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">🕒 Event Time:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.time || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-weight: bold; color: #475569;">📍 Venue:</td>
+              <td style="padding: 6px 0; color: #0f172a;">${ev.venue || "N/A"}</td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 12px;">
+            <strong style="color: #0f172a; display: block; margin-bottom: 6px;">👥 Duo Team Roster (2 Members):</strong>
+            <ul style="margin: 0; padding-left: 20px; color: #334155;">
+              ${membersListHTML}
+            </ul>
+          </div>
+        </div>
+        
+        <p style="margin-top: 25px;">Please ensure both team members report to the event venue on time with college ID cards.</p>
+        
+        <p style="margin-bottom: 0;">Best regards,<br><strong>Tech Manthan 6.0 Event Committee</strong></p>
+      </div>
+      
+      <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        This is an automated confirmation notification. Please do not reply directly to this email.
+      </div>
+    </div>
+  `;
+
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: email, subject, html })
+    });
+  } catch (err) {
+    console.error("Error sending duo team confirmation email:", err);
   }
 }
 

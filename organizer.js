@@ -227,6 +227,7 @@ async function loadRegistrants() {
     renderMarksSheet();
     await loadGamingTeams();
     await loadCulturalTeams();
+    await loadDuoTeams();
   } catch (error) {
     console.error("Error loading registrants:", error);
     registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--neon-red);">Failed to load registrants.</td></tr>`;
@@ -2633,6 +2634,106 @@ window.removeCulturalTeam = async function(teamId, teamName) {
   } catch (err) {
     console.error("Error removing cultural team:", err);
     alert("Could not remove cultural team.");
+  }
+};
+
+let duoTeamsList = [];
+const DUO_EVENT_IDS = ["coding", "ungoogling", "tech-quiz", "it-melody", "treasure-hunt"];
+
+async function loadDuoTeams() {
+  const panel = document.getElementById("duoTeamsPanel");
+  if (!panel) return;
+
+  if (!DUO_EVENT_IDS.includes(assignedEventId)) {
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.style.display = "block";
+
+  try {
+    const qSnap = await getDocs(query(collection(db, "duoTeams"), where("eventId", "==", assignedEventId)));
+    duoTeamsList = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderDuoTeams();
+    setupDuoExport();
+  } catch (err) {
+    console.error("Error loading duo teams:", err);
+  }
+}
+
+function renderDuoTeams() {
+  const tableBody = document.getElementById("duoTeamsTableBody");
+  if (!tableBody) return;
+
+  if (duoTeamsList.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub);">No duo teams registered for this event yet.</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = duoTeamsList.map(t => {
+    const members = t.members || [];
+
+    return `
+      <tr>
+        <td><strong style="color: #fff; font-size: 0.95rem;">${t.teamName || "N/A"}</strong></td>
+        <td><strong style="color: var(--neon-cyan);">${t.studentClass || "N/A"}</strong></td>
+        <td>
+          <div style="font-weight: 600; color: #fff;">${t.leaderName || "N/A"} 👑</div>
+          <div style="font-size: 0.75rem; color: var(--text-sub);">${t.leaderEmail || "N/A"}</div>
+        </td>
+        <td><strong style="color: #fff;">${members[1] || "N/A"}</strong></td>
+        <td style="text-align: center;">
+          <button class="btn-action btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="removeDuoTeam('${t.id}', '${(t.teamName || '').replace(/'/g, "\\'")}', '${t.leaderUsername}')">Remove Team</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function setupDuoExport() {
+  const exportBtn = document.getElementById("btnExportDuoTeams");
+  if (exportBtn && !exportBtn.dataset.bound) {
+    exportBtn.dataset.bound = "true";
+    exportBtn.addEventListener("click", () => {
+      if (duoTeamsList.length === 0) {
+        alert("No duo teams registered yet.");
+        return;
+      }
+
+      let csv = "Team Name,Class,Leader Name (Member 1),Leader Email,Member 2 Name,Registration Date\n";
+      duoTeamsList.forEach(t => {
+        const m = t.members || [];
+        csv += `"${t.teamName || ''}","${t.studentClass || ''}","${t.leaderName || ''}","${t.leaderEmail || ''}","${m[1] || ''}","${t.registeredAt || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Duo_Team_Rosters_${assignedEventId}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    });
+  }
+}
+
+window.removeDuoTeam = async function(teamId, teamName, leaderUsername) {
+  if (!confirm(`Are you sure you want to remove the duo team "${teamName}"?`)) return;
+
+  try {
+    await deleteDoc(doc(db, "duoTeams", teamId));
+    // Also remove eventId from student document
+    if (leaderUsername) {
+      const studentRef = doc(db, "students", leaderUsername);
+      await updateDoc(studentRef, {
+        registeredEvents: arrayRemove(assignedEventId)
+      });
+    }
+    alert(`Duo team "${teamName}" removed successfully.`);
+    await loadDuoTeams();
+    await loadRegistrants();
+  } catch (err) {
+    console.error("Error removing duo team:", err);
+    alert("Could not remove duo team.");
   }
 };
 

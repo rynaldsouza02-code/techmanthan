@@ -647,6 +647,13 @@ window.registerEvent = async function(eventId) {
     return;
   }
 
+  // Special Handling for Duo 2-Member Team Events: Coding, Ungoogling, Tech Quiz, IT Melody, Treasure Hunt
+  const DUO_EVENT_IDS = ["coding", "ungoogling", "tech-quiz", "it-melody", "treasure-hunt"];
+  if (DUO_EVENT_IDS.includes(eventId)) {
+    openDuoTeamRegistrationModal(ev);
+    return;
+  }
+
   const registerButton = document.querySelector(`#card-${eventId} .btn-success`);
   if (registerButton) {
     registerButton.disabled = true;
@@ -1166,13 +1173,12 @@ async function sendCulturalTeamEmail(ev, teamName, members) {
       body: JSON.stringify({ to: email, subject, html })
     });
   } catch (err) {
-    console.error("Error sending cultural team confirmation email:", err);
+    console.error("Error sending duo team confirmation email:", err);
   }
 }
 
 async function sendRegistrationEmail(ev) {
   const email = localStorage.getItem("email");
-  const name = localStorage.getItem("name") || "Student";
   if (!email) {
     console.log("No student email address in localStorage, skipping confirmation email.");
     return;

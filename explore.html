@@ -281,6 +281,60 @@
         </div>
     </div>
 
+    <!-- Duo Team (2 Members) Registration Modal -->
+    <div class="modal-overlay" id="duoTeamModal">
+        <div class="modal-content cyber-corners" style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px;">
+            <button class="modal-close" id="duoTeamModalCloseBtn">&times;</button>
+            
+            <div style="text-align: center; margin-bottom: 18px;">
+                <div style="font-size: 2rem; margin-bottom: 4px;" id="duoEventIcon">👥</div>
+                <h3 class="modal-title" id="duoEventTitle" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; margin: 0;">DUO TEAM REGISTRATION</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register a 2-member team for this event. You will be registered as the <strong>Team Leader</strong>.</p>
+            </div>
+
+            <form id="duoTeamForm">
+                <!-- 1. Team Name -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="duoTeamName" style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1. TEAM NAME</label>
+                    <input type="text" id="duoTeamName" required placeholder="e.g. Cyber Duo" style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                </div>
+
+                <!-- 2. Duo Squad Roster (2 Members) -->
+                <div style="margin-bottom: 18px;">
+                    <label style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">2. TEAM MEMBERS (2 Members Required)</label>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Member 1 (Team Leader) -->
+                        <div style="background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.7rem; color: var(--neon-cyan); font-weight: 800; display: block;">MEMBER 1 (TEAM LEADER)</span>
+                                <strong id="duoLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student Name</strong>
+                                <span id="duoLeaderEmailDisplay" style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
+                            </div>
+                            <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
+                        </div>
+
+                        <!-- Member 2 -->
+                        <div>
+                            <label for="duoMember2" style="font-size: 0.72rem; color: var(--text-sub); display: block; margin-bottom: 4px;">MEMBER 2 FULL NAME</label>
+                            <input type="text" id="duoMember2" required placeholder="Enter Teammate's Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmitDuoTeam" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+                    SUBMIT DUO TEAM REGISTRATION
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase and Explore Logic module -->
+    <script type="module" src="explore.js?v=3.1"></script>
+    <script src="cyber-bg.js"></script>
+</body>
+</html>
+
     <!-- Firebase and Explore Logic module -->
     <script type="module" src="explore.js?v=3.1"></script>
     <script src="cyber-bg.js"></script>
