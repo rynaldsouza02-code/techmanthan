@@ -2000,16 +2000,16 @@ function setupOrgPromoStudio() {
       const promoId = `promo_${Date.now()}`;
       const newPromo = {
         id: promoId,
-        title: title,
-        description: description,
-        contentType: contentType,
-        mediaSource: mediaSource,
-        mediaUrl: mediaUrl,
-        targetVisibility: "all",
-        priority: priority,
-        uploadedBy: organizerName || "Faculty Event Coordinator",
+        title: title || "Event Promo",
+        description: description || "",
+        contentType: contentType || "video",
+        mediaSource: mediaSource || "url",
+        mediaUrl: mediaUrl || "",
+        targetVisibility: "explore",
+        priority: priority || 1,
+        uploadedBy: organizerName || localStorage.getItem("organizerName") || "Faculty Event Coordinator",
         uploadedByRole: "coordinator",
-        eventId: assignedEventId,
+        eventId: (assignedEventId || localStorage.getItem("assignedEventId") || "").toString(),
         createdAt: new Date().toISOString()
       };
 
@@ -2025,7 +2025,7 @@ function setupOrgPromoStudio() {
         await loadOrgPromosData();
       } catch (err) {
         console.error("Error publishing org promo:", err);
-        alert("Failed to publish promo content.");
+        alert(`Failed to publish promo content: ${err.message || 'Database write error'}`);
       }
     });
   }
@@ -2034,6 +2034,60 @@ function setupOrgPromoStudio() {
   if (btnOrgReloadPromos) {
     btnOrgReloadPromos.addEventListener("click", loadOrgPromosData);
   }
+}
+
+function compressImage(file, callback) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = function(event) {
+    const img = new Image();
+    img.src = event.target.result;
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+
+      const MAX_SIZE = 750;
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height = Math.round((height * MAX_SIZE) / width);
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width = Math.round((width * MAX_SIZE) / height);
+          height = MAX_SIZE;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      let compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+      if (compressedDataUrl.length > 200000) {
+        const smCanvas = document.createElement("canvas");
+        const smW = Math.round(width * 0.7);
+        const smH = Math.round(height * 0.7);
+        smCanvas.width = smW;
+        smCanvas.height = smH;
+        const smCtx = smCanvas.getContext("2d");
+        smCtx.drawImage(img, 0, 0, smW, smH);
+        compressedDataUrl = smCanvas.toDataURL("image/jpeg", 0.5);
+      }
+
+      callback(compressedDataUrl);
+    };
+  };
+}
+
+function compressImagePromise(file) {
+  return new Promise((resolve) => {
+    compressImage(file, (dataUrl) => resolve(dataUrl));
+  });
 }
 
 function readFileAsDataURL(file) {
@@ -2049,9 +2103,11 @@ async function loadOrgPromosData() {
   try {
     const querySnap = await getDocs(collection(db, "promos"));
     orgPromosList = [];
+    const currentEvId = assignedEventId || localStorage.getItem("assignedEventId") || "";
+    const currentOrgName = organizerName || localStorage.getItem("organizerName") || "";
     querySnap.forEach(snap => {
       const data = snap.data();
-      if (data.eventId === assignedEventId || data.uploadedBy === organizerName) {
+      if (data.uploadedByRole === "coordinator" || (currentEvId && data.eventId === currentEvId) || (currentOrgName && data.uploadedBy === currentOrgName)) {
         orgPromosList.push(data);
       }
     });
