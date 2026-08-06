@@ -273,7 +273,15 @@ async function loadEventData() {
     renderActiveClassLimits();
 
     // Event Rounds Setup
-    currentEventRounds = eventData.rounds || [];
+    // Normalize rounds — Firestore may store it as a map/object instead of an array
+    const rawRounds = eventData.rounds;
+    if (Array.isArray(rawRounds)) {
+      currentEventRounds = rawRounds;
+    } else if (rawRounds && typeof rawRounds === "object") {
+      currentEventRounds = Object.values(rawRounds);
+    } else {
+      currentEventRounds = [];
+    }
     setupEventRoundsHandlers();
     renderEventRounds();
 
@@ -2404,7 +2412,7 @@ function renderEventRounds() {
   const container = document.getElementById("eventRoundsList");
   if (!container) return;
 
-  if (!currentEventRounds || currentEventRounds.length === 0) {
+  if (!currentEventRounds || !Array.isArray(currentEventRounds) || currentEventRounds.length === 0) {
     container.innerHTML = `
       <div style="color: var(--text-sub); font-size: 0.85rem; font-style: italic; text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
         No rounds created yet for this event. Click '+ Add Round' to configure event rounds.
