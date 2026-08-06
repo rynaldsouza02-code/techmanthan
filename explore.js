@@ -354,48 +354,85 @@ async function loadStudentRegisteredEvents() {
   }
 }
 
+function loadCachedEventsFirst() {
+  try {
+    const raw = localStorage.getItem("cachedEventsList");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        eventsList = parsed;
+        renderEvents();
+        autoOpenModalFromUrl();
+      }
+    }
+  } catch (e) {
+    console.warn("Error parsing cached events:", e);
+  }
+}
+
+function autoOpenModalFromUrl() {
+  if (hasAutoOpened || eventsList.length === 0) return;
+  const urlParams = new URLSearchParams(window.location.search);
+  const eventId = urlParams.get('event');
+  if (!eventId) return;
+
+  const target = eventId.toLowerCase().trim().replace(/_/g, '-');
+  const ev = eventsList.find(e => {
+    if (!e) return false;
+    const eId = (e.id || "").toLowerCase().trim().replace(/_/g, '-');
+    const eTitle = (e.title || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+    return eId === target || eTitle === target || eId.includes(target) || target.includes(eId);
+  });
+
+  if (ev) {
+    hasAutoOpened = true;
+    let isAuthorized = false;
+    if (adminUser === "admin") {
+      isAuthorized = true;
+    } else if (organizerUsername && localStorage.getItem("assignedEventId") === ev.id) {
+      isAuthorized = true;
+    }
+
+    setTimeout(() => {
+      if (isAuthorized) {
+        openMediaManager(ev.id);
+      } else {
+        openPhotos(ev.id);
+      }
+    }, 150);
+  }
+}
+
 // Setup Firestore real-time listener to get database updates instantly
 function setupRealtimeListeners() {
+  // Load cached events instantly (< 10ms)
+  loadCachedEventsFirst();
+
+  // Stream live updates in background
   onSnapshot(collection(db, "events"), (snapshot) => {
-    eventsList = [];
+    const newEvents = [];
     snapshot.forEach((docSnap) => {
-      eventsList.push(docSnap.data());
+      newEvents.push(docSnap.data());
     });
-    renderEvents();
-
-    // Auto-open modal based on URL query parameter on first load
-    if (!hasAutoOpened) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const eventId = urlParams.get('event');
-      if (eventId) {
-        hasAutoOpened = true;
-        const ev = eventsList.find(e => e.id === eventId);
-        if (ev) {
-          // Check if user is organizer/admin for this event
-          let isAuthorized = false;
-          if (adminUser === "admin") {
-            isAuthorized = true;
-          } else if (organizerUsername && localStorage.getItem("assignedEventId") === eventId) {
-            isAuthorized = true;
-          }
-
-          setTimeout(() => {
-            if (isAuthorized) {
-              openMediaManager(eventId);
-            } else {
-              openPhotos(eventId);
-            }
-          }, 300);
-        }
+    if (newEvents.length > 0) {
+      eventsList = newEvents;
+      try {
+        localStorage.setItem("cachedEventsList", JSON.stringify(eventsList));
+      } catch (err) {
+        // Storage catch
       }
+      renderEvents();
+      autoOpenModalFromUrl();
     }
   }, (error) => {
     console.error("Firestore loading error:", error);
-    eventGrid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--neon-red); font-family: monospace;">
-        [CONNECTION_ERROR] Failed to stream events. Please check database configuration.
-      </div>
-    `;
+    if (eventsList.length === 0) {
+      eventGrid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--neon-red); font-family: monospace;">
+          [CONNECTION_ERROR] Failed to stream events. Please check database configuration.
+        </div>
+      `;
+    }
   });
 }
 

@@ -347,21 +347,46 @@ async function loadUserData() {
   }
 }
 
+function loadCachedEventsFirst() {
+  try {
+    const raw = localStorage.getItem("cachedEventsList");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        eventsList = parsed;
+        renderEvents();
+      }
+    }
+  } catch (e) {
+    console.warn("Error parsing cached events:", e);
+  }
+}
+
 async function loadEvents() {
+  loadCachedEventsFirst();
   try {
     const eventsQuery = await getDocs(collection(db, "events"));
-    eventsList = [];
+    const newEvents = [];
     eventsQuery.forEach((docSnap) => {
-      eventsList.push(docSnap.data());
+      newEvents.push(docSnap.data());
     });
-    if (eventsList.length === 0) {
+    if (newEvents.length > 0) {
+      eventsList = newEvents;
+      try {
+        localStorage.setItem("cachedEventsList", JSON.stringify(eventsList));
+      } catch (err) {
+        // Storage catch
+      }
+    } else if (eventsList.length === 0) {
       console.warn("No events returned from Firestore. Using defaultEvents fallback.");
       eventsList = [...defaultEvents];
     }
     renderEvents();
   } catch (error) {
     console.error("Error loading events from Firestore:", error);
-    eventsList = [...defaultEvents];
+    if (eventsList.length === 0) {
+      eventsList = [...defaultEvents];
+    }
     renderEvents();
   }
 }
