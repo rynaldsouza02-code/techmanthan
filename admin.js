@@ -12,7 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 // Session check
-if (localStorage.getItem("adminUser") !== "admin") {
+if (!localStorage.getItem("adminUser")) {
   window.location.href = "login.html";
 }
 
@@ -123,6 +123,7 @@ let calculatedChampionship = {
 async function init() {
   setupTabs();
   setupAdminProfileProtocol();
+  setupAdminCredentialsModal();
   await loadAllData();
   setupEventForm();
   setupStudentForm();
@@ -603,25 +604,43 @@ window.deleteStudent = async function(regNo) {
 // ----------------- ORGANIZERS MANAGEMENT -----------------
 function renderOrganizers() {
   if (allOrganizers.length === 0) {
-    organizersListTable.innerHTML = `<tr><td colspan="4" style="text-align: center;">No organizers registered.</td></tr>`;
+    organizersListTable.innerHTML = `<tr><td colspan="5" style="text-align: center;">No organizers registered.</td></tr>`;
     return;
   }
 
   organizersListTable.innerHTML = allOrganizers.map(org => {
     const ev = allEvents.find(e => e.id === org.assignedEventId);
     const eventName = ev ? ev.title : `Unmapped (${org.assignedEventId})`;
+    const passDisplay = org.password || "12345";
     return `
       <tr>
         <td><strong>${org.username}</strong></td>
         <td>${org.name}</td>
         <td>${eventName}</td>
+        <td><code style="color: var(--neon-cyan);">${passDisplay}</code></td>
         <td>
+          <button class="btn-action" style="background: rgba(188,19,254,0.2); border-color: var(--neon-purple); color: #fff; margin-right: 6px;" onclick="changeOrganizerPassword('${org.username}')">Edit Password</button>
           <button class="btn-action btn-danger" onclick="deleteOrganizer('${org.username}')">Remove Access</button>
         </td>
       </tr>
     `;
   }).join("");
 }
+
+window.changeOrganizerPassword = async function(username) {
+  const newPass = prompt(`Enter new access password for organizer '${username}':`);
+  if (!newPass) return;
+  try {
+    const docRef = doc(db, "organizers", username);
+    await updateDoc(docRef, { password: newPass.trim() });
+    alert(`Password updated for organizer '${username}'!`);
+    await loadAllData();
+    renderOrganizers();
+  } catch (error) {
+    console.error("Error updating organizer password:", error);
+    alert("Failed to update organizer password.");
+  }
+};
 
 function setupOrganizerForm() {
   organizerForm.addEventListener("submit", async (e) => {
@@ -1630,6 +1649,92 @@ window.deletePromo = async function(promoId) {
     alert("Failed to delete promo.");
   }
 };
+
+function setupAdminCredentialsModal() {
+  const btnAdminCredentials = document.getElementById("btnAdminCredentials");
+  const modal = document.getElementById("adminCredentialsModal");
+  const btnClose = document.getElementById("btnCloseAdminCredentials");
+  const btnCancel = document.getElementById("btnCancelAdminCredentials");
+  const form = document.getElementById("adminCredentialsForm");
+
+  const inputCurrent = document.getElementById("adminCurrentPassword");
+  const inputNewUser = document.getElementById("adminNewUsername");
+  const inputNewPass = document.getElementById("adminNewPassword");
+  const inputConfirmPass = document.getElementById("adminConfirmPassword");
+
+  if (!btnAdminCredentials || !modal) return;
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    if (form) form.reset();
+  };
+
+  btnAdminCredentials.addEventListener("click", async () => {
+    let currentAdminUser = localStorage.getItem("adminUser") || "admin";
+    try {
+      const docRef = doc(db, "settings", "adminCredentials");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists() && docSnap.data().username) {
+        currentAdminUser = docSnap.data().username;
+      }
+    } catch (e) {
+      console.warn("Could not fetch admin credentials:", e);
+    }
+    if (inputNewUser) inputNewUser.value = currentAdminUser;
+    modal.style.display = "flex";
+  });
+
+  if (btnClose) btnClose.addEventListener("click", closeModal);
+  if (btnCancel) btnCancel.addEventListener("click", closeModal);
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const currentPassInput = inputCurrent.value.trim();
+      const newUserInput = inputNewUser.value.trim().toLowerCase() || "admin";
+      const newPassInput = inputNewPass.value.trim();
+      const confirmPassInput = inputConfirmPass.value.trim();
+
+      if (newPassInput !== confirmPassInput) {
+        alert("New password and confirm password do not match!");
+        return;
+      }
+
+      let expectedPass = "12345";
+      try {
+        const docRef = doc(db, "settings", "adminCredentials");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().password) {
+          expectedPass = docSnap.data().password;
+        }
+      } catch (err) {
+        console.warn("Error fetching admin credentials for verification:", err);
+      }
+
+      if (currentPassInput !== expectedPass) {
+        alert("Current password is incorrect!");
+        return;
+      }
+
+      try {
+        const docRef = doc(db, "settings", "adminCredentials");
+        await setDoc(docRef, {
+          username: newUserInput,
+          password: newPassInput,
+          updatedAt: new Date().toISOString()
+        });
+
+        localStorage.setItem("adminUser", newUserInput);
+        alert("Admin credentials updated successfully! Use your new username/password next time you log in.");
+        closeModal();
+      } catch (err) {
+        console.error("Error saving admin credentials:", err);
+        alert("Failed to save admin credentials.");
+      }
+    });
+  }
+}
 
 // Run initial configurations
 if (document.readyState === "loading") {

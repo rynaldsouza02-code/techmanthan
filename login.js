@@ -46,9 +46,23 @@ loginForm.addEventListener("submit", async (e) => {
 
     // ADMIN LOGIN
     if (roleId === 'adminRoleBtn') {
-      if (normalizedUsername === "admin" && password === "12345") {
-        submitBtn.innerHTML = "ADMIN ACCESS GRANTED";
-        localStorage.setItem("adminUser", "admin");
+      let expectedUser = "admin";
+      let expectedPass = "12345";
+      try {
+        const adminDocRef = doc(db, "settings", "adminCredentials");
+        const adminDocSnap = await getDoc(adminDocRef);
+        if (adminDocSnap.exists()) {
+          const data = adminDocSnap.data();
+          if (data.username) expectedUser = data.username.toLowerCase().trim();
+          if (data.password) expectedPass = data.password.trim();
+        }
+      } catch (err) {
+        console.warn("Could not fetch custom admin credentials, using default:", err);
+      }
+
+      if (normalizedUsername === expectedUser && password === expectedPass) {
+        submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
+        localStorage.setItem("adminUser", username.trim());
         setTimeout(() => {
           window.location.href = "admin.html";
         }, 1000);

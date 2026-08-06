@@ -28,6 +28,7 @@
                 <span id="adminNavAvatar" style="width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">M</span>
                 <span id="adminNavName">MR. GIRIRAJ BHAT</span>
             </button>
+            <button type="button" class="cyber-btn" id="btnAdminCredentials" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(188, 19, 254, 0.15); border-color: var(--neon-purple); color: #fff;">🔑 Credentials</button>
         </div>
     </nav>
 
@@ -278,6 +279,7 @@
                                     <th>Username</th>
                                     <th>Name</th>
                                     <th>Assigned Event</th>
+                                    <th>Password</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -694,6 +696,37 @@
             <button type="button" id="profileModalLogoutBtn" style="background: none; border: none; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='var(--neon-red)'" onmouseout="this.style.color='#fff'">
                 LOGOUT
             </button>
+        </div>
+    </div>
+
+    <!-- Modal: Update Admin Credentials -->
+    <div id="adminCredentialsModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="glass-card" style="width: 100%; max-width: 440px; padding: 24px; border: 1px solid var(--neon-purple); border-radius: 12px; background: rgba(15, 15, 25, 0.95); position: relative; box-shadow: 0 0 30px rgba(188, 19, 254, 0.25);">
+            <button type="button" id="btnCloseAdminCredentials" style="position: absolute; top: 14px; right: 16px; background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer;">✕</button>
+            <h3 class="modal-title" style="font-size: 1.2rem; color: var(--neon-purple); margin-bottom: 6px;">🔑 Update Admin Credentials</h3>
+            <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 20px;">Change your administrator login username and access password.</p>
+            <form id="adminCredentialsForm">
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 4px;">Current Password *</label>
+                    <input type="password" id="adminCurrentPassword" required placeholder="Enter current admin password" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff;">
+                </div>
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 4px;">New Admin Username</label>
+                    <input type="text" id="adminNewUsername" placeholder="e.g. admin" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff;">
+                </div>
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 4px;">New Password *</label>
+                    <input type="password" id="adminNewPassword" required placeholder="Enter new password" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff;">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 4px;">Confirm New Password *</label>
+                    <input type="password" id="adminConfirmPassword" required placeholder="Re-enter new password" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff;">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" id="btnCancelAdminCredentials" class="cyber-btn" style="background: rgba(255,255,255,0.05); border-color: #555; color: #ccc;">Cancel</button>
+                    <button type="submit" class="cyber-btn" style="background: rgba(188, 19, 254, 0.3); border-color: var(--neon-purple); color: #fff;">💾 Save Credentials</button>
+                </div>
+            </form>
         </div>
     </div>
 
