@@ -50,6 +50,7 @@
             <button class="tab-btn" id="tabBtnJudges">Manage Judges</button>
             <button class="tab-btn" id="tabBtnResultsApproval">Approve Results</button>
             <button class="tab-btn" id="tabBtnChampionship">Overall Championship</button>
+            <button class="tab-btn" id="tabBtnPromos">🎬 Promo Content Studio</button>
         </div>
 
         <!-- OVERVIEW PANEL -->
@@ -446,7 +447,129 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- PROMO CONTENT STUDIO PANEL -->
+        <div class="tab-panel" id="panelPromos">
+            <!-- Top Stat Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(0, 243, 255, 0.3); text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">🎬</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #fff; font-family: monospace;" id="statTotalMedia">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">TOTAL MEDIA</div>
+                </div>
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(168, 85, 247, 0.3); text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">📹</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--neon-purple); font-family: monospace;" id="statTotalVideos">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">VIDEOS</div>
+                </div>
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(234, 179, 8, 0.3); text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">🖼️</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #eab308; font-family: monospace;" id="statTotalPosters">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">POSTERS / IMAGES</div>
+                </div>
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(34, 197, 94, 0.3); text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">🟢</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--neon-green); font-family: monospace;" id="statActivePromos">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">ACTIVE PROMOS</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+                <!-- Left Column: Promo Content Studio Upload Form -->
+                <div class="form-panel cyber-corners" style="flex: 1.2; min-width: 320px;">
+                    <div style="margin-bottom: 20px;">
+                        <h3 class="form-title" style="margin-bottom: 4px;">🎬 Promo Content Studio</h3>
+                        <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0;">Upload promotional teaser videos or posters for your event.</p>
+                    </div>
+
+                    <form id="promoForm">
+                        <!-- Content Type Toggle Buttons -->
+                        <div class="form-group">
+                            <label>CONTENT TYPE</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="button" class="cyber-btn" id="btnTypeVideo" style="flex: 1; padding: 10px; background: rgba(168, 85, 247, 0.2); border-color: var(--neon-purple); color: #fff;">🎬 Video</button>
+                                <button type="button" class="cyber-btn" id="btnTypeImage" style="flex: 1; padding: 10px; opacity: 0.6;">🖼️ Poster / Banner</button>
+                            </div>
+                            <input type="hidden" id="promoContentType" value="video">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="promoTitle">TITLE</label>
+                            <input type="text" id="promoTitle" placeholder="Enter promo title..." required style="width: 100%;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="promoDescription">DESCRIPTION</label>
+                            <textarea id="promoDescription" placeholder="Write a short description..." style="width: 100%; min-height: 70px;"></textarea>
+                        </div>
+
+                        <!-- Media Source Toggle -->
+                        <div class="form-group">
+                            <label>MEDIA SOURCE</label>
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <button type="button" class="cyber-btn" id="btnSourceUrl" style="flex: 1; padding: 8px; background: rgba(0, 243, 255, 0.2); border-color: var(--neon-cyan); color: #fff;">🔗 URL Link</button>
+                                <button type="button" class="cyber-btn" id="btnSourceFile" style="flex: 1; padding: 8px; opacity: 0.6;">📁 Upload File</button>
+                            </div>
+                            <input type="hidden" id="promoMediaSource" value="url">
+
+                            <div id="sourceUrlGroup">
+                                <input type="text" id="promoMediaUrl" placeholder="Paste YouTube, Google Drive, or video link..." style="width: 100%;">
+                                <span style="font-size: 0.75rem; color: var(--text-sub); margin-top: 4px; display: block;">Supports YouTube links, MP4 URLs, Google Drive video links, or Image URLs.</span>
+                            </div>
+
+                            <div id="sourceFileGroup" style="display: none;">
+                                <input type="file" id="promoFileInput" accept="video/*,image/*" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 4px;">
+                                <span style="font-size: 0.75rem; color: var(--text-sub); margin-top: 4px; display: block;">Upload video (.mp4, .webm) or poster (.jpg, .png) file.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="promoTargetVisibility">TARGET VIEWPORT VISIBILITY</label>
+                            <select id="promoTargetVisibility" style="width: 100%; height: 42px; background: rgba(10, 15, 30, 0.9); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; padding: 0 10px;">
+                                <option value="all">Show on Homepage & Student Dashboard</option>
+                                <option value="explore">Show on Explore & Gallery Page</option>
+                                <option value="both">Show Everywhere</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <label for="promoPriority" style="margin-bottom: 0;">DISPLAY PRIORITY ORDER</label>
+                                <span id="promoPriorityLabel" style="color: var(--neon-cyan); font-weight: bold; font-family: monospace;">Priority: 1</span>
+                            </div>
+                            <input type="range" id="promoPriority" min="1" max="10" value="1" style="width: 100%; cursor: pointer;" oninput="document.getElementById('promoPriorityLabel').innerText = 'Priority: ' + this.value;">
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-top: 25px;">
+                            <button type="submit" class="cyber-btn cyber-btn-purple" id="btnPublishPromo" style="flex: 1; padding: 12px; font-weight: 700; letter-spacing: 1px; font-size: 0.95rem; background: linear-gradient(135deg, #7c3aed, #06b6d4);">PUBLISH PROMO</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right Column: Promo Library Grid View -->
+                <div class="form-panel cyber-corners" style="flex: 1.8; min-width: 340px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                        <h3 class="form-title" style="margin-bottom: 0;">Promo Library</h3>
+                        <button type="button" class="cyber-btn" id="btnReloadPromos" style="padding: 4px 12px; font-size: 0.8rem;">🔄 Reload</button>
+                    </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <input type="text" id="searchPromoInput" placeholder="Search promo title..." style="flex: 2; min-width: 160px; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 4px;">
+                        <select id="filterPromoTypeSelect" style="flex: 1; min-width: 120px; padding: 8px 12px; background: rgba(10, 15, 30, 0.9); border: 1px solid var(--border-color); color: #fff; border-radius: 4px;">
+                            <option value="all">All Media</option>
+                            <option value="video">Videos Only</option>
+                            <option value="image">Posters Only</option>
+                        </select>
+                    </div>
+
+                    <!-- Promo Library Cards Grid -->
+                    <div id="promoLibraryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 480px; overflow-y: auto; padding-right: 5px;">
+                        <div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px;">Loading promo media library...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Judging Modal -->
     <div class="modal-overlay" id="judgingModal">
@@ -607,7 +730,7 @@
     </div>
 
     <!-- Firebase SDK Imports and Admin Dashboard Logic -->
-    <script type="module" src="admin.js?v=4.1"></script>
+    <script type="module" src="admin.js?v=4.2"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>

@@ -1482,13 +1482,17 @@ function setupPromoStudio() {
         let mediaUrl = "";
 
         if (mediaSource === "url") {
-          mediaUrl = document.getElementById("promoMediaUrl").value.trim();
-          if (!mediaUrl) {
+          let raw = document.getElementById("promoMediaUrl").value.trim();
+          if (!raw) {
             alert("Please enter a valid video or image URL link.");
             btnPublish.disabled = false;
             btnPublish.innerText = "PUBLISH PROMO";
             return;
           }
+          if (!raw.startsWith("http://") && !raw.startsWith("https://") && !raw.startsWith("data:")) {
+            raw = "https://" + raw;
+          }
+          mediaUrl = raw;
         } else {
           const fileInput = document.getElementById("promoFileInput");
           if (!fileInput.files || fileInput.files.length === 0) {
