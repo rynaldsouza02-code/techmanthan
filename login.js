@@ -60,9 +60,19 @@ loginForm.addEventListener("submit", async (e) => {
         console.warn("Could not fetch custom admin credentials, using default:", err);
       }
 
-      if ((normalizedUsername === expectedUser || normalizedUsername === "admin" || normalizedUsername === "girirajbhat") && password === expectedPass) {
+      const cleanNormUser = normalizedUsername.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
+
+      const isUserMatch = (
+        normalizedUsername === expectedUser ||
+        normalizedUsername === "admin" ||
+        normalizedUsername === "girirajbhat" ||
+        cleanNormUser.includes("giriraj")
+      );
+
+      if (isUserMatch && password === expectedPass) {
         submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
-        localStorage.setItem("adminUser", username.trim());
+        localStorage.setItem("adminUser", username.trim() || "girirajbhat");
+        localStorage.setItem("adminName", "Mr. Giriraj Bhat");
         setTimeout(() => {
           window.location.href = "admin.html";
         }, 1000);
