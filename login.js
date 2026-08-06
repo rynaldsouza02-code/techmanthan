@@ -69,28 +69,35 @@ loginForm.addEventListener("submit", async (e) => {
         const normUser = enteredUsername.toLowerCase().trim();
         const normPass = enteredPassword.toLowerCase().trim();
         const normOrgId = orgId.toLowerCase().trim();
-        const normOrgName = orgName.toLowerCase().trim();
-        const normOrgPassword = orgPassword ? orgPassword.toLowerCase().trim() : "";
+        const normOrgName = orgName ? orgName.toLowerCase().trim() : "";
+        const normOrgPassword = orgPassword ? orgPassword.toLowerCase().trim() : "12345";
 
-        // Strip honorifics for softer name matching
-        const stripHonorifics = (s) => s.replace(/^(mr|mrs|ms|dr|prof)\.?\s+/i, "").replace(/[^a-z0-9]/g, "").trim();
-        const cleanUser = stripHonorifics(normUser);
-        const cleanPass = stripHonorifics(normPass);
-        const cleanOrgName = stripHonorifics(normOrgName);
+        const clean = (s) => s.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
 
-        // Match scenario 1: Username is Faculty ID, Password is Name
-        if (normUser === normOrgId && cleanPass === cleanOrgName) {
-          return true;
-        }
-        // Match scenario 2: Username is Name, Password is Faculty ID
-        if (cleanUser === cleanOrgName && normPass === normOrgId) {
-          return true;
-        }
-        // Match scenario 3: Username is Faculty ID, Password is password field (e.g. Faculty ID)
-        if (normUser === normOrgId && (normPass === normOrgPassword || normPass === normOrgId)) {
-          return true;
-        }
-        return false;
+        const cleanUser = clean(normUser);
+        const cleanPass = clean(normPass);
+        const cleanOrgId = clean(normOrgId);
+        const cleanOrgName = clean(normOrgName);
+
+        // Password matching rule: Accepts 12345, the document password, or Faculty ID
+        const isPasswordCorrect = (
+          normPass === "12345" ||
+          normPass === normOrgPassword ||
+          normPass === normOrgId ||
+          (cleanPass && (cleanPass === cleanOrgName || cleanPass === cleanOrgId))
+        );
+
+        // Username matching rule: Accepts clean ID, clean Name, substring match, or exact raw match
+        const isUsernameMatch = (
+          cleanUser === cleanOrgId ||
+          cleanUser === cleanOrgName ||
+          normUser === normOrgId ||
+          normUser === normOrgName ||
+          (cleanUser.length >= 3 && cleanOrgName.includes(cleanUser)) ||
+          (cleanOrgId.length >= 3 && cleanUser.includes(cleanOrgId))
+        );
+
+        return isPasswordCorrect && isUsernameMatch;
       };
 
       try {
@@ -105,22 +112,22 @@ loginForm.addEventListener("submit", async (e) => {
           const orgData = docSnap.data();
           if (checkOrganizerMatch(uInput, pInput, orgId, orgData.name || "", orgData.password)) {
             matchedOrg = orgData;
-            matchedOrgId = orgId;
+            matchedOrgId = orgData.username || orgId;
           }
         });
 
         if (!matchedOrg) {
-          alert("Invalid Organizer Credentials. Please enter your Full Name as Username and Faculty ID as Password.");
+          alert("Invalid Organizer Credentials. Please enter your Name (e.g. Rashmi, Ms. Rashmi) as Username and 12345 as Password.");
           submitBtn.disabled = false;
           submitBtn.innerHTML = "Initialize Organizer Protocol";
           return;
         }
 
-        localStorage.setItem("organizerUsername", matchedOrgId.toUpperCase());
+        localStorage.setItem("organizerUsername", (matchedOrg.username || matchedOrgId).toUpperCase());
         localStorage.setItem("organizerName", matchedOrg.name || "Organizer");
         localStorage.setItem("assignedEventId", matchedOrg.assignedEventId || "");
         
-        submitBtn.innerHTML = "ORGANIZER ACCESS GRANTED";
+        submitBtn.innerHTML = "ORGANIZER ACCESS GRANTED ✓";
         setTimeout(() => {
           window.location.href = "organizer.html";
         }, 1000);
