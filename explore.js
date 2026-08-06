@@ -1628,4 +1628,8 @@ async function loadPromosForExplore() {
 }
 
 // Start Explore portal
-document.addEventListener("DOMContentLoaded", initializeExplore);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeExplore);
+} else {
+  initializeExplore();
+}

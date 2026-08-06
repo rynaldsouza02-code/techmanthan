@@ -1545,4 +1545,8 @@ window.deletePromo = async function(promoId) {
 };
 
 // Run initial configurations
-document.addEventListener("DOMContentLoaded", init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}

@@ -1677,6 +1677,201 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
         ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
     } else {
+      btnMyEvents.classList.add("active");
+      btnAllEvents.classList.remove("active");
+      currentFilter = "registered";
+      renderEvents();
+    });
+  }
+
+  // Close modal
+  modalCloseBtn.addEventListener("click", () => {
+    detailModal.classList.remove("active");
+  });
+
+  detailModal.addEventListener("click", (e) => {
+    if (e.target === detailModal) {
+      detailModal.classList.remove("active");
+    }
+  });
+}
+
+async function checkAndRenderChampionship() {
+  const banner = document.getElementById("championshipBanner");
+  const champClassTitle = document.getElementById("champClassTitle");
+  const runnerClassTitle = document.getElementById("runnerClassTitle");
+
+  if (!banner || !champClassTitle || !runnerClassTitle) return;
+
+  try {
+    const docRef = doc(db, "settings", "championship");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists() && docSnap.data().published) {
+      const data = docSnap.data();
+      champClassTitle.innerText = data.championClass || "None";
+      runnerClassTitle.innerText = data.runnerClass || "None";
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
+  } catch (error) {
+    console.error("Error loading championship banner:", error);
+    banner.style.display = "none";
+  }
+}
+
+function getEmbedMediaUrl(url) {
+  if (!url) return "";
+  const cleaned = url.trim();
+
+  // 1. YouTube Shorts: youtube.com/shorts/VIDEO_ID
+  const ytShorts = cleaned.match(/youtube\.com\/shorts\/([\w-]{11})/i);
+  if (ytShorts && ytShorts[1]) {
+    return `https://www.youtube.com/embed/${ytShorts[1]}`;
+  }
+
+  // 2. YouTube standard & short links
+  const ytStandard = cleaned.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+  if (ytStandard && ytStandard[1]) {
+    return `https://www.youtube.com/embed/${ytStandard[1]}`;
+  }
+
+  // 3. Google Drive file view links: drive.google.com/file/d/FILE_ID/view
+  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([^\/]+)/i);
+  if (gdrive && gdrive[1]) {
+    return `https://drive.google.com/file/d/${gdrive[1]}/preview`;
+  }
+
+  // 4. Vimeo links: vimeo.com/VIDEO_ID
+  const vimeo = cleaned.match(/vimeo\.com\/(\d+)/i);
+  if (vimeo && vimeo[1]) {
+    return `https://player.vimeo.com/video/${vimeo[1]}`;
+  }
+
+  return cleaned;
+}
+
+async function loadPromosForHome() {
+  const section = document.getElementById("promoGallerySection");
+  const track = document.getElementById("promoCarouselTrack");
+  if (!section || !track) return;
+
+  // Set up Prev/Next buttons
+  const btnPrev = document.getElementById("btnPromoCarouselPrev");
+  const btnNext = document.getElementById("btnPromoCarouselNext");
+
+  if (btnPrev && !btnPrev.dataset.bound) {
+    btnPrev.dataset.bound = "true";
+    btnPrev.addEventListener("click", () => {
+      track.scrollBy({ left: -320, behavior: "smooth" });
+    });
+  }
+
+  if (btnNext && !btnNext.dataset.bound) {
+    btnNext.dataset.bound = "true";
+    btnNext.addEventListener("click", () => {
+      track.scrollBy({ left: 320, behavior: "smooth" });
+    });
+  }
+
+  // Set up Promo Modal Close Handler
+  const modal = document.getElementById("promoMediaModal");
+  const modalClose = document.getElementById("promoMediaModalCloseBtn");
+  if (modalClose && modal && !modalClose.dataset.bound) {
+    modalClose.dataset.bound = "true";
+    const closeMediaModal = () => {
+      modal.classList.remove("active");
+      const modalBody = document.getElementById("promoMediaModalBody");
+      if (modalBody) modalBody.innerHTML = "";
+    };
+    modalClose.addEventListener("click", closeMediaModal);
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeMediaModal();
+    });
+  }
+
+  let promos = [];
+  try {
+    const promoSnap = await getDocs(collection(db, "promos"));
+    promos = promoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (err) {
+    console.warn("Could not fetch promos from Firestore:", err);
+  }
+
+  if (promos.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  // Sort by priority
+  promos.sort((a, b) => (b.priority || 1) - (a.priority || 1));
+  section.style.display = "block";
+
+  track.innerHTML = promos.map((p, idx) => {
+    const isVideo = p.contentType === "video";
+    const thumbUrl = p.thumbnail || (isVideo ? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop" : p.mediaUrl);
+    const badgeText = p.badge || `PROMO #${idx + 1}`;
+    const subtitleText = p.subtitle || (isVideo ? "Official Video Reel" : "Official Event Poster");
+    const iconSymbol = isVideo ? "▶" : "👁";
+
+    return `
+      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 300px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+        <!-- Top Badge -->
+        <div style="position: absolute; top: 12px; left: 12px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.4); font-weight: 800; border-radius: 4px; padding: 3px 9px; font-size: 0.75rem; font-family: monospace; letter-spacing: 1px;">
+          ${badgeText}
+        </div>
+
+        <!-- Thumbnail 16:9 Aspect Box -->
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden;">
+          <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title}">
+          
+          <!-- Center Play / Eye Action Button -->
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(10, 15, 30, 0.8); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
+            ${iconSymbol}
+          </div>
+        </div>
+
+        <!-- Card Text Info -->
+        <div style="padding: 14px 16px;">
+          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; margin: 0 0 4px 0;">${p.title}</h3>
+          <p style="color: #94a3b8; font-size: 0.8rem; margin: 0; font-family: 'Inter', sans-serif;">${subtitleText}</p>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.openPromoMedia = function(title, contentType, mediaUrl, description) {
+  const modal = document.getElementById("promoMediaModal");
+  const modalTitle = document.getElementById("promoMediaModalTitle");
+  const modalBody = document.getElementById("promoMediaModalBody");
+
+  if (!modal || !modalTitle || !modalBody) return;
+
+  modalTitle.innerText = `TECH MANTHANA 6.0 PROMO: ${title}`;
+
+  if (contentType === "video") {
+    const processedUrl = getEmbedMediaUrl(mediaUrl);
+    const lowerUrl = processedUrl.toLowerCase();
+    
+    // Direct video files vs embeddable services
+    const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".ogg") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+
+    const isEmbedService = lowerUrl.includes("youtube.com") || lowerUrl.includes("drive.google.com") || lowerUrl.includes("vimeo.com") || !isDirectVideoFile;
+
+    if (isEmbedService) {
+      const finalEmbedUrl = lowerUrl.includes("youtube.com") 
+        ? (processedUrl.includes("?") ? `${processedUrl}&autoplay=1&rel=0` : `${processedUrl}?autoplay=1&rel=0`)
+        : processedUrl;
+
+      modalBody.innerHTML = `
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
+          <iframe src="${finalEmbedUrl}" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+        ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+      `;
+    } else {
       modalBody.innerHTML = `
         <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
           <video src="${mediaUrl}" controls playsinline preload="auto" autoplay style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
@@ -1703,4 +1898,8 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
 };
 
 // Boot application
-document.addEventListener("DOMContentLoaded", initializeApp);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeApp);
+} else {
+  initializeApp();
+}

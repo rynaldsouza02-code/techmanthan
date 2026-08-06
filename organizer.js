@@ -2738,4 +2738,8 @@ window.removeDuoTeam = async function(teamId, teamName, leaderUsername) {
 };
 
 // Boot Dashboard
-document.addEventListener("DOMContentLoaded", init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
