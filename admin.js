@@ -123,6 +123,7 @@ let calculatedChampionship = {
 async function init() {
   setupTabs();
   setupLogout();
+  setupAdminProfileProtocol();
   await loadAllData();
   setupEventForm();
   setupStudentForm();
@@ -189,6 +190,84 @@ function setupLogout() {
     localStorage.removeItem("adminUser");
     window.location.href = "login.html";
   });
+}
+
+function setupAdminProfileProtocol() {
+  const btnProfile = document.getElementById("btnAdminProfile");
+  const modal = document.getElementById("profileProtocolModal");
+  const modalClose = document.getElementById("profileProtocolModalCloseBtn");
+  const logoutBtn = document.getElementById("profileModalLogoutBtn");
+  const savePhoneBtn = document.getElementById("btnSaveProfilePhone");
+  const phoneInput = document.getElementById("profilePhoneInput");
+
+  const avatarEl = document.getElementById("profileAvatarCircle");
+  const fullNameEl = document.getElementById("profileFullName");
+  const usernameValEl = document.getElementById("profileUsernameVal");
+  const roleValEl = document.getElementById("profileRoleVal");
+  const roleBadgeEl = document.getElementById("profileRoleBadge");
+
+  const adminName = localStorage.getItem("adminName") || "MR. GIRIRAJ BHAT";
+
+  if (!btnProfile || !modal) return;
+
+  // Load existing phone from settings/admin doc
+  async function loadAdminProfileData() {
+    try {
+      const adminDocSnap = await getDoc(doc(db, "settings", "admin"));
+      if (adminDocSnap.exists()) {
+        const data = adminDocSnap.data();
+        if (data.phone && phoneInput) phoneInput.value = data.phone;
+        if (data.name && fullNameEl) fullNameEl.innerText = data.name.toUpperCase();
+      }
+    } catch (err) {
+      console.warn("Could not fetch admin settings doc:", err);
+    }
+  }
+
+  btnProfile.addEventListener("click", () => {
+    fullNameEl.innerText = adminName;
+    usernameValEl.innerText = adminName;
+    roleValEl.innerText = "EVENT COORDINATOR";
+    roleBadgeEl.innerText = "ADMIN";
+    avatarEl.innerText = (adminName.replace(/^mr\.\s*/i, '').trim()[0] || "M").toUpperCase();
+
+    loadAdminProfileData();
+    modal.style.display = "flex";
+    modal.classList.add("active");
+  });
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    modal.classList.remove("active");
+  };
+
+  if (modalClose) modalClose.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("adminUser");
+      window.location.href = "login.html";
+    });
+  }
+
+  if (savePhoneBtn && phoneInput) {
+    savePhoneBtn.addEventListener("click", async () => {
+      const phoneVal = phoneInput.value.trim();
+      try {
+        await setDoc(doc(db, "settings", "admin"), {
+          name: adminName,
+          phone: phoneVal,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        localStorage.setItem("adminPhone", phoneVal);
+        alert("🎉 Admin phone number saved successfully!");
+      } catch (err) {
+        console.error("Error saving admin phone:", err);
+        alert("Failed to save phone number.");
+      }
+    });
+  }
 }
 
 // Fetch all database records

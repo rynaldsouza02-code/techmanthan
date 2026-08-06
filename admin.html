@@ -23,8 +23,11 @@
             <img src="TC1.png" alt="Tech Manthan Logo">
             <span>TECH MANTHAN 6.0 | ADMIN</span>
         </div>
-        <div class="nav-user">
-            <span class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple);">System Administrator</span>
+        <div class="nav-user" style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" id="btnAdminProfile" class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple); cursor: pointer; background: rgba(188, 19, 254, 0.1); display: flex; align-items: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; transition: all 0.2s ease;" title="Click to view Profile Protocol">
+                <span id="adminNavAvatar" style="width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">M</span>
+                <span id="adminNavName">MR. GIRIRAJ BHAT</span>
+            </button>
             <button class="btn-logout" id="btnLogout">Logout</button>
         </div>
     </nav>
@@ -617,6 +620,81 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE PROTOCOL MODAL -->
+    <div class="modal-overlay" id="profileProtocolModal" style="display: none;">
+        <div class="modal-content cyber-corners" style="max-width: 420px; width: 92%; padding: 30px 25px; background: rgba(10, 14, 26, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px; position: relative;">
+            <button class="modal-close" id="profileProtocolModalCloseBtn" style="position: absolute; top: 15px; right: 18px; font-size: 1.6rem; color: var(--text-sub); background: none; border: none; cursor: pointer; transition: color 0.2s;">&times;</button>
+            
+            <!-- Header Title Bar -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
+                <span style="font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 1.5px; color: #fff; text-transform: uppercase;">
+                    PROFILE PROTOCOL
+                </span>
+                <span id="profileRoleBadge" style="background: rgba(188, 19, 254, 0.25); border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 3px 10px; font-size: 0.7rem; font-weight: 800; font-family: monospace; border-radius: 6px; letter-spacing: 1px;">
+                    ADMIN
+                </span>
+            </div>
+
+            <!-- Avatar Circle -->
+            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                <div id="profileAvatarCircle" style="width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #00f3ff, #bc13fe); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #000; font-family: 'Orbitron', sans-serif; box-shadow: 0 0 25px rgba(0, 243, 255, 0.4); text-transform: uppercase;">
+                    M
+                </div>
+            </div>
+
+            <!-- Full Name Heading -->
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h3 id="profileFullName" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 700; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
+                    MR. GIRIRAJ BHAT
+                </h3>
+            </div>
+
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px; display: flex; flex-direction: column; gap: 18px;">
+                <!-- Username Field -->
+                <div>
+                    <label style="display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">
+                        USERNAME
+                    </label>
+                    <div id="profileUsernameVal" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; text-transform: uppercase;">
+                        MR. GIRIRAJ BHAT
+                    </div>
+                </div>
+
+                <!-- Role Field -->
+                <div>
+                    <label style="display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">
+                        ROLE
+                    </label>
+                    <div id="profileRoleVal" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; text-transform: uppercase;">
+                        EVENT COORDINATOR
+                    </div>
+                </div>
+
+                <!-- Phone Field -->
+                <div>
+                    <label style="display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
+                        PHONE
+                    </label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="profilePhoneInput" placeholder="Add phone..." style="flex: 1; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none; transition: border-color 0.2s;">
+                        <button type="button" id="btnSaveProfilePhone" style="width: 42px; height: 42px; border-radius: 8px; background: rgba(0, 243, 255, 0.1); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" title="Save Phone Number">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Button -->
+            <div style="margin-top: 30px; text-align: center;">
+                <button type="button" id="profileModalLogoutBtn" style="background: none; border: none; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: color 0.2s ease;">
+                    LOGOUT
+                </button>
             </div>
         </div>
     </div>

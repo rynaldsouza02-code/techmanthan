@@ -91,6 +91,7 @@ async function init() {
   await loadOrgPromosData();
   setupCredentialsModal();
   setupClassLimitsForm();
+  setupOrganizerProfileProtocol();
 
   const btnGoToMedia = document.getElementById("btnGoToMedia");
   if (btnGoToMedia) {
@@ -103,6 +104,84 @@ async function init() {
 function handleLogout() {
   localStorage.clear();
   window.location.href = "login.html";
+}
+
+function setupOrganizerProfileProtocol() {
+  const btnProfile = document.getElementById("btnOrgProfile");
+  const modal = document.getElementById("profileProtocolModal");
+  const modalClose = document.getElementById("profileProtocolModalCloseBtn");
+  const logoutBtn = document.getElementById("profileModalLogoutBtn");
+  const savePhoneBtn = document.getElementById("btnSaveProfilePhone");
+  const phoneInput = document.getElementById("profilePhoneInput");
+
+  const avatarEl = document.getElementById("profileAvatarCircle");
+  const navAvatarEl = document.getElementById("orgNavAvatar");
+  const fullNameEl = document.getElementById("profileFullName");
+  const usernameValEl = document.getElementById("profileUsernameVal");
+  const roleValEl = document.getElementById("profileRoleVal");
+  const roleBadgeEl = document.getElementById("profileRoleBadge");
+
+  const dispName = organizerName || organizerUsername || "ORGANIZER";
+  const cleanFirstLetter = (dispName.replace(/^(mr\.|ms\.|mrs\.)\s*/i, '').trim()[0] || "O").toUpperCase();
+
+  if (navAvatarEl) navAvatarEl.innerText = cleanFirstLetter;
+
+  if (!btnProfile || !modal) return;
+
+  async function loadOrgProfileData() {
+    try {
+      const orgDocRef = doc(db, "organizers", organizerUsername);
+      const orgDocSnap = await getDoc(orgDocRef);
+      if (orgDocSnap.exists()) {
+        const data = orgDocSnap.data();
+        if (data.phone && phoneInput) phoneInput.value = data.phone;
+        if (data.name && fullNameEl) fullNameEl.innerText = data.name.toUpperCase();
+      }
+    } catch (err) {
+      console.warn("Could not fetch organizer document:", err);
+    }
+  }
+
+  btnProfile.addEventListener("click", () => {
+    if (fullNameEl) fullNameEl.innerText = dispName.toUpperCase();
+    if (usernameValEl) usernameValEl.innerText = (organizerUsername || dispName).toUpperCase();
+    if (roleValEl) roleValEl.innerText = eventData && eventData.title ? `EVENT COORDINATOR - ${eventData.title.toUpperCase()}` : "EVENT COORDINATOR";
+    if (roleBadgeEl) roleBadgeEl.innerText = "ORGANIZER";
+    if (avatarEl) avatarEl.innerText = cleanFirstLetter;
+
+    loadOrgProfileData();
+    modal.style.display = "flex";
+    modal.classList.add("active");
+  });
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    modal.classList.remove("active");
+  };
+
+  if (modalClose) modalClose.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", handleLogout);
+  }
+
+  if (savePhoneBtn && phoneInput) {
+    savePhoneBtn.addEventListener("click", async () => {
+      const phoneVal = phoneInput.value.trim();
+      try {
+        await updateDoc(doc(db, "organizers", organizerUsername), {
+          phone: phoneVal,
+          updatedAt: new Date().toISOString()
+        });
+        localStorage.setItem("orgPhone", phoneVal);
+        alert("🎉 Organizer phone number saved successfully!");
+      } catch (err) {
+        console.error("Error saving organizer phone:", err);
+        alert("Failed to save phone number.");
+      }
+    });
+  }
 }
 
 function showNoAssignment() {
