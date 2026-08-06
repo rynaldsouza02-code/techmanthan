@@ -82,37 +82,6 @@
             </div>
         </header>
 
-        <!-- TECH MANTHANA 6.0 PROMO CAROUSEL SECTION -->
-        <section id="promoGallerySection" style="margin-bottom: 50px; position: relative;">
-            <!-- Header Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                <h2 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 700; letter-spacing: 1.5px; margin: 0; text-transform: uppercase;">
-                    TECH MANTHANA 6.0 PROMO
-                </h2>
-                <a href="explore.html" style="color: var(--neon-cyan); font-weight: 600; text-decoration: none; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-                    View All &rarr;
-                </a>
-            </div>
-
-            <!-- Carousel Wrapper with Left/Right Buttons -->
-            <div style="position: relative; display: flex; align-items: center;">
-                <!-- Left Nav Button -->
-                <button type="button" id="btnPromoCarouselPrev" style="position: absolute; left: -15px; z-index: 10; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 15, 30, 0.9); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 12px rgba(0, 243, 255, 0.3); transition: all 0.2s ease;">
-                    &#10094;
-                </button>
-
-                <!-- Scroll Track Container -->
-                <div id="promoCarouselTrack" style="display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding: 10px 5px; width: 100%; scrollbar-width: none; -ms-overflow-style: none;">
-                    <!-- Dynamically populated promo cards -->
-                </div>
-
-                <!-- Right Nav Button -->
-                <button type="button" id="btnPromoCarouselNext" style="position: absolute; right: -15px; z-index: 10; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 15, 30, 0.9); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 12px rgba(0, 243, 255, 0.3); transition: all 0.2s ease;">
-                    &#10095;
-                </button>
-            </div>
-        </section>
-
         <!-- Events Catalog Section -->
         <section id="events" class="events-section">
             <div class="dashboard-header" style="margin-bottom: 25px;">
@@ -138,6 +107,38 @@
                 </div>
             </div>
         </section>
+
+        <!-- TECH MANTHANA 6.0 PROMO CAROUSEL SECTION (Under Events Directory) -->
+        <section id="promoGallerySection" style="margin-top: 50px; margin-bottom: 50px; position: relative;">
+            <!-- Header Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; letter-spacing: 1.5px; margin: 0; text-transform: uppercase;">
+                    🎬 TECH MANTHANA 6.0 PROMO & TEASERS
+                </h2>
+                <a href="explore.html" style="color: var(--neon-cyan); font-weight: 600; text-decoration: none; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                    View All &rarr;
+                </a>
+            </div>
+
+            <!-- Carousel Wrapper with Non-Overlapping Nav Buttons -->
+            <div style="position: relative; padding: 0 50px;">
+                <!-- Left Nav Button -->
+                <button type="button" id="btnPromoCarouselPrev" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; width: 42px; height: 42px; border-radius: 50%; background: rgba(10, 15, 30, 0.95); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); transition: all 0.2s ease;">
+                    &#10094;
+                </button>
+
+                <!-- Scroll Track Container -->
+                <div id="promoCarouselTrack" style="display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding: 10px 0; width: 100%; scrollbar-width: none; -ms-overflow-style: none;">
+                    <!-- Dynamically populated promo cards -->
+                </div>
+
+                <!-- Right Nav Button -->
+                <button type="button" id="btnPromoCarouselNext" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); z-index: 10; width: 42px; height: 42px; border-radius: 50%; background: rgba(10, 15, 30, 0.95); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); transition: all 0.2s ease;">
+                    &#10095;
+                </button>
+            </div>
+        </section>
+    </div>
     </div>
 
     <!-- Event Detail Modal -->

@@ -1604,12 +1604,12 @@ async function loadPromosForExplore() {
         const isEmbedService = lowerUrl.includes("youtube.com") || lowerUrl.includes("drive.google.com") || lowerUrl.includes("vimeo.com") || !isDirectVideoFile;
 
         if (isEmbedService) {
-          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><iframe src="${processedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
+          mediaHTML = `<div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #000;"><iframe src="${processedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
         } else {
-          mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls playsinline style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
+          mediaHTML = `<div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #000;"><video src="${p.mediaUrl}" controls playsinline style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video></div>`;
         }
       } else {
-        mediaHTML = `<div style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;"><img src="${p.mediaUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;
+        mediaHTML = `<div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #000;"><img src="${p.mediaUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${p.title}"></div>`;
       }
 
       return `

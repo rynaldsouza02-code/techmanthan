@@ -37,19 +37,6 @@
             </div>
         </div>
 
-        <!-- Promotional Videos & Teasers Section -->
-        <section id="promoGallerySection" style="display: none; margin-bottom: 40px;">
-            <div class="dashboard-header" style="margin-bottom: 20px;">
-                <div class="dashboard-title">
-                    <h2 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">🎬 Official Promos & Teasers</h2>
-                    <p>Watch promotional videos and event announcement teasers for Tech Manthan 6.0.</p>
-                </div>
-            </div>
-            <div id="promoGridExplore" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-                <!-- Dynamically populated -->
-            </div>
-        </section>
-
         <!-- Filter and Search controls -->
         <div class="filter-bar">
             <input type="text" id="searchInput" class="search-input" placeholder="Search events by name, description or rules...">
@@ -64,6 +51,19 @@
                 [INITIALIZING DATABASE TUNNELS...] Loading events catalog...
             </div>
         </div>
+
+        <!-- Promotional Videos & Teasers Section (Under Events Catalog) -->
+        <section id="promoGallerySection" style="display: none; margin-top: 50px; margin-bottom: 40px;">
+            <div class="dashboard-header" style="margin-bottom: 20px;">
+                <div class="dashboard-title">
+                    <h2 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">🎬 Official Promos & Teasers</h2>
+                    <p>Watch promotional videos and event announcement teasers for Tech Manthan 6.0.</p>
+                </div>
+            </div>
+            <div id="promoGridExplore" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
     </div>
 
     <!-- MODAL 1: EVENT RULES & DETAILS -->

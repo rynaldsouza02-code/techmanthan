@@ -1646,22 +1646,26 @@ async function loadPromosForHome() {
     const iconSymbol = isVideo ? "▶" : "👁";
 
     return `
-      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 300px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+      <div class="promo-card-item" onclick="openPromoMedia('${(p.title || '').replace(/'/g, "\\'")}', '${p.contentType}', '${p.mediaUrl}', '${(p.description || '').replace(/'/g, "\\'")}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
         <!-- Top Badge -->
-        <div style="position: absolute; top: 12px; left: 12px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon        <!-- Thumbnail 16:9 Aspect Box -->
-        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden;">
+        <div style="position: absolute; top: 10px; left: 10px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.4); font-weight: 800; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; font-family: monospace; letter-spacing: 1px;">
+          ${badgeText}
+        </div>
+
+        <!-- Thumbnail 4:3 Aspect Box -->
+        <div style="position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; overflow: hidden;">
           <img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title}">
           
           <!-- Center Play / Eye Action Button -->
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(10, 15, 30, 0.8); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
+          <div style="width: 46px; height: 46px; border-radius: 50%; background: rgba(10, 15, 30, 0.85); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
             ${iconSymbol}
           </div>
         </div>
 
         <!-- Card Text Info -->
-        <div style="padding: 14px 16px;">
-          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; margin: 0 0 4px 0;">${p.title}</h3>
-          <p style="color: #94a3b8; font-size: 0.8rem; margin: 0; font-family: 'Inter', sans-serif;">${subtitleText}</p>
+        <div style="padding: 12px 14px;">
+          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; margin: 0 0 4px 0;">${p.title}</h3>
+          <p style="color: #94a3b8; font-size: 0.78rem; margin: 0; font-family: 'Inter', sans-serif;">${subtitleText}</p>
         </div>
       </div>
     `;
