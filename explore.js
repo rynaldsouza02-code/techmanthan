@@ -35,6 +35,20 @@ const posterUploadZone = document.getElementById("posterUploadZone");
 const posterFileInput = document.getElementById("posterFileInput");
 const posterPreviewImg = document.getElementById("posterPreviewImg");
 const noPosterText = document.getElementById("noPosterText");
+
+// Video Teaser Upload DOM Elements
+const btnVideoModeUrl = document.getElementById("btnVideoModeUrl");
+const btnVideoModeFile = document.getElementById("btnVideoModeFile");
+const videoUrlContainer = document.getElementById("videoUrlContainer");
+const videoFileContainer = document.getElementById("videoFileContainer");
+const eventVideoUrlInput = document.getElementById("eventVideoUrlInput");
+const eventVideoFileInput = document.getElementById("eventVideoFileInput");
+const videoUploadZone = document.getElementById("videoUploadZone");
+const eventVideoPreviewArea = document.getElementById("eventVideoPreviewArea");
+const noVideoText = document.getElementById("noVideoText");
+const videoPreviewContent = document.getElementById("videoPreviewContent");
+const btnRemoveVideo = document.getElementById("btnRemoveVideo");
+
 const photosUploadZone = document.getElementById("photosUploadZone");
 const photosFileInput = document.getElementById("photosFileInput");
 const photosPreviewGrid = document.getElementById("photosPreviewGrid");
@@ -54,6 +68,7 @@ let hasAutoOpened = false;
 // Media Upload Temp State
 let currentUploadingEventId = "";
 let tempPoster = "";
+let tempVideoUrl = "";
 let tempPhotos = [];
 const MAX_GALLERY_PHOTOS = 8;
 
@@ -1273,8 +1288,18 @@ window.openPhotos = function(eventId) {
   const ev = eventsList.find(e => e.id === eventId);
   if (!ev) return;
 
-  galleryTitle.innerText = `${ev.title} Gallery`;
-  currentGallerySlides = ev.photos || [];
+  galleryTitle.innerText = `${ev.title} Media Gallery`;
+  currentGallerySlides = [];
+
+  const videoLink = ev.videoUrl || ev.video || "";
+  if (videoLink) {
+    currentGallerySlides.push({ type: "video", url: videoLink });
+  }
+
+  if (ev.photos && ev.photos.length > 0) {
+    ev.photos.forEach(p => currentGallerySlides.push({ type: "image", url: p }));
+  }
+
   activeSlideIndex = 0;
 
   renderSlideshow();
@@ -1283,17 +1308,35 @@ window.openPhotos = function(eventId) {
 
 function renderSlideshow() {
   if (currentGallerySlides.length === 0) {
-    carouselViewport.innerHTML = `<div class="empty-gallery-msg">[NO PHOTO DATA REGISTERED IN FIRESTORE NODES]</div>`;
+    carouselViewport.innerHTML = `<div class="empty-gallery-msg">[NO PHOTO OR VIDEO DATA REGISTERED FOR THIS EVENT]</div>`;
     carouselDots.innerHTML = "";
     return;
   }
 
   // Generate slides HTML
-  let slidesHTML = currentGallerySlides.map((p, idx) => {
-    const activeClass = idx === 0 ? "active" : "";
+  let slidesHTML = currentGallerySlides.map((item, idx) => {
+    const activeClass = idx === activeSlideIndex ? "active" : "";
+    let contentHTML = "";
+
+    if (item.type === "video" || (typeof item === "string" && (item.includes("youtube.com") || item.includes("youtu.be") || item.includes("drive.google.com") || item.endsWith(".mp4") || item.startsWith("data:video")))) {
+      const vUrl = item.url || item;
+      const processedUrl = getEmbedMediaUrl(vUrl);
+      const lowerUrl = processedUrl.toLowerCase();
+      const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".mov") || vUrl.startsWith("data:video") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+
+      if (isDirectVideoFile) {
+        contentHTML = `<video src="${vUrl}" controls playsinline style="max-width: 100%; max-height: 75vh; border-radius: 12px; background: #000; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);"></video>`;
+      } else {
+        contentHTML = `<div style="width: 90%; max-width: 700px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);"><iframe src="${processedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
+      }
+    } else {
+      const imgUrl = item.url || item;
+      contentHTML = `<img src="${imgUrl}" alt="Event gallery image">`;
+    }
+
     return `
       <div class="carousel-slide ${activeClass}" data-slide-index="${idx}">
-        <img src="${p}" alt="Event gallery image">
+        ${contentHTML}
       </div>
     `;
   }).join("");
@@ -1375,6 +1418,9 @@ window.openMediaManager = function(eventId) {
   // Fill temp state from database
   tempPoster = ev.poster || "";
   tempPhotos = ev.photos ? [...ev.photos] : [];
+  tempVideoUrl = ev.videoUrl || ev.video || "";
+
+  if (eventVideoUrlInput) eventVideoUrlInput.value = (tempVideoUrl.startsWith("data:video") ? "" : tempVideoUrl);
 
   updateUploadModalPreviews();
   uploadModal.classList.add("active");
@@ -1390,6 +1436,31 @@ function updateUploadModalPreviews() {
     posterPreviewImg.src = "";
     posterPreviewImg.style.display = "none";
     noPosterText.style.display = "block";
+  }
+
+  // Update Video Teaser Preview
+  if (tempVideoUrl) {
+    if (noVideoText) noVideoText.style.display = "none";
+    if (videoPreviewContent) {
+      videoPreviewContent.style.display = "block";
+      const processedUrl = getEmbedMediaUrl(tempVideoUrl);
+      const lowerUrl = processedUrl.toLowerCase();
+      const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".mov") || tempVideoUrl.startsWith("data:video") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+
+      if (isDirectVideoFile) {
+        videoPreviewContent.innerHTML = `<video src="${tempVideoUrl}" controls style="width: 100%; max-height: 140px; border-radius: 8px; background: #000;"></video>`;
+      } else {
+        videoPreviewContent.innerHTML = `<iframe src="${processedUrl}" style="width: 100%; height: 140px; border-radius: 8px; border: none;" allowfullscreen></iframe>`;
+      }
+    }
+    if (btnRemoveVideo) btnRemoveVideo.style.display = "inline-block";
+  } else {
+    if (noVideoText) noVideoText.style.display = "block";
+    if (videoPreviewContent) {
+      videoPreviewContent.style.display = "none";
+      videoPreviewContent.innerHTML = "";
+    }
+    if (btnRemoveVideo) btnRemoveVideo.style.display = "none";
   }
 
   // Update photo gallery previews
@@ -1458,7 +1529,7 @@ function compressImage(file, callback) {
   };
 }
 
-// Trigger file inputs
+// Trigger file inputs & Media Manager setup
 function setupEventListeners() {
   // Search
   searchInput.addEventListener("input", (e) => {
@@ -1498,6 +1569,82 @@ function setupEventListeners() {
     if (e.target === galleryModal) galleryModal.classList.remove("active");
     if (e.target === uploadModal) uploadModal.classList.remove("active");
   });
+
+  // Video Mode Toggles (URL vs File Upload)
+  if (btnVideoModeUrl) {
+    btnVideoModeUrl.addEventListener("click", () => {
+      btnVideoModeUrl.style.background = "rgba(168, 85, 247, 0.25)";
+      btnVideoModeUrl.style.borderColor = "var(--neon-purple)";
+      btnVideoModeUrl.style.color = "#fff";
+
+      btnVideoModeFile.style.background = "rgba(255, 255, 255, 0.05)";
+      btnVideoModeFile.style.borderColor = "#555";
+      btnVideoModeFile.style.color = "#ccc";
+
+      videoUrlContainer.style.display = "block";
+      videoFileContainer.style.display = "none";
+    });
+  }
+
+  if (btnVideoModeFile) {
+    btnVideoModeFile.addEventListener("click", () => {
+      btnVideoModeFile.style.background = "rgba(168, 85, 247, 0.25)";
+      btnVideoModeFile.style.borderColor = "var(--neon-purple)";
+      btnVideoModeFile.style.color = "#fff";
+
+      btnVideoModeUrl.style.background = "rgba(255, 255, 255, 0.05)";
+      btnVideoModeUrl.style.borderColor = "#555";
+      btnVideoModeUrl.style.color = "#ccc";
+
+      videoFileContainer.style.display = "block";
+      videoUrlContainer.style.display = "none";
+    });
+  }
+
+  if (eventVideoUrlInput) {
+    eventVideoUrlInput.addEventListener("input", (e) => {
+      tempVideoUrl = e.target.value.trim();
+      updateUploadModalPreviews();
+    });
+  }
+
+  if (videoUploadZone) {
+    videoUploadZone.addEventListener("click", () => eventVideoFileInput.click());
+    setupDragAndDrop(videoUploadZone, (files) => {
+      const file = files[0];
+      if (file && file.type.startsWith("video/")) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(evt) {
+          tempVideoUrl = evt.target.result;
+          updateUploadModalPreviews();
+        };
+      }
+    });
+  }
+
+  if (eventVideoFileInput) {
+    eventVideoFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(evt) {
+          tempVideoUrl = evt.target.result;
+          updateUploadModalPreviews();
+        };
+      }
+    });
+  }
+
+  if (btnRemoveVideo) {
+    btnRemoveVideo.addEventListener("click", () => {
+      tempVideoUrl = "";
+      if (eventVideoUrlInput) eventVideoUrlInput.value = "";
+      if (eventVideoFileInput) eventVideoFileInput.value = "";
+      updateUploadModalPreviews();
+    });
+  }
 
   // Upload zones click routing
   posterUploadZone.addEventListener("click", () => posterFileInput.click());
@@ -1560,6 +1707,7 @@ function handlePhotosUpload(files) {
 }
 
 function setupDragAndDrop(zone, onFilesDropped) {
+  if (!zone) return;
   ['dragenter', 'dragover'].forEach(eventName => {
     zone.addEventListener(eventName, (e) => {
       e.preventDefault();
@@ -1594,7 +1742,9 @@ async function saveMediaToFirestore() {
     const eventRef = doc(db, "events", currentUploadingEventId);
     await updateDoc(eventRef, {
       poster: tempPoster,
-      photos: tempPhotos
+      photos: tempPhotos,
+      videoUrl: tempVideoUrl,
+      video: tempVideoUrl
     });
 
     alert("Media synchronized successfully!");
