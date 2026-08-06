@@ -37,8 +37,8 @@ const panelResultsApproval = document.getElementById("panelResultsApproval");
 const panelChampionship = document.getElementById("panelChampionship");
 const panelPromos = document.getElementById("panelPromos");
 
-const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelResultsApproval, panelChampionship, panelPromos];
-const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnResultsApproval, tabBtnChampionship, tabBtnPromos];
+const panels = [panelOverview, panelEvents, panelStudents, panelOrganizers, panelRegistrations, panelJudges, panelResultsApproval, panelChampionship, panelPromos].filter(Boolean);
+const tabButtons = [tabBtnOverview, tabBtnEvents, tabBtnStudents, tabBtnOrganizers, tabBtnRegistrations, tabBtnJudges, tabBtnResultsApproval, tabBtnChampionship, tabBtnPromos].filter(Boolean);
 
 // Overview Stats Elements
 const statTotalEvents = document.getElementById("statTotalEvents");
@@ -131,14 +131,17 @@ async function init() {
   setupRegistrationsTab();
   setupJudgingForm();
   setupChampionshipTab();
-  setupPromoStudio();
-  loadPromosData();
+  if (panelPromos || tabBtnPromos) {
+    setupPromoStudio();
+    loadPromosData();
+  }
 }
 
 // Switch between panels
 function switchTab(targetBtn, targetPanel) {
-  tabButtons.forEach(btn => btn.classList.remove("active"));
-  panels.forEach(p => p.classList.remove("active"));
+  if (!targetBtn || !targetPanel) return;
+  tabButtons.forEach(btn => { if (btn) btn.classList.remove("active"); });
+  panels.forEach(p => { if (p) p.classList.remove("active"); });
   
   targetBtn.classList.add("active");
   targetPanel.classList.add("active");
