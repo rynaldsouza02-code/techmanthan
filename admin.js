@@ -247,12 +247,7 @@ function renderOverview() {
         `<span class="user-badge" style="border-color: var(--neon-cyan); color: var(--neon-cyan); margin-bottom: 4px; display: inline-block;">🎓 ${sc.name} (${sc.studentClass} - 📞 ${sc.phone})</span>`
       ).join("<br>");
     } else {
-      const orgs = allOrganizers.filter(o => o.assignedEventId === ev.id);
-      if (orgs.length > 0) {
-        studentCoordsHTML = orgs.map(o => `<span class="user-badge" style="border-color: var(--neon-purple); color: var(--neon-purple); margin-bottom: 4px; display: inline-block;">👤 ${o.name} (@${o.username})</span>`).join("<br>");
-      } else {
-        studentCoordsHTML = `<span style="font-size: 0.8rem; color: var(--text-sub); font-style: italic;">None Assigned</span>`;
-      }
+      studentCoordsHTML = `<span style="font-size: 0.8rem; color: var(--text-sub); font-style: italic;">None Assigned</span>`;
     }
 
     return `
