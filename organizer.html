@@ -34,10 +34,22 @@
     </nav>
 
     <div class="dashboard-container" style="margin-top: 30px;">
-        <div class="dashboard-header">
+        <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div class="dashboard-title">
                 <h2 id="assignedEventTitle">Event Coordinator Portal</h2>
                 <p id="assignedEventSubtitle">Loading event assignment information...</p>
+            </div>
+
+            <!-- Multi-Event Switcher Selector -->
+            <div id="eventSwitcherContainer" style="display: none; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.9); border: 1.5px solid var(--neon-cyan); border-radius: 12px; padding: 10px 16px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 0.68rem; color: var(--neon-cyan); font-family: monospace; letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;">
+                        🔄 SWITCH MANAGED EVENT
+                    </span>
+                    <select id="headerEventSelect" style="background: transparent; border: none; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; outline: none; cursor: pointer; padding-right: 10px;">
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -823,8 +835,27 @@
         </div>
     </div>
 
+    <!-- MULTI-EVENT PICKER MODAL -->
+    <div class="modal-overlay" id="eventPickerModal">
+        <div class="modal-content cyber-corners" style="max-width: 500px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px; text-align: center;">
+            <div style="font-size: 2.2rem; margin-bottom: 6px;">🎪</div>
+            <h3 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.3rem; margin: 0 0 6px 0;">SELECT EVENT TO MANAGE</h3>
+            <p style="color: var(--text-sub); font-size: 0.82rem; margin-bottom: 20px; font-family: monospace;">
+                You are assigned as Coordinator for multiple events. Select an event below to switch your dashboard view:
+            </p>
+
+            <div id="assignedEventCardsGrid" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 280px; overflow-y: auto;">
+                <!-- Event selection buttons populated dynamically -->
+            </div>
+
+            <button type="button" id="eventPickerDismissBtn" class="cyber-btn" style="width: 100%; padding: 10px; font-size: 0.82rem; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #ccc;">
+                Continue with Current Event
+            </button>
+        </div>
+    </div>
+
     <!-- Organizer script -->
-    <script type="module" src="organizer.js?v=5.1"></script>
+    <script type="module" src="organizer.js?v=5.2"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>

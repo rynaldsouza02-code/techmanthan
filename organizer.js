@@ -14,7 +14,7 @@ import {
 // Session check
 const organizerUsername = localStorage.getItem("organizerUsername");
 const organizerName = localStorage.getItem("organizerName");
-const assignedEventId = localStorage.getItem("assignedEventId");
+let assignedEventId = localStorage.getItem("assignedEventId") || "";
 
 if (!organizerUsername) {
   window.location.href = "login.html";
@@ -79,8 +79,9 @@ async function init() {
   orgUserBadge.innerText = `${organizerName} (${organizerUsername})`;
   if (btnLogout) btnLogout.addEventListener("click", handleLogout);
 
-  // Setup profile popover early so Logout always works
+  // Setup profile popover early
   setupOrganizerProfileProtocol();
+  await setupMultiEventSelection();
 
   if (!assignedEventId) {
     showNoAssignment();
@@ -3259,6 +3260,149 @@ function updateDedicatedPosterUI() {
     if (urlInput) urlInput.value = "";
   }
 }
+
+let currentAssignedEventId = localStorage.getItem("assignedEventId") || "";
+let organizerAssignedEvents = [];
+
+async function setupMultiEventSelection() {
+  organizerAssignedEvents = [];
+  try {
+    // 1. Fetch organizer doc from Firestore
+    const orgDocRef = doc(db, "organizers", organizerUsername);
+    const orgSnap = await getDoc(orgDocRef);
+    let explicitIds = [];
+
+    if (orgSnap.exists()) {
+      const data = orgSnap.data();
+      if (Array.isArray(data.assignedEvents) && data.assignedEvents.length > 0) {
+        explicitIds = data.assignedEvents;
+      } else if (data.assignedEventId) {
+        explicitIds = [data.assignedEventId];
+      }
+    }
+
+    // 2. Fetch all events from Firestore to match coordinator string or explicit IDs
+    const eventsSnap = await getDocs(collection(db, "events"));
+    const orgName = (localStorage.getItem("organizerName") || "").toLowerCase().trim();
+
+    eventsSnap.forEach((docSnap) => {
+      const ev = docSnap.data();
+      const evId = ev.id || docSnap.id;
+      const coord = (ev.coordinator || "").toLowerCase();
+
+      let isMatch = explicitIds.includes(evId);
+
+      if (!isMatch && orgName && orgName.length > 3) {
+        const nameParts = orgName.split(/\s+/).filter(p => p.length > 2 && !["mr.", "mrs.", "ms.", "dr."].includes(p));
+        if (nameParts.length > 0 && nameParts.some(part => coord.includes(part))) {
+          isMatch = true;
+        }
+      }
+
+      if (isMatch) {
+        if (!organizerAssignedEvents.some(e => e.id === evId)) {
+          organizerAssignedEvents.push({
+            id: evId,
+            title: ev.title || evId
+          });
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error("Error detecting multi-event assignments:", err);
+  }
+
+  // Fallback if empty
+  if (organizerAssignedEvents.length === 0 && currentAssignedEventId) {
+    organizerAssignedEvents.push({
+      id: currentAssignedEventId,
+      title: currentAssignedEventId
+    });
+  }
+
+  // If no assignedEventId is currently selected, pick first
+  if (!currentAssignedEventId && organizerAssignedEvents.length > 0) {
+    currentAssignedEventId = organizerAssignedEvents[0].id;
+    assignedEventId = currentAssignedEventId;
+    localStorage.setItem("assignedEventId", currentAssignedEventId);
+  }
+
+  // Populate Header Switcher & Modal if multiple events found
+  const switcherContainer = document.getElementById("eventSwitcherContainer");
+  const headerSelect = document.getElementById("headerEventSelect");
+
+  if (organizerAssignedEvents.length > 1) {
+    if (switcherContainer) switcherContainer.style.display = "flex";
+    if (headerSelect) {
+      headerSelect.innerHTML = organizerAssignedEvents.map(e => `
+        <option value="${e.id}" ${e.id === currentAssignedEventId ? "selected" : ""}>${e.title}</option>
+      `).join("");
+
+      headerSelect.onchange = (e) => {
+        switchManagedEvent(e.target.value);
+      };
+    }
+
+    // Check if we should pop up the Event Selection Modal
+    const hasPrompted = sessionStorage.getItem("hasPromptedEventPicker");
+    if (!hasPrompted) {
+      sessionStorage.setItem("hasPromptedEventPicker", "true");
+      openEventPickerModal();
+    }
+  } else {
+    if (switcherContainer) switcherContainer.style.display = "none";
+  }
+}
+
+function openEventPickerModal() {
+  const modal = document.getElementById("eventPickerModal");
+  const grid = document.getElementById("assignedEventCardsGrid");
+  const dismissBtn = document.getElementById("eventPickerDismissBtn");
+
+  if (!modal || !grid) return;
+
+  grid.innerHTML = organizerAssignedEvents.map(ev => {
+    const isCurrent = ev.id === currentAssignedEventId;
+    return `
+      <div onclick="switchManagedEvent('${ev.id}')" style="background: ${isCurrent ? 'linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(168, 85, 247, 0.15))' : 'rgba(15, 23, 42, 0.8)'}; border: 1.5px solid ${isCurrent ? 'var(--neon-cyan)' : 'rgba(0, 243, 255, 0.3)'}; border-radius: 12px; padding: 14px; cursor: pointer; text-align: left; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.borderColor='var(--neon-cyan)';" onmouseout="this.style.borderColor='${isCurrent ? 'var(--neon-cyan)' : 'rgba(0, 243, 255, 0.3)'}'">
+        <div>
+          <div style="font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; color: #fff;">${ev.title}</div>
+          <div style="font-size: 0.75rem; color: var(--text-sub); font-family: monospace; margin-top: 2px;">ID: ${ev.id}</div>
+        </div>
+        <div style="font-size: 0.8rem; font-weight: bold; font-family: 'Orbitron', sans-serif; color: ${isCurrent ? 'var(--neon-cyan)' : '#888'};">
+          ${isCurrent ? '✓ ACTIVE' : 'SELECT ➔'}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  if (dismissBtn) {
+    dismissBtn.onclick = () => modal.classList.remove("active");
+  }
+
+  modal.classList.add("active");
+}
+
+window.switchManagedEvent = function(newEventId) {
+  if (!newEventId) return;
+  localStorage.setItem("assignedEventId", newEventId);
+  currentAssignedEventId = newEventId;
+  assignedEventId = newEventId;
+
+  const modal = document.getElementById("eventPickerModal");
+  if (modal) modal.classList.remove("active");
+
+  const headerSelect = document.getElementById("headerEventSelect");
+  if (headerSelect) headerSelect.value = newEventId;
+
+  // Re-initialize dashboard data for the newly selected event!
+  loadEventData();
+  loadRegistrants();
+  if (document.getElementById("orgPromoForm")) {
+    loadOrgPromosData();
+  }
+};
 
 // Boot Dashboard
 if (document.readyState === "loading") {
