@@ -624,78 +624,6 @@
             </div>
         </div>
 
-        <!-- Section 6: Promo Content Studio (Upload Videos & Posters) -->
-        <div style="width: 100%; margin-top: 30px;" id="promoStudioSection">
-            <div style="display: flex; gap: 25px; flex-wrap: wrap;">
-                <!-- Left Column: Upload Form -->
-                <div class="form-panel cyber-corners" style="flex: 1.2; min-width: 320px;">
-                    <div style="margin-bottom: 20px;">
-                        <h3 class="form-title" style="margin-bottom: 4px;">🎬 Promo Content Studio</h3>
-                        <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0;">Upload promotional teaser videos or posters for your event.</p>
-                    </div>
-
-                    <form id="orgPromoForm">
-                        <div class="form-group">
-                            <label>CONTENT TYPE</label>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" class="cyber-btn" id="orgBtnTypeVideo" style="flex: 1; padding: 10px; background: rgba(168, 85, 247, 0.2); border-color: var(--neon-purple); color: #fff;">🎬 Video</button>
-                                <button type="button" class="cyber-btn" id="orgBtnTypeImage" style="flex: 1; padding: 10px; opacity: 0.6;">🖼️ Poster / Banner</button>
-                            </div>
-                            <input type="hidden" id="orgPromoContentType" value="video">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="orgPromoTitle">TITLE</label>
-                            <input type="text" id="orgPromoTitle" placeholder="Enter promo title..." required style="width: 100%;">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="orgPromoDescription">DESCRIPTION</label>
-                            <textarea id="orgPromoDescription" placeholder="Write a short description..." style="width: 100%; min-height: 70px;"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>MEDIA SOURCE</label>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <button type="button" class="cyber-btn" id="orgBtnSourceUrl" style="flex: 1; padding: 8px; background: rgba(0, 243, 255, 0.2); border-color: var(--neon-cyan); color: #fff;">🔗 URL Link</button>
-                                <button type="button" class="cyber-btn" id="orgBtnSourceFile" style="flex: 1; padding: 8px; opacity: 0.6;">📁 Upload File</button>
-                            </div>
-                            <input type="hidden" id="orgPromoMediaSource" value="url">
-
-                            <div id="orgSourceUrlGroup">
-                                <input type="text" id="orgPromoMediaUrl" placeholder="Paste YouTube, Google Drive, or video link..." style="width: 100%;">
-                                <span style="font-size: 0.75rem; color: var(--text-sub); margin-top: 4px; display: block;">Supports YouTube video links, MP4 video URLs, Google Drive video links, or Image URLs.</span>
-                            </div>
-
-                            <div id="orgSourceFileGroup" style="display: none;">
-                                <input type="file" id="orgPromoFileInput" accept="video/*,image/*" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 4px;">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <label for="orgPromoPriority" style="margin-bottom: 0;">DISPLAY PRIORITY ORDER</label>
-                                <span id="orgPromoPriorityLabel" style="color: var(--neon-cyan); font-weight: bold; font-family: monospace;">Priority: 1</span>
-                            </div>
-                            <input type="range" id="orgPromoPriority" min="1" max="10" value="1" style="width: 100%; cursor: pointer;" oninput="document.getElementById('orgPromoPriorityLabel').innerText = 'Priority: ' + this.value;">
-                        </div>
-
-                        <button type="submit" class="cyber-btn cyber-btn-purple" style="width: 100%; padding: 12px; font-weight: 700; background: linear-gradient(135deg, #7c3aed, #06b6d4);">PUBLISH PROMO</button>
-                    </form>
-                </div>
-
-                <!-- Right Column: Promo Library -->
-                <div class="form-panel cyber-corners" style="flex: 1.8; min-width: 340px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 class="form-title" style="margin-bottom: 0;">Promo Library</h3>
-                        <button type="button" class="cyber-btn" id="btnOrgReloadPromos" style="padding: 4px 12px; font-size: 0.8rem;">🔄 Reload</button>
-                    </div>
-
-                    <div id="orgPromoLibraryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 480px; overflow-y: auto;">
-                        <div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px;">Loading promo library...</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -803,7 +731,7 @@
     </div>
 
     <!-- Organizer script -->
-    <script type="module" src="organizer.js?v=4.5"></script>
+    <script type="module" src="organizer.js?v=4.6"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>

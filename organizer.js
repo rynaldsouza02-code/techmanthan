@@ -90,8 +90,10 @@ async function init() {
   await loadEventData();
   await loadRegistrants();
   setupEventListeners();
-  setupOrgPromoStudio();
-  await loadOrgPromosData();
+  if (document.getElementById("orgPromoForm")) {
+    setupOrgPromoStudio();
+    await loadOrgPromosData();
+  }
   setupCredentialsModal();
   setupClassLimitsForm();
 
