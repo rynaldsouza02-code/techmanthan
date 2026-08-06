@@ -730,8 +730,67 @@
         </div>
     </div>
 
+    <!-- ORGANIZER MEDIA MANAGER MODAL -->
+    <div class="modal-overlay" id="orgMediaModal">
+        <div class="modal-content cyber-corners" style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-purple); box-shadow: 0 0 35px rgba(168, 85, 247, 0.35); border-radius: 16px;">
+            <button class="modal-close" id="orgMediaModalCloseBtn">&times;</button>
+            
+            <div style="text-align: center; margin-bottom: 18px;">
+                <div style="font-size: 2rem; margin-bottom: 4px;">🎬</div>
+                <h3 class="modal-title" style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; margin: 0;">EVENT MEDIA & DRIVE STORAGE</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">
+                    Upload posters, teaser videos, or paste Google Drive / Cloud links. Uploaded media is reflected on the Student Dashboard & Explore Gallery.
+                </p>
+            </div>
+
+            <form id="orgMediaForm">
+                <!-- 1. Poster / Banner -->
+                <div style="margin-bottom: 16px;">
+                    <label style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1. EVENT COVER POSTER</label>
+                    <input type="text" id="orgPosterUrlInput" placeholder="Paste Google Drive / Image URL link..." style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.85rem; margin-bottom: 6px; outline: none;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="orgPosterFileInput" accept="image/*" style="display: none;">
+                        <button type="button" class="cyber-btn" id="btnSelectOrgPosterFile" style="flex: 1; padding: 7px; font-size: 0.78rem;">📁 Select Local Image File</button>
+                    </div>
+                </div>
+
+                <!-- 2. Teaser Video -->
+                <div style="margin-bottom: 16px;">
+                    <label style="color: var(--neon-purple); font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">2. EVENT TEASER VIDEO (DRIVE / CLOUD LINK OR FILE)</label>
+                    <input type="text" id="orgVideoUrlInput" placeholder="Paste Google Drive video link, YouTube link, or MP4 URL..." style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; color: #fff; font-size: 0.85rem; margin-bottom: 6px; outline: none;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="orgVideoFileInput" accept="video/*" style="display: none;">
+                        <button type="button" class="cyber-btn" id="btnSelectOrgVideoFile" style="flex: 1; padding: 7px; font-size: 0.78rem; background: rgba(168, 85, 247, 0.15); border-color: var(--neon-purple);">📁 Select Local Video File (max 850KB)</button>
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; display: block;">Tip: Paste a Google Drive video share link (`drive.google.com/file/d/ID/view`) for free HD video streaming!</span>
+                </div>
+
+                <!-- 3. Photo Gallery -->
+                <div style="margin-bottom: 18px;">
+                    <label style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">3. EVENT PHOTOS GALLERY (Max 8 Photos)</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="orgPhotoUrlInput" placeholder="Paste Google Drive photo link or image URL..." style="flex: 1; padding: 8px 10px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.82rem; outline: none;">
+                        <button type="button" id="btnOrgAddPhotoUrl" class="cyber-btn" style="padding: 6px 12px; font-size: 0.78rem; white-space: nowrap;">➕ Add URL</button>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <input type="file" id="orgPhotosFileInput" accept="image/*" multiple style="display: none;">
+                        <button type="button" id="btnSelectOrgPhotosFiles" class="cyber-btn" style="width: 100%; padding: 7px; font-size: 0.78rem;">📁 Select Local Photos (Multiple)</button>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 4px;">Queued Photos (<span id="orgPhotoCountText">0</span>/8):</div>
+                    <div class="media-preview-grid" id="orgPhotosPreviewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; max-height: 120px; overflow-y: auto;">
+                        <!-- Queued photo thumbnails -->
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSaveOrgMedia" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: linear-gradient(135deg, #7c3aed, #06b6d4); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+                    SYNC MEDIA TO STUDENT DASHBOARD & EXPLORE
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Organizer script -->
-    <script type="module" src="organizer.js?v=4.6"></script>
+    <script type="module" src="organizer.js?v=5.0"></script>
     <script src="cyber-bg.js"></script>
 </body>
 </html>

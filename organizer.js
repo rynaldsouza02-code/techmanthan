@@ -96,13 +96,7 @@ async function init() {
   }
   setupCredentialsModal();
   setupClassLimitsForm();
-
-  const btnGoToMedia = document.getElementById("btnGoToMedia");
-  if (btnGoToMedia) {
-    btnGoToMedia.addEventListener("click", () => {
-      window.location.href = `explore.html?event=${assignedEventId}`;
-    });
-  }
+  setupOrgMediaModal();
 }
 
 function handleLogout() {
@@ -2906,6 +2900,247 @@ window.removeDuoTeam = async function(teamId, teamName, leaderUsername) {
     alert("Could not remove duo team.");
   }
 };
+
+let orgTempPhotos = [];
+let orgTempPoster = "";
+
+function setupOrgMediaModal() {
+  const btnGoToMedia = document.getElementById("btnGoToMedia");
+  const modal = document.getElementById("orgMediaModal");
+  const closeBtn = document.getElementById("orgMediaModalCloseBtn");
+  const form = document.getElementById("orgMediaForm");
+
+  if (!btnGoToMedia || !modal) return;
+
+  btnGoToMedia.addEventListener("click", () => {
+    openOrgMediaModal();
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.remove("active");
+  });
+
+  // Local Poster File Selection
+  const btnSelectOrgPosterFile = document.getElementById("btnSelectOrgPosterFile");
+  const orgPosterFileInput = document.getElementById("orgPosterFileInput");
+  if (btnSelectOrgPosterFile && orgPosterFileInput) {
+    btnSelectOrgPosterFile.addEventListener("click", () => orgPosterFileInput.click());
+    orgPosterFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        compressImage(file, (dataUrl) => {
+          orgTempPoster = dataUrl;
+          const urlInput = document.getElementById("orgPosterUrlInput");
+          if (urlInput) urlInput.value = "[Local Image File Queued]";
+        });
+      }
+    });
+  }
+
+  // Local Video File Selection
+  const btnSelectOrgVideoFile = document.getElementById("btnSelectOrgVideoFile");
+  const orgVideoFileInput = document.getElementById("orgVideoFileInput");
+  if (btnSelectOrgVideoFile && orgVideoFileInput) {
+    btnSelectOrgVideoFile.addEventListener("click", () => orgVideoFileInput.click());
+    orgVideoFileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 850 * 1024) {
+          alert("Video file size is " + (file.size / (1024 * 1024)).toFixed(1) + "MB. Direct video upload limit is 850KB.\n\nTip: Paste a Google Drive video link (`drive.google.com/file/d/ID/view`) for HD video streaming!");
+          return;
+        }
+        const dataUrl = await readFileAsDataURL(file);
+        const urlInput = document.getElementById("orgVideoUrlInput");
+        if (urlInput) urlInput.value = dataUrl;
+      }
+    });
+  }
+
+  // Add Photo URL
+  const btnOrgAddPhotoUrl = document.getElementById("btnOrgAddPhotoUrl");
+  if (btnOrgAddPhotoUrl) {
+    btnOrgAddPhotoUrl.addEventListener("click", () => {
+      const input = document.getElementById("orgPhotoUrlInput");
+      if (!input) return;
+      let val = input.value.trim();
+      if (!val) {
+        alert("Please enter an image URL or Google Drive link.");
+        return;
+      }
+      if (!val.startsWith("http://") && !val.startsWith("https://") && !val.startsWith("data:")) {
+        val = "https://" + val;
+      }
+      val = getOrgDirectImageUrl(val);
+      if (orgTempPhotos.length >= 8) {
+        alert("Maximum limit of 8 photos reached.");
+        return;
+      }
+      orgTempPhotos.push(val);
+      input.value = "";
+      renderOrgPhotoPreviews();
+    });
+  }
+
+  // Local Photos File Selection
+  const btnSelectOrgPhotosFiles = document.getElementById("btnSelectOrgPhotosFiles");
+  const orgPhotosFileInput = document.getElementById("orgPhotosFileInput");
+  if (btnSelectOrgPhotosFiles && orgPhotosFileInput) {
+    btnSelectOrgPhotosFiles.addEventListener("click", () => orgPhotosFileInput.click());
+    orgPhotosFileInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files);
+      let spaceLeft = 8 - orgTempPhotos.length;
+      if (spaceLeft <= 0) {
+        alert("Maximum limit of 8 photos reached.");
+        return;
+      }
+      const filesToProcess = files.slice(0, spaceLeft);
+      let count = 0;
+      filesToProcess.forEach(file => {
+        compressImage(file, (dataUrl) => {
+          orgTempPhotos.push(dataUrl);
+          count++;
+          if (count === filesToProcess.length) {
+            renderOrgPhotoPreviews();
+          }
+        });
+      });
+    });
+  }
+
+  // Form Submit Handler
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await saveOrgMediaToFirestore();
+    });
+  }
+}
+
+function openOrgMediaModal() {
+  const modal = document.getElementById("orgMediaModal");
+  if (!modal) return;
+
+  const posterInput = document.getElementById("orgPosterUrlInput");
+  const videoInput = document.getElementById("orgVideoUrlInput");
+
+  if (assignedEventData) {
+    orgTempPoster = assignedEventData.poster || "";
+    orgTempPhotos = Array.isArray(assignedEventData.photos) ? [...assignedEventData.photos] : [];
+    if (posterInput) posterInput.value = assignedEventData.poster || "";
+    if (videoInput) videoInput.value = assignedEventData.videoUrl || assignedEventData.video || "";
+  } else {
+    orgTempPhotos = [];
+    orgTempPoster = "";
+  }
+
+  renderOrgPhotoPreviews();
+  modal.classList.add("active");
+}
+
+function renderOrgPhotoPreviews() {
+  const grid = document.getElementById("orgPhotosPreviewGrid");
+  const countText = document.getElementById("orgPhotoCountText");
+  if (countText) countText.innerText = orgTempPhotos.length;
+
+  if (!grid) return;
+  if (orgTempPhotos.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); font-size: 0.75rem; font-family: monospace; padding: 10px;">[No photos queued]</div>`;
+    return;
+  }
+
+  grid.innerHTML = orgTempPhotos.map((p, idx) => `
+    <div style="position: relative; width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid var(--neon-cyan);">
+      <img src="${p}" style="width: 100%; height: 100%; object-fit: cover;">
+      <button type="button" onclick="deleteOrgQueuedPhoto(${idx})" style="position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+    </div>
+  `).join("");
+}
+
+window.deleteOrgQueuedPhoto = function(idx) {
+  orgTempPhotos.splice(idx, 1);
+  renderOrgPhotoPreviews();
+};
+
+function getOrgDirectImageUrl(url) {
+  if (!url) return "";
+  let cleaned = url.trim();
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://") && !cleaned.startsWith("data:")) {
+    cleaned = "https://" + cleaned;
+  }
+  const gdrive = cleaned.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  if (gdrive && gdrive[1]) {
+    return `https://drive.google.com/uc?export=view&id=${gdrive[1]}`;
+  }
+  return cleaned;
+}
+
+async function saveOrgMediaToFirestore() {
+  if (!assignedEventId) {
+    alert("No event assigned to your organizer account.");
+    return;
+  }
+
+  const btnSave = document.getElementById("btnSaveOrgMedia");
+  if (btnSave) {
+    btnSave.disabled = true;
+    btnSave.innerText = "SYNCING MEDIA TO DATABASE...";
+  }
+
+  try {
+    const posterInput = document.getElementById("orgPosterUrlInput");
+    const videoInput = document.getElementById("orgVideoUrlInput");
+
+    let finalPoster = orgTempPoster;
+    if (posterInput && posterInput.value.trim() && !posterInput.value.includes("[Local Image File Queued]")) {
+      finalPoster = getOrgDirectImageUrl(posterInput.value.trim());
+    }
+
+    let finalVideoUrl = videoInput ? videoInput.value.trim() : "";
+    if (finalVideoUrl && !finalVideoUrl.startsWith("http://") && !finalVideoUrl.startsWith("https://") && !finalVideoUrl.startsWith("data:")) {
+      finalVideoUrl = "https://" + finalVideoUrl;
+    }
+
+    const payloadObj = {
+      poster: finalPoster || "",
+      photos: orgTempPhotos || [],
+      videoUrl: finalVideoUrl,
+      video: finalVideoUrl
+    };
+
+    const payloadStr = JSON.stringify(payloadObj);
+    if (payloadStr.length > 950000) {
+      alert("Media size exceeds 950KB database limit. Please use a Google Drive video link or smaller photos.");
+      return;
+    }
+
+    const eventRef = doc(db, "events", assignedEventId);
+    await updateDoc(eventRef, payloadObj);
+
+    // Refresh local assignedEventData
+    if (assignedEventData) {
+      assignedEventData.poster = payloadObj.poster;
+      assignedEventData.photos = payloadObj.photos;
+      assignedEventData.videoUrl = payloadObj.videoUrl;
+    }
+
+    alert("Media synchronized successfully! Photos & Videos are now live on Student Dashboard and Explore Gallery.");
+    const modal = document.getElementById("orgMediaModal");
+    if (modal) modal.classList.remove("active");
+
+  } catch (err) {
+    console.error("Error saving org media:", err);
+    alert("Failed to sync media: " + (err.message || "Database write error."));
+  } finally {
+    if (btnSave) {
+      btnSave.disabled = false;
+      btnSave.innerText = "SYNC MEDIA TO STUDENT DASHBOARD & EXPLORE";
+    }
+  }
+}
 
 // Boot Dashboard
 if (document.readyState === "loading") {
