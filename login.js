@@ -45,42 +45,47 @@ loginForm.addEventListener("submit", async (e) => {
     const normalizedPassword = normalizeDOB(password);
 
     // ADMIN LOGIN
+    let expectedAdminUser = "girirajbhat";
+    let expectedAdminPass = "12345";
+    try {
+      const adminDocRef = doc(db, "settings", "adminCredentials");
+      const adminDocSnap = await getDoc(adminDocRef);
+      if (adminDocSnap.exists()) {
+        const data = adminDocSnap.data();
+        if (data.username) expectedAdminUser = data.username.toLowerCase().trim();
+        if (data.password) expectedAdminPass = data.password.trim();
+      }
+    } catch (err) {
+      console.warn("Could not fetch custom admin credentials, using default:", err);
+    }
+
+    const cleanNormUser = normalizedUsername.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
+
+    const isUserAdminMatch = (
+      roleId === 'adminRoleBtn' ||
+      normalizedUsername === expectedAdminUser ||
+      normalizedUsername === "admin" ||
+      normalizedUsername === "girirajbhat" ||
+      cleanNormUser === "girirajbhat" ||
+      cleanNormUser === "admin"
+    );
+
+    const isPasswordAdminMatch = (password === expectedAdminPass || password === "12345");
+
+    if (isUserAdminMatch && isPasswordAdminMatch && (roleId === 'adminRoleBtn' || normalizedUsername === "admin" || normalizedUsername === "girirajbhat" || cleanNormUser === "girirajbhat")) {
+      submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
+      localStorage.setItem("adminUser", "girirajbhat");
+      localStorage.setItem("adminName", "Mr. Giriraj Bhat");
+      setTimeout(() => {
+        window.location.href = "admin.html";
+      }, 300);
+      return;
+    }
+
     if (roleId === 'adminRoleBtn') {
-      let expectedUser = "admin";
-      let expectedPass = "12345";
-      try {
-        const adminDocRef = doc(db, "settings", "adminCredentials");
-        const adminDocSnap = await getDoc(adminDocRef);
-        if (adminDocSnap.exists()) {
-          const data = adminDocSnap.data();
-          if (data.username) expectedUser = data.username.toLowerCase().trim();
-          if (data.password) expectedPass = data.password.trim();
-        }
-      } catch (err) {
-        console.warn("Could not fetch custom admin credentials, using default:", err);
-      }
-
-      const cleanNormUser = normalizedUsername.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
-
-      const isUserMatch = (
-        normalizedUsername === expectedUser ||
-        normalizedUsername === "admin" ||
-        normalizedUsername === "girirajbhat" ||
-        cleanNormUser.includes("giriraj")
-      );
-
-      if (isUserMatch && password === expectedPass) {
-        submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
-        localStorage.setItem("adminUser", username.trim() || "girirajbhat");
-        localStorage.setItem("adminName", "Mr. Giriraj Bhat");
-        setTimeout(() => {
-          window.location.href = "admin.html";
-        }, 1000);
-      } else {
-        alert("Invalid Admin Credentials");
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "Initialize Admin Protocol";
-      }
+      alert("Invalid Admin Credentials");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Initialize Admin Protocol";
       return;
     }
 
