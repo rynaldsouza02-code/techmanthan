@@ -29,7 +29,6 @@
                 <span id="orgUserBadge">Loading...</span>
             </button>
             <button type="button" class="cyber-btn" id="btnEditCredentials" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(188, 19, 254, 0.15); border-color: var(--neon-purple); color: #fff;">🔑 Credentials</button>
-            <button class="btn-logout" id="btnLogout">Logout</button>
         </div>
     </nav>
 
@@ -728,78 +727,77 @@
                 </div>
             </form>
         </div>
-    <!-- PROFILE PROTOCOL MODAL -->
-    <div class="modal-overlay" id="profileProtocolModal" style="display: none;">
-        <div class="modal-content cyber-corners" style="max-width: 420px; width: 92%; padding: 30px 25px; background: rgba(10, 14, 26, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px; position: relative;">
-            <button class="modal-close" id="profileProtocolModalCloseBtn" style="position: absolute; top: 15px; right: 18px; font-size: 1.6rem; color: var(--text-sub); background: none; border: none; cursor: pointer; transition: color 0.2s;">&times;</button>
-            
-            <!-- Header Title Bar -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
-                <span style="font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 1.5px; color: #fff; text-transform: uppercase;">
-                    PROFILE PROTOCOL
-                </span>
-                <span id="profileRoleBadge" style="background: rgba(0, 243, 255, 0.25); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 3px 10px; font-size: 0.7rem; font-weight: 800; font-family: monospace; border-radius: 6px; letter-spacing: 1px;">
+    <!-- PROFILE PROTOCOL POPOVER CARD -->
+    <div id="profileProtocolModal" style="display: none; position: fixed; top: 65px; right: 20px; z-index: 9999; width: 360px; max-width: 92vw; background: rgba(10, 14, 26, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 10px 35px rgba(0, 243, 255, 0.35); border-radius: 16px; padding: 22px 20px; backdrop-filter: blur(12px);">
+        <!-- Header Title Bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+            <span style="font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 1.5px; color: #fff; text-transform: uppercase;">
+                PROFILE PROTOCOL
+            </span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="profileRoleBadge" style="background: rgba(0, 243, 255, 0.25); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 2px 8px; font-size: 0.65rem; font-weight: 800; font-family: monospace; border-radius: 6px; letter-spacing: 1px;">
                     ORGANIZER
                 </span>
+                <button id="profileProtocolModalCloseBtn" style="font-size: 1.4rem; color: var(--text-sub); background: none; border: none; cursor: pointer; line-height: 1; padding: 0;">&times;</button>
             </div>
+        </div>
 
-            <!-- Avatar Circle -->
-            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
-                <div id="profileAvatarCircle" style="width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #00f3ff, #bc13fe); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #000; font-family: 'Orbitron', sans-serif; box-shadow: 0 0 25px rgba(0, 243, 255, 0.4); text-transform: uppercase;">
-                    O
+        <!-- Avatar Circle -->
+        <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+            <div id="profileAvatarCircle" style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #00f3ff, #bc13fe); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 800; color: #000; font-family: 'Orbitron', sans-serif; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); text-transform: uppercase;">
+                O
+            </div>
+        </div>
+
+        <!-- Full Name Heading -->
+        <div style="text-align: center; margin-bottom: 18px;">
+            <h3 id="profileFullName" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.15rem; font-weight: 700; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
+                ORGANIZER NAME
+            </h3>
+        </div>
+
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 14px; display: flex; flex-direction: column; gap: 14px;">
+            <!-- Username Field -->
+            <div>
+                <label style="display: block; font-size: 0.68rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px;">
+                    USERNAME
+                </label>
+                <div id="profileUsernameVal" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; text-transform: uppercase;">
+                    organizer
                 </div>
             </div>
 
-            <!-- Full Name Heading -->
-            <div style="text-align: center; margin-bottom: 25px;">
-                <h3 id="profileFullName" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 700; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-                    ORGANIZER NAME
-                </h3>
-            </div>
-
-            <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px; display: flex; flex-direction: column; gap: 18px;">
-                <!-- Username Field -->
-                <div>
-                    <label style="display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">
-                        USERNAME
-                    </label>
-                    <div id="profileUsernameVal" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; text-transform: uppercase;">
-                        organizer
-                    </div>
-                </div>
-
-                <!-- Role Field -->
-                <div>
-                    <label style="display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">
-                        ROLE
-                    </label>
-                    <div id="profileRoleVal" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; text-transform: uppercase;">
-                        EVENT COORDINATOR
-                    </div>
-                </div>
-
-                <!-- Phone Field -->
-                <div>
-                    <label style="display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
-                        PHONE
-                    </label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" id="profilePhoneInput" placeholder="Add phone..." style="flex: 1; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none; transition: border-color 0.2s;">
-                        <button type="button" id="btnSaveProfilePhone" style="width: 42px; height: 42px; border-radius: 8px; background: rgba(0, 243, 255, 0.1); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" title="Save Phone Number">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </button>
-                    </div>
+            <!-- Role Field -->
+            <div>
+                <label style="display: block; font-size: 0.68rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px;">
+                    ROLE
+                </label>
+                <div id="profileRoleVal" style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; text-transform: uppercase;">
+                    EVENT COORDINATOR
                 </div>
             </div>
 
-            <!-- Logout Button -->
-            <div style="margin-top: 30px; text-align: center;">
-                <button type="button" id="profileModalLogoutBtn" style="background: none; border: none; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: color 0.2s ease;">
-                    LOGOUT
-                </button>
+            <!-- Phone Field -->
+            <div>
+                <label style="display: block; font-size: 0.68rem; color: #64748b; font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px;">
+                    PHONE
+                </label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="profilePhoneInput" placeholder="Add phone..." style="flex: 1; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem; outline: none; transition: border-color 0.2s;">
+                    <button type="button" id="btnSaveProfilePhone" style="width: 38px; height: 38px; border-radius: 8px; background: rgba(0, 243, 255, 0.1); border: 1.5px solid var(--neon-cyan); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" title="Save Phone Number">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <!-- Logout Button -->
+        <div style="margin-top: 22px; text-align: center;">
+            <button type="button" id="profileModalLogoutBtn" style="background: none; border: none; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='var(--neon-red)'" onmouseout="this.style.color='#fff'">
+                LOGOUT
+            </button>
         </div>
     </div>
 

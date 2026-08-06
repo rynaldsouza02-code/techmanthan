@@ -142,7 +142,17 @@ function setupOrganizerProfileProtocol() {
     }
   }
 
-  btnProfile.addEventListener("click", () => {
+  const closeModal = () => {
+    modal.style.display = "none";
+  };
+
+  btnProfile.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isVisible = modal.style.display === "block";
+    if (isVisible) {
+      closeModal();
+      return;
+    }
     if (fullNameEl) fullNameEl.innerText = dispName.toUpperCase();
     if (usernameValEl) usernameValEl.innerText = (organizerUsername || dispName).toUpperCase();
     if (roleValEl) roleValEl.innerText = eventData && eventData.title ? `EVENT COORDINATOR - ${eventData.title.toUpperCase()}` : "EVENT COORDINATOR";
@@ -150,17 +160,17 @@ function setupOrganizerProfileProtocol() {
     if (avatarEl) avatarEl.innerText = cleanFirstLetter;
 
     loadOrgProfileData();
-    modal.style.display = "flex";
-    modal.classList.add("active");
+    modal.style.display = "block";
   });
 
-  const closeModal = () => {
-    modal.style.display = "none";
-    modal.classList.remove("active");
-  };
-
   if (modalClose) modalClose.addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  // Close when clicking outside the popover
+  document.addEventListener("click", (e) => {
+    if (modal.style.display === "block" && !modal.contains(e.target) && e.target !== btnProfile) {
+      closeModal();
+    }
+  });
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", handleLogout);

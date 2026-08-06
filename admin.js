@@ -122,7 +122,6 @@ let calculatedChampionship = {
 // Initialize Page
 async function init() {
   setupTabs();
-  setupLogout();
   setupAdminProfileProtocol();
   await loadAllData();
   setupEventForm();
@@ -185,12 +184,7 @@ function setupTabs() {
   }
 }
 
-function setupLogout() {
-  document.getElementById("btnLogout").addEventListener("click", () => {
-    localStorage.removeItem("adminUser");
-    window.location.href = "login.html";
-  });
-}
+
 
 function setupAdminProfileProtocol() {
   const btnProfile = document.getElementById("btnAdminProfile");
@@ -224,25 +218,35 @@ function setupAdminProfileProtocol() {
     }
   }
 
-  btnProfile.addEventListener("click", () => {
+  const closeModal = () => {
+    modal.style.display = "none";
+  };
+
+  btnProfile.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isVisible = modal.style.display === "block";
+    if (isVisible) {
+      closeModal();
+      return;
+    }
     fullNameEl.innerText = adminName;
     usernameValEl.innerText = adminName;
-    roleValEl.innerText = "EVENT COORDINATOR";
+    roleValEl.innerText = "SYSTEM ADMINISTRATOR";
     roleBadgeEl.innerText = "ADMIN";
     avatarEl.innerText = (adminName.replace(/^mr\.\s*/i, '').trim()[0] || "M").toUpperCase();
 
     loadAdminProfileData();
-    modal.style.display = "flex";
-    modal.classList.add("active");
+    modal.style.display = "block";
   });
 
-  const closeModal = () => {
-    modal.style.display = "none";
-    modal.classList.remove("active");
-  };
-
   if (modalClose) modalClose.addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  // Close when clicking outside the popover
+  document.addEventListener("click", (e) => {
+    if (modal.style.display === "block" && !modal.contains(e.target) && e.target !== btnProfile) {
+      closeModal();
+    }
+  });
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
