@@ -77,7 +77,10 @@ let checkedInStudentIds = [];
 
 async function init() {
   orgUserBadge.innerText = `${organizerName} (${organizerUsername})`;
-  btnLogout.addEventListener("click", handleLogout);
+  if (btnLogout) btnLogout.addEventListener("click", handleLogout);
+
+  // Setup profile popover early so Logout always works
+  setupOrganizerProfileProtocol();
 
   if (!assignedEventId) {
     showNoAssignment();
@@ -91,7 +94,6 @@ async function init() {
   await loadOrgPromosData();
   setupCredentialsModal();
   setupClassLimitsForm();
-  setupOrganizerProfileProtocol();
 
   const btnGoToMedia = document.getElementById("btnGoToMedia");
   if (btnGoToMedia) {
