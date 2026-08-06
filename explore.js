@@ -1492,6 +1492,7 @@ window.deleteQueuedPhoto = function(index) {
 
 // Client-side image compressor using HTML5 canvas
 function compressImage(file, callback) {
+  if (!file) return;
   const reader = new FileReader();
   reader.readAsDataURL(file);
   reader.onload = function(event) {
@@ -1502,8 +1503,8 @@ function compressImage(file, callback) {
       let width = img.width;
       let height = img.height;
 
-      // Restrict maximum resolution size to 800px (standard cover/card sizing)
-      const MAX_SIZE = 800;
+      // Restrict maximum resolution size to 750px
+      const MAX_SIZE = 750;
       if (width > height) {
         if (width > MAX_SIZE) {
           height = Math.round((height * MAX_SIZE) / width);
@@ -1523,7 +1524,20 @@ function compressImage(file, callback) {
       ctx.drawImage(img, 0, 0, width, height);
 
       // Export as compressed JPEG format string
-      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
+      let compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+
+      // If base64 string exceeds 200KB, shrink further to ensure sub-100KB payload
+      if (compressedDataUrl.length > 200000) {
+        const smCanvas = document.createElement("canvas");
+        const smW = Math.round(width * 0.7);
+        const smH = Math.round(height * 0.7);
+        smCanvas.width = smW;
+        smCanvas.height = smH;
+        const smCtx = smCanvas.getContext("2d");
+        smCtx.drawImage(img, 0, 0, smW, smH);
+        compressedDataUrl = smCanvas.toDataURL("image/jpeg", 0.5);
+      }
+
       callback(compressedDataUrl);
     };
   };
@@ -1603,7 +1617,11 @@ function setupEventListeners() {
 
   if (eventVideoUrlInput) {
     eventVideoUrlInput.addEventListener("input", (e) => {
-      tempVideoUrl = e.target.value.trim();
+      let val = e.target.value.trim();
+      if (val && !val.startsWith("http://") && !val.startsWith("https://") && !val.startsWith("data:")) {
+        val = "https://" + val;
+      }
+      tempVideoUrl = val;
       updateUploadModalPreviews();
     });
   }
@@ -1613,6 +1631,10 @@ function setupEventListeners() {
     setupDragAndDrop(videoUploadZone, (files) => {
       const file = files[0];
       if (file && file.type.startsWith("video/")) {
+        if (file.size > 850 * 1024) {
+          alert("Video file size is " + (file.size / (1024 * 1024)).toFixed(1) + "MB. Database limit for direct video uploads is 850KB.\n\nTip: Switch to 'Video Link' mode and paste a YouTube or Google Drive video link for instant HD streaming!");
+          return;
+        }
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function(evt) {
@@ -1627,6 +1649,11 @@ function setupEventListeners() {
     eventVideoFileInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (file) {
+        if (file.size > 850 * 1024) {
+          alert("Video file size is " + (file.size / (1024 * 1024)).toFixed(1) + "MB. Database limit for direct video uploads is 850KB.\n\nTip: Switch to 'Video Link' mode and paste a YouTube or Google Drive video link for instant HD streaming!");
+          e.target.value = "";
+          return;
+        }
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function(evt) {
@@ -1739,19 +1766,38 @@ async function saveMediaToFirestore() {
   btnSaveMedia.innerText = "[WRITING TO FIRESTORE NODES...]";
 
   try {
+    let finalVideoUrl = tempVideoUrl ? tempVideoUrl.trim() : "";
+    if (finalVideoUrl && !finalVideoUrl.startsWith("http://") && !finalVideoUrl.startsWith("https://") && !finalVideoUrl.startsWith("data:")) {
+      finalVideoUrl = "https://" + finalVideoUrl;
+    }
+
+    const payloadObj = {
+      poster: tempPoster || "",
+      photos: tempPhotos || [],
+      videoUrl: finalVideoUrl,
+      video: finalVideoUrl
+    };
+
+    const payloadStr = JSON.stringify(payloadObj);
+    if (payloadStr.length > 950000) {
+      alert("Selected photos/video total size (" + (payloadStr.length / 1024).toFixed(0) + "KB) exceeds 950KB database limit.\n\nPlease remove one photo or use a YouTube/Google Drive video link instead.");
+      btnSaveMedia.disabled = false;
+      btnSaveMedia.innerText = "Sync Media To Database";
+      return;
+    }
+
     const eventRef = doc(db, "events", currentUploadingEventId);
-    await updateDoc(eventRef, {
-      poster: tempPoster,
-      photos: tempPhotos,
-      videoUrl: tempVideoUrl,
-      video: tempVideoUrl
-    });
+    await updateDoc(eventRef, payloadObj);
 
     alert("Media synchronized successfully!");
     uploadModal.classList.remove("active");
+
+    if (typeof fetchEvents === "function") {
+      fetchEvents();
+    }
   } catch (error) {
     console.error("Firestore media write error:", error);
-    alert("Fail to write media to Firestore. Verify database rules.");
+    alert("Failed to publish media: " + (error.message || "Database payload limit exceeded. Please use smaller photos or video link."));
   } finally {
     btnSaveMedia.disabled = false;
     btnSaveMedia.innerText = "Sync Media To Database";
