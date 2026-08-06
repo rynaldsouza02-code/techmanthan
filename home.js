@@ -604,31 +604,51 @@ window.showEventDetails = function(eventId) {
     }
 
     let modalHTML = `
-      ${qualificationNoticeHTML}
-      <p><strong>Description:</strong> ${ev.description || 'No description available.'}</p>
-      <div class="event-details" style="margin: 20px 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px;">
-        <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
-        <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
-        <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
-        <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
-        ${studentCoordinatorsHTML}
-        <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'inherit'};">⏳ <strong>Registration Close:</strong> ${regCloseText}</div>
-      </div>
-      ${roundsHTML}
-      <h4 style="margin-top: 20px; color: var(--neon-purple); font-family: 'Orbitron', sans-serif;">📋 Rules & Guidelines</h4>
-      <pre style="white-space: pre-wrap; font-family: inherit; line-height: 1.6; color: #e2e8f0; background: rgba(0,0,0,0.4); padding: 14px; border-radius: 8px; border-left: 3px solid var(--neon-cyan); margin-top: 8px; font-size: 0.88rem;">${ev.rules || "No rules specified for this event."}</pre>
-    `;
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; margin-top: 15px;">
+        <!-- Left Side: Event Details & Info -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          ${qualificationNoticeHTML}
+          
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 10px; padding: 14px 16px;">
+            <div style="color: var(--neon-cyan); font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 6px;">DESCRIPTION</div>
+            <div style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.5;">${ev.description || 'No description available.'}</div>
+          </div>
 
-    if (ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third)) {
-      modalHTML += `
-        <h4 style="margin-top: 20px; color: var(--neon-cyan);">🏆 Event Winners</h4>
-        <div class="winner-card-banner" style="font-size: 0.9rem; padding: 15px; margin-top: 10px;">
-          ${ev.results.first ? `<div style="margin-bottom: 8px;">🥇 <strong>First Place:</strong> ${ev.results.first}</div>` : ""}
-          ${ev.results.second ? `<div style="margin-bottom: 8px;">🥈 <strong>Second Place:</strong> ${ev.results.second}</div>` : ""}
-          ${ev.results.third ? `<div>🥉 <strong>Third Place:</strong> ${ev.results.third}</div>` : ""}
+          <div class="event-details" style="margin: 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px; background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 14px 16px; font-size: 0.85rem;">
+            <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
+            <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
+            <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
+            <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
+            ${studentCoordinatorsHTML}
+            <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--neon-green)'};">⏳ <strong>Registration Close:</strong> ${regCloseText}</div>
+          </div>
+
+          ${roundsHTML}
+
+          ${ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third) ? `
+            <div>
+              <h4 style="margin-top: 10px; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.95rem;">🏆 Event Winners</h4>
+              <div class="winner-card-banner" style="font-size: 0.88rem; padding: 14px; margin-top: 6px;">
+                ${ev.results.first ? `<div style="margin-bottom: 6px;">🥇 <strong>First Place:</strong> ${ev.results.first}</div>` : ""}
+                ${ev.results.second ? `<div style="margin-bottom: 6px;">🥈 <strong>Second Place:</strong> ${ev.results.second}</div>` : ""}
+                ${ev.results.third ? `<div>🥉 <strong>Third Place:</strong> ${ev.results.third}</div>` : ""}
+              </div>
+            </div>
+          ` : ""}
         </div>
-      `;
-    }
+
+        <!-- Right Side: Rules & Guidelines -->
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 1.1rem;">📋</span>
+            <h4 style="margin: 0; color: var(--neon-purple); font-family: 'Orbitron', sans-serif; font-size: 1rem; letter-spacing: 1px;">Rules & Guidelines</h4>
+          </div>
+          <div style="background: rgba(10, 15, 30, 0.95); border: 1.5px solid var(--neon-purple); border-radius: 12px; padding: 16px; box-shadow: 0 0 20px rgba(188, 19, 254, 0.2); max-height: 480px; overflow-y: auto;">
+            <pre style="white-space: pre-wrap; font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.65; color: #e2e8f0; margin: 0; font-size: 0.86rem; letter-spacing: 0.2px;">${ev.rules || "No rules specified for this event."}</pre>
+          </div>
+        </div>
+      </div>
+    `;
 
     if (modalBody) modalBody.innerHTML = modalHTML;
     if (detailModal) detailModal.classList.add("active");

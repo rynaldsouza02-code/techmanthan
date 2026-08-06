@@ -635,6 +635,18 @@ body::before {
     transition: all 0.3s ease;
 }
 
+#detailModal .modal-content {
+    width: 94%;
+    max-width: 980px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px 24px;
+    border: 1.5px solid var(--neon-cyan);
+    box-shadow: 0 0 45px rgba(0, 243, 255, 0.35);
+    background: rgba(10, 15, 30, 0.98);
+    border-radius: 18px;
+}
+
 .modal-overlay.active .modal-content {
     transform: scale(1);
 }
