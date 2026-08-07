@@ -525,10 +525,7 @@ function renderEvents() {
           ${resultHTML}
 
           <div class="event-actions" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; gap: 10px; width: 100%;">
-              <button class="btn-action" style="flex: 1;" onclick="showEventDetails('${ev.id}')">Rules & Details</button>
-              <button class="btn-action btn-success" style="flex: 1; font-weight: bold; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(0, 243, 255, 0.2)); border-color: var(--neon-cyan); color: #fff;" onclick="window.location.href='explore.html?event=${ev.id}'">🎬 Watch Photos & Videos</button>
-            </div>
+            <button class="btn-action" style="width: 100%;" onclick="showEventDetails('${ev.id}')">Rules & Details</button>
             ${actionButtonHTML}
           </div>
         </div>
