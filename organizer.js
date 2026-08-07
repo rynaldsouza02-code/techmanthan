@@ -5,6 +5,8 @@ import {
   doc,
   getDoc,
   updateDoc,
+  setDoc,
+  deleteDoc,
   arrayUnion,
   arrayRemove,
   query,
@@ -3169,7 +3171,7 @@ async function saveOrgMediaToFirestore() {
     }
 
     const eventRef = doc(db, "events", assignedEventId);
-    await updateDoc(eventRef, payloadObj);
+    await setDoc(eventRef, payloadObj, { merge: true });
 
     // Refresh local assignedEventData
     if (assignedEventData) {
@@ -3177,6 +3179,10 @@ async function saveOrgMediaToFirestore() {
       assignedEventData.photos = payloadObj.photos;
       assignedEventData.videoUrl = payloadObj.videoUrl;
     }
+
+    try {
+      localStorage.removeItem("cachedEventsList");
+    } catch (e) {}
 
     alert("Media synchronized successfully! Photos & Videos are now live on Student Dashboard and Explore Gallery.");
     const modal = document.getElementById("orgMediaModal");
@@ -3266,11 +3272,17 @@ function setupDedicatedPosterCard() {
       }
 
       const eventRef = doc(db, "events", assignedEventId);
-      await updateDoc(eventRef, { poster: finalPoster });
+      await setDoc(eventRef, { poster: finalPoster }, { merge: true });
 
       if (assignedEventData) {
         assignedEventData.poster = finalPoster;
       }
+
+      try {
+        localStorage.removeItem("cachedEventsList");
+      } catch (e) {}
+
+      updateDedicatedPosterUI();
 
       alert("Cover Poster published successfully! It is now live on Student Dashboard & Explore.");
 

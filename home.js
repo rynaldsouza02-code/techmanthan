@@ -7,7 +7,8 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  setDoc
+  setDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 // Session elements
@@ -358,29 +359,35 @@ function loadCachedEventsFirst() {
 async function loadEvents() {
   loadCachedEventsFirst();
   try {
-    const eventsQuery = await getDocs(collection(db, "events"));
-    const newEvents = [];
-    eventsQuery.forEach((docSnap) => {
-      newEvents.push(docSnap.data());
-    });
-    if (newEvents.length > 0) {
-      eventsList = newEvents;
-      try {
-        localStorage.setItem("cachedEventsList", JSON.stringify(eventsList));
-      } catch (err) {
-        // Storage catch
+    onSnapshot(collection(db, "events"), (snapshot) => {
+      const newEvents = [];
+      snapshot.forEach((docSnap) => {
+        newEvents.push(docSnap.data());
+      });
+      if (newEvents.length > 0) {
+        eventsList = newEvents;
+        try {
+          localStorage.setItem("cachedEventsList", JSON.stringify(eventsList));
+        } catch (err) {
+          // Storage quota fallback
+        }
+      } else if (eventsList.length === 0) {
+        eventsList = [...defaultEvents];
       }
-    } else if (eventsList.length === 0) {
-      console.warn("No events returned from Firestore. Using defaultEvents fallback.");
-      eventsList = [...defaultEvents];
-    }
-    renderEvents();
+      renderEvents();
+    }, (error) => {
+      console.error("Realtime events listener error:", error);
+      if (eventsList.length === 0) {
+        eventsList = [...defaultEvents];
+        renderEvents();
+      }
+    });
   } catch (error) {
-    console.error("Error loading events from Firestore:", error);
+    console.error("Error setting up realtime events listener:", error);
     if (eventsList.length === 0) {
       eventsList = [...defaultEvents];
+      renderEvents();
     }
-    renderEvents();
   }
 }
 
