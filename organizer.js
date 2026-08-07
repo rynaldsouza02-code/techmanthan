@@ -1279,51 +1279,13 @@ function setupEventListeners() {
 
         renderRoundPromotions();
 
-        // Broadcast email notification to promoted students
-        const emails = promoted.map(p => {
-          const st = registeredStudents.find(s => s.regNo === p.regNo);
-          return st ? st.email : null;
-        }).filter(e => e && e.includes("@"));
-
-        if (emails.length > 0) {
-          const htmlMessage = `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-              <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 25px 20px; text-align: center; color: white;">
-                <h1 style="margin: 0; font-size: 22px; font-weight: 700;">🎉 Round Qualification Notice!</h1>
-                <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">Tech Manthan 6.0 - ${eventData.title}</p>
-              </div>
-              <div style="padding: 25px; color: #1e293b; line-height: 1.6;">
-                <p style="font-size: 16px; margin-top: 0;">Congratulations!</p>
-                <p>Based on your performance in <strong>${fromRound}</strong>, you have been selected and officially promoted to <strong>${toRound}</strong> in <strong>${eventData.title}</strong>!</p>
-                <div style="background-color: #f8fafc; border-left: 4px solid #7c3aed; padding: 15px; margin: 20px 0; border-radius: 0 6px 6px 0;">
-                  <p style="margin: 0; font-weight: 600; color: #475569; font-size: 13px;">QUALIFICATION DETAILS</p>
-                  <p style="margin: 5px 0 0 0; color: #0f172a; font-weight: 500;">
-                    🏆 Event: ${eventData.title}<br>
-                    🎯 Target Round: ${toRound}<br>
-                    📍 Venue: ${eventData.venue || "Event Venue"}<br>
-                    📅 Date: ${formatToDDMMYYYY(eventData.date)}
-                  </p>
-                </div>
-                <p>Please report to the venue on time for <strong>${toRound}</strong>. Good luck!</p>
-              </div>
-              <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
-                This is an automated notification from Tech Manthan 6.0 Event Coordinators.
-              </div>
-            </div>
-          `;
-
-          fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              bcc: emails.join(', '),
-              subject: `🎉 Congratulations! You qualified for ${toRound} in ${eventData.title}`,
-              html: htmlMessage
-            })
-          }).catch(err => console.error("Email notification error:", err));
+        // Broadcast qualification email directly to selected members
+        const emailResult = await sendRoundQualificationEmail(fromRound, toRound, promotedRegNos);
+        if (emailResult.success) {
+          alert(`Success! Top ${promoted.length} participants from ${fromRound} have been promoted to ${toRound}.\n\nQualification announcement email sent directly to ${emailResult.count} selected members.`);
+        } else {
+          alert(`Top ${promoted.length} participants promoted to ${toRound}.\n\nNotice: ${emailResult.error || "Email notification pending. You can click '📢 Email Announcement' in the table below to re-send."}`);
         }
-
-        alert(`Success! Top ${promoted.length} students from ${fromRound} have been promoted to ${toRound}! Email notifications have been dispatched.`);
       } catch (err) {
         console.error("Error saving round promotion:", err);
         alert("Failed to save round promotion.");
@@ -1671,6 +1633,92 @@ window.deleteJudgeAssignment = async function(asgnId) {
   }
 };
 
+async function sendRoundQualificationEmail(fromRound, targetRound, promotedRegNos) {
+  const recipientEmails = new Set();
+
+  for (const regNo of promotedRegNos) {
+    let st = registeredStudents.find(s => s.regNo === regNo);
+    
+    if (!st || !st.email) {
+      try {
+        const studentSnap = await getDoc(doc(db, "students", regNo));
+        if (studentSnap.exists()) {
+          st = studentSnap.data();
+        }
+      } catch (e) {}
+    }
+
+    if (st) {
+      if (st.email && st.email.includes("@")) recipientEmails.add(st.email.trim());
+      if (st.partnerEmail && st.partnerEmail.includes("@")) recipientEmails.add(st.partnerEmail.trim());
+      if (st.email2 && st.email2.includes("@")) recipientEmails.add(st.email2.trim());
+    }
+  }
+
+  const emails = Array.from(recipientEmails);
+  if (emails.length === 0) {
+    return { success: false, count: 0, error: "No student email addresses found for the selected participants." };
+  }
+
+  const htmlMessage = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+      <div style="background: linear-gradient(135deg, #0284c7, #4f46e5); padding: 28px 20px; text-align: center; color: white;">
+        <div style="font-size: 32px; margin-bottom: 6px;">🎉</div>
+        <h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">ROUND QUALIFICATION ANNOUNCEMENT</h1>
+        <p style="margin: 6px 0 0 0; font-size: 14px; opacity: 0.95; font-weight: 500;">Tech Manthan 6.0 — ${eventData.title}</p>
+      </div>
+      <div style="padding: 26px 22px; color: #1e293b; line-height: 1.6;">
+        <p style="font-size: 16px; margin-top: 0;">Dear Qualified Participant,</p>
+        <p>Congratulations! Based on your performance in <strong>${fromRound}</strong>, you have officially qualified and been promoted to <strong>${targetRound}</strong> in <strong>${eventData.title}</strong>!</p>
+        
+        <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          <p style="margin: 0; font-weight: 700; color: #475569; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">QUALIFICATION SUMMARY</p>
+          <table style="width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 14px; color: #0f172a;">
+            <tr><td style="padding: 4px 0; color: #64748b; width: 140px;">Event Name:</td><td style="font-weight: 700;">${eventData.title}</td></tr>
+            <tr><td style="padding: 4px 0; color: #64748b;">Qualified Round:</td><td style="font-weight: 700; color: #4f46e5;">${targetRound}</td></tr>
+            <tr><td style="padding: 4px 0; color: #64748b;">Venue:</td><td style="font-weight: 600;">${eventData.venue || "Main Campus"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #64748b;">Event Date:</td><td style="font-weight: 600;">${formatToDDMMYYYY(eventData.date)}</td></tr>
+            <tr><td style="padding: 4px 0; color: #64748b;">Coordinators:</td><td style="font-weight: 600;">${eventData.coordinator || "Department Coordinators"}</td></tr>
+          </table>
+        </div>
+
+        <p style="font-weight: 600; color: #0f172a;">Instructions for Qualified Participants:</p>
+        <ul style="padding-left: 20px; color: #334155; font-size: 14px; margin-bottom: 22px;">
+          <li>Please report to the venue <strong>${eventData.venue || 'designated venue'}</strong> on time.</li>
+          <li>Ensure you bring your College Student ID card.</li>
+          <li>Check in with the Event Coordinators upon arrival.</li>
+        </ul>
+
+        <p style="text-align: center; margin-bottom: 0;">
+          <a href="https://tech-manthana-six.vercel.app/home.html" style="display: inline-block; background: linear-gradient(135deg, #0284c7, #4f46e5); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">View Student Dashboard</a>
+        </p>
+      </div>
+      <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        This is an official automated notice from the Tech Manthan 6.0 Event Organizers.<br>
+        Dr. B. B. Hegde First Grade College, Kundapura.
+      </div>
+    </div>
+  `;
+
+  try {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bcc: emails.join(', '),
+        subject: `🎉 Congratulations! You qualified for ${targetRound} in ${eventData.title} | Tech Manthan 6.0`,
+        html: htmlMessage
+      })
+    });
+
+    const data = await response.json();
+    return { success: response.ok, count: emails.length, data: data };
+  } catch (err) {
+    console.error("Error broadcasting qualification email:", err);
+    return { success: false, count: emails.length, error: err.message };
+  }
+}
+
 function renderRoundPromotions() {
   const tableBody = document.getElementById("roundPromotionsTableBody");
   if (!tableBody) return;
@@ -1698,6 +1746,9 @@ function renderRoundPromotions() {
             <button class="cyber-btn cyber-btn-purple" style="font-size: 0.75rem; padding: 6px 10px;" onclick="downloadPromotedStudentsPDF('${targetRound}', this)">
               🖨️ PDF (.pdf)
             </button>
+            <button class="cyber-btn" style="font-size: 0.75rem; padding: 6px 10px; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: #fff;" onclick="announceRoundPromotionEmail('${targetRound}', this)">
+              📢 Email Announcement
+            </button>
           </div>
         </td>
         <td style="text-align: center;">
@@ -1707,6 +1758,43 @@ function renderRoundPromotions() {
     `;
   }).join("");
 }
+
+window.announceRoundPromotionEmail = async function(targetRound, btnElement) {
+  const roundPromotions = eventData.roundPromotions || {};
+  const promo = roundPromotions[targetRound];
+  if (!promo || !Array.isArray(promo.promotedStudents) || promo.promotedStudents.length === 0) {
+    alert("No promoted students found for " + targetRound);
+    return;
+  }
+
+  if (!await confirm(`Send the round qualification announcement email directly to all ${promo.promotedStudents.length} selected members for ${targetRound}?`)) {
+    return;
+  }
+
+  let origText = "📢 Email Announcement";
+  if (btnElement) {
+    origText = btnElement.innerText;
+    btnElement.disabled = true;
+    btnElement.innerText = "Sending Emails...";
+  }
+
+  try {
+    const result = await sendRoundQualificationEmail(promo.fromRound, targetRound, promo.promotedStudents);
+    if (result.success) {
+      alert(`Success! Qualification announcement email sent directly to ${result.count} selected members for ${targetRound}.`);
+    } else {
+      alert(`Email sending notice: ${result.error || (result.data ? (result.data.warning || result.data.error) : "Failed to send email.")}`);
+    }
+  } catch (err) {
+    console.error("Error announcing round promotion email:", err);
+    alert("An error occurred while sending announcement emails.");
+  } finally {
+    if (btnElement) {
+      btnElement.disabled = false;
+      btnElement.innerText = origText;
+    }
+  }
+};
 
 window.downloadPromotedStudentsExcel = function(targetRound) {
   const roundPromotions = eventData.roundPromotions || {};
