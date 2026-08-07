@@ -3476,39 +3476,85 @@ window.openPosterLightbox = function(src, title) {
   modal.classList.add("active");
 };
 
+function getEventDefaultPoster(eventId, title) {
+  const safeTitle = (title || eventId || "TECH EVENT").toUpperCase();
+  const iconMap = {
+    "coding": "💻",
+    "it-manager": "👔",
+    "gaming": "🎮",
+    "tech-quiz": "🧠",
+    "treasure-hunt": "🗺️",
+    "ungoogling": "🔍",
+    "speed-typing": "⌨️",
+    "photography": "📷",
+    "videography": "🎥",
+    "poster-making": "🎨",
+    "cultural": "💃",
+    "it-melody": "🎵",
+    "it-model": "🚀"
+  };
+  const icon = iconMap[eventId] || "⚡";
+  
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+    <defs>
+      <linearGradient id="bg_${eventId}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#030712"/>
+        <stop offset="50%" stop-color="#0f172a"/>
+        <stop offset="100%" stop-color="#1e1b4b"/>
+      </linearGradient>
+      <linearGradient id="accent_${eventId}" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#00f3ff"/>
+        <stop offset="50%" stop-color="#a855f7"/>
+        <stop offset="100%" stop-color="#3b82f6"/>
+      </linearGradient>
+      <pattern id="grid_${eventId}" width="30" height="30" patternUnits="userSpaceOnUse">
+        <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(0, 243, 255, 0.07)" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="600" height="400" fill="url(#bg_${eventId})"/>
+    <rect width="600" height="400" fill="url(#grid_${eventId})"/>
+    <circle cx="300" cy="160" r="85" fill="none" stroke="url(#accent_${eventId})" stroke-width="2" opacity="0.4"/>
+    <circle cx="300" cy="160" r="65" fill="rgba(0, 243, 255, 0.04)" stroke="url(#accent_${eventId})" stroke-width="1.5" opacity="0.6"/>
+    <text x="300" y="182" font-family="'Segoe UI Emoji', 'Apple Color Emoji', sans-serif" font-size="64" text-anchor="middle">${icon}</text>
+    <rect x="50" y="270" width="500" height="2" fill="url(#accent_${eventId})" opacity="0.8"/>
+    <text x="300" y="315" font-family="'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="26" fill="#ffffff" text-anchor="middle" letter-spacing="2">${safeTitle}</text>
+    <text x="300" y="348" font-family="'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="13" fill="#00f3ff" text-anchor="middle" letter-spacing="4">TECH MANTHAN 6.0 OFFICIAL</text>
+  </svg>`;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 function updateDedicatedPosterUI() {
   const img = document.getElementById("dedicatedPosterImg");
   const noTxt = document.getElementById("dedicatedNoPosterText");
   const urlInput = document.getElementById("dedicatedPosterUrlInput");
   const removeBtn = document.getElementById("btnRemoveDedicatedPoster");
 
-  const poster = eventData ? eventData.poster : "";
-  if (poster) {
-    if (img) {
-      img.src = poster;
-      img.style.display = "inline-block";
-      img.style.cursor = "pointer";
-      img.title = "Click to view full poster";
-      img.onclick = () => {
-        if (img.src) {
-          const title = eventData ? eventData.title : "Event";
-          openPosterLightbox(img.src, title);
-        }
-      };
-    }
-    if (noTxt) noTxt.style.display = "none";
-    if (urlInput) urlInput.value = poster;
-    if (removeBtn) removeBtn.style.display = "block";
-  } else {
-    if (img) {
-      img.src = "";
-      img.style.display = "none";
-      img.onclick = null;
-    }
-    if (noTxt) noTxt.style.display = "block";
-    if (urlInput) urlInput.value = "";
-    if (removeBtn) removeBtn.style.display = "none";
+  const hasUploadedPoster = !!(eventData && eventData.poster && eventData.poster.trim());
+  const poster = hasUploadedPoster ? eventData.poster : getEventDefaultPoster(assignedEventId, eventData ? eventData.title : "");
+
+  if (img) {
+    img.src = poster;
+    img.style.display = "inline-block";
+    img.style.cursor = "pointer";
+    img.title = "Click to view full poster";
+    img.onclick = () => {
+      if (img.src) {
+        const title = eventData ? eventData.title : "Event";
+        openPosterLightbox(img.src, title);
+      }
+    };
   }
+
+  if (noTxt) {
+    noTxt.style.display = hasUploadedPoster ? "none" : "block";
+    noTxt.innerText = "Default Cover Poster Active (Upload custom poster below to replace)";
+    noTxt.style.color = "var(--neon-cyan)";
+    noTxt.style.fontSize = "0.75rem";
+  }
+
+  if (urlInput) urlInput.value = eventData ? (eventData.poster || "") : "";
+  if (removeBtn) removeBtn.style.display = hasUploadedPoster ? "block" : "none";
 }
 
 let currentAssignedEventId = localStorage.getItem("assignedEventId") || "";
