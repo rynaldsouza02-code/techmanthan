@@ -1674,6 +1674,7 @@ function setupAdminCredentialsModal() {
 
   const closeModal = () => {
     modal.style.display = "none";
+    modal.classList.remove("active");
     if (form) form.reset();
   };
 
@@ -1690,10 +1691,14 @@ function setupAdminCredentialsModal() {
     }
     if (inputNewUser) inputNewUser.value = currentAdminUser;
     modal.style.display = "flex";
+    modal.classList.add("active");
   });
 
   if (btnClose) btnClose.addEventListener("click", closeModal);
   if (btnCancel) btnCancel.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
 
   if (form) {
     form.addEventListener("submit", async (e) => {

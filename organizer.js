@@ -125,6 +125,7 @@ async function init() {
 
   // Setup profile popover early
   setupOrganizerProfileProtocol();
+  setupCredentialsModal();
   await setupMultiEventSelection();
 
   if (!assignedEventId) {
@@ -139,7 +140,6 @@ async function init() {
     setupOrgPromoStudio();
     await loadOrgPromosData();
   }
-  setupCredentialsModal();
   setupClassLimitsForm();
   setupOrgMediaModal();
   setupDedicatedPosterCard();
@@ -2257,18 +2257,22 @@ function setupCredentialsModal() {
         console.error("Error fetching organizer credentials:", err);
       }
 
+      credentialsModal.style.display = "flex";
       credentialsModal.classList.add("active");
     });
   }
 
+  const closeModal = () => {
+    credentialsModal.style.display = "none";
+    credentialsModal.classList.remove("active");
+  };
+
   if (credentialsModalCloseBtn && credentialsModal) {
-    credentialsModalCloseBtn.addEventListener("click", () => {
-      credentialsModal.classList.remove("active");
-    });
+    credentialsModalCloseBtn.addEventListener("click", closeModal);
 
     credentialsModal.addEventListener("click", (e) => {
       if (e.target === credentialsModal) {
-        credentialsModal.classList.remove("active");
+        closeModal();
       }
     });
   }
@@ -2342,7 +2346,7 @@ function setupCredentialsModal() {
         }
 
         alert("Credentials updated successfully! You can now log in using your updated username and password.");
-        credentialsModal.classList.remove("active");
+        closeModal();
       } catch (err) {
         console.error("Error updating organizer credentials:", err);
         alert("Failed to update credentials. Please try again.");
