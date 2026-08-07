@@ -470,6 +470,7 @@ window.removeStudentFromEvent = async function(studentRegNo, studentName) {
 };
 
 function populateWinnerDropdowns() {
+  if (!winnerFirstSelect || !winnerSecondSelect || !winnerThirdSelect) return;
   const optionsHTML = `<option value="">-- Select Winner --</option>` + 
     registeredStudents.map(st => `<option value="${st.name} (${st.regNo})">${st.regNo} - ${st.name}</option>`).join("");
 
@@ -478,7 +479,7 @@ function populateWinnerDropdowns() {
   winnerThirdSelect.innerHTML = optionsHTML;
 
   // Restore current results if any
-  if (eventData.results) {
+  if (eventData && eventData.results) {
     const findOptionVal = (savedVal) => {
       if (!savedVal) return "";
       const match = registeredStudents.find(st => st.regNo === savedVal || `${st.name} (${st.regNo})` === savedVal);
@@ -518,30 +519,32 @@ function setupEventListeners() {
   });
 
   // Results Submission
-  resultsForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  if (resultsForm) {
+    resultsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const first = winnerFirstSelect.value;
-    const second = winnerSecondSelect.value;
-    const third = winnerThirdSelect.value;
+      const first = winnerFirstSelect ? winnerFirstSelect.value : "";
+      const second = winnerSecondSelect ? winnerSecondSelect.value : "";
+      const third = winnerThirdSelect ? winnerThirdSelect.value : "";
 
-    try {
-      const eventRef = doc(db, "events", assignedEventId);
-      await updateDoc(eventRef, {
-        results: {
-          first: first,
-          second: second,
-          third: third
-        }
-      });
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await updateDoc(eventRef, {
+          results: {
+            first: first,
+            second: second,
+            third: third
+          }
+        });
 
-      alert("Event results lock and publish successful!");
-      await loadEventData();
-    } catch (error) {
-      console.error("Error submitting results:", error);
-      alert("Failed to publish event results.");
-    }
-  });
+        alert("Event results lock and publish successful!");
+        await loadEventData();
+      } catch (error) {
+        console.error("Error submitting event results:", error);
+        alert("Failed to submit event results.");
+      }
+    });
+  }
 
   // Start Event Action
   if (btnStartEvent) {
