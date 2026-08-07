@@ -384,6 +384,50 @@ async function loadEvents() {
   }
 }
 
+function formatToDDMMYYYY(dStr) {
+  if (!dStr) return "N/A";
+  let s = String(dStr).trim();
+  if (!s) return "N/A";
+
+  if (s.includes(" to ")) {
+    const parts = s.split(" to ");
+    return `${formatToDDMMYYYY(parts[0])} to ${formatToDDMMYYYY(parts[1])}`;
+  }
+  if (s.includes(" & ")) {
+    const parts = s.split(" & ");
+    return `${formatToDDMMYYYY(parts[0])} & ${formatToDDMMYYYY(parts[1])}`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const p = s.split("-");
+    return `${p[2]}/${p[1]}/${p[0]}`;
+  }
+
+  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+    const p = s.split("-");
+    return `${p[0]}/${p[1]}/${p[2]}`;
+  }
+
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) {
+    const p = s.split("/");
+    return `${p[2]}/${p[1]}/${p[0]}`;
+  }
+
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    return s;
+  }
+
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    const dd = String(parsed.getDate()).padStart(2, '0');
+    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+    const yyyy = parsed.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  return s;
+}
+
 function parseToYYYYMMDD(dStr) {
   if (!dStr) return null;
   let s = dStr.trim();
@@ -460,7 +504,7 @@ function renderEvents() {
     const isClosed = isRegistrationClosed(ev);
 
     const regCloseHTML = ev.registrationCloseDate
-      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> 12 AM Midnight (${ev.registrationCloseDate}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}</div>`
+      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> 12 AM Midnight (${formatToDDMMYYYY(ev.registrationCloseDate)}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}</div>`
       : "";
 
     let posterHTML = `<div class="event-card-poster-fallback"><span>No Poster</span></div>`;
@@ -516,7 +560,7 @@ function renderEvents() {
         
         <div>
           <div class="event-details">
-            <div class="detail-item">📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
+            <div class="detail-item">📅 <strong>Date:</strong> ${formatToDDMMYYYY(ev.date)}</div>
             <div class="detail-item">🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
             <div class="detail-item" style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
             ${regCloseHTML}
@@ -546,7 +590,7 @@ window.showEventDetails = function(eventId) {
 
     const isClosed = isRegistrationClosed(ev);
     const regCloseText = ev.registrationCloseDate 
-      ? `12:00 AM Midnight (${ev.registrationCloseDate}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}`
+      ? `12:00 AM Midnight (${formatToDDMMYYYY(ev.registrationCloseDate)}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}`
       : "No closing date set (Open)";
 
     if (modalTitle) modalTitle.innerText = ev.title;
@@ -630,7 +674,7 @@ window.showEventDetails = function(eventId) {
           </div>
 
           <div class="event-details" style="margin: 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px; background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 14px 16px; font-size: 0.85rem;">
-            <div>📅 <strong>Date:</strong> ${ev.date || "N/A"}</div>
+            <div>📅 <strong>Date:</strong> ${formatToDDMMYYYY(ev.date)}</div>
             <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
             <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
             <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>

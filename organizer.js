@@ -20,6 +20,50 @@ if (!organizerUsername) {
   window.location.href = "login.html";
 }
 
+function formatToDDMMYYYY(dStr) {
+  if (!dStr) return "N/A";
+  let s = String(dStr).trim();
+  if (!s) return "N/A";
+
+  if (s.includes(" to ")) {
+    const parts = s.split(" to ");
+    return `${formatToDDMMYYYY(parts[0])} to ${formatToDDMMYYYY(parts[1])}`;
+  }
+  if (s.includes(" & ")) {
+    const parts = s.split(" & ");
+    return `${formatToDDMMYYYY(parts[0])} & ${formatToDDMMYYYY(parts[1])}`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const p = s.split("-");
+    return `${p[2]}/${p[1]}/${p[0]}`;
+  }
+
+  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+    const p = s.split("-");
+    return `${p[0]}/${p[1]}/${p[2]}`;
+  }
+
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) {
+    const p = s.split("/");
+    return `${p[2]}/${p[1]}/${p[0]}`;
+  }
+
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    return s;
+  }
+
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    const dd = String(parsed.getDate()).padStart(2, '0');
+    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+    const yyyy = parsed.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  return s;
+}
+
 // Elements
 const orgUserBadge = document.getElementById("orgUserBadge");
 const btnLogout = document.getElementById("btnLogout");
@@ -1255,7 +1299,7 @@ function setupEventListeners() {
                     🏆 Event: ${eventData.title}<br>
                     🎯 Target Round: ${toRound}<br>
                     📍 Venue: ${eventData.venue || "Event Venue"}<br>
-                    📅 Date: ${eventData.date || "Scheduled Date"}
+                    📅 Date: ${formatToDDMMYYYY(eventData.date)}
                   </p>
                 </div>
                 <p>Please report to the venue on time for <strong>${toRound}</strong>. Good luck!</p>
@@ -1292,8 +1336,8 @@ function setupEventListeners() {
       e.preventDefault();
       const currentList = eventData.studentCoordinators || [];
 
-      if (currentList.length >= 2) {
-        alert("Maximum limit reached: You can only assign up to 2 student coordinators per event.");
+      if (currentList.length >= 4) {
+        alert("Maximum limit reached: You can only assign up to 4 student coordinators per event.");
         return;
       }
 
@@ -1834,15 +1878,15 @@ function renderStudentCoordinators() {
 
   const studentCoordinators = eventData.studentCoordinators || [];
   if (countBadge) {
-    countBadge.innerText = `Assigned: ${studentCoordinators.length} / 2`;
+    countBadge.innerText = `Assigned: ${studentCoordinators.length} / 4`;
   }
 
   if (addBtn) {
-    if (studentCoordinators.length >= 2) {
+    if (studentCoordinators.length >= 4) {
       addBtn.disabled = true;
       addBtn.style.opacity = "0.5";
       addBtn.style.cursor = "not-allowed";
-      addBtn.innerText = "LIMIT REACHED (2/2)";
+      addBtn.innerText = "LIMIT REACHED (4/4)";
     } else {
       addBtn.disabled = false;
       addBtn.style.opacity = "1";
