@@ -295,6 +295,12 @@ function normalizeClassName(str) {
   return str.toString().trim().toUpperCase().replace(/[\.\s\(\)]+/g, " ");
 }
 
+function isBCAStudent(studentClass) {
+  if (!studentClass) return false;
+  const cls = studentClass.toString().trim().toUpperCase();
+  return cls.includes("BCA");
+}
+
 function isRestrictedClassStudent(studentClass) {
   if (!studentClass) return false;
   const cls = studentClass.toString().trim().toUpperCase();
@@ -864,6 +870,12 @@ window.registerEvent = async function(eventId) {
   }
 
   const currentStudentClass = localStorage.getItem("studentClass") || localStorage.getItem("userClass") || "";
+
+  if (isVideographyEvent(ev) && isBCAStudent(currentStudentClass)) {
+    alert(`Registration Restriction:\n\nVideography is exclusively for Non-CS (B.Com / BBA) students.\n\nBCA students are not eligible to register for the Videography event.`);
+    return;
+  }
+
   if (isRestrictedClassStudent(currentStudentClass) && !isVideographyEvent(ev)) {
     alert(`Registration Restriction:\n\nStudents from ${currentStudentClass || "B.Com / BBA"} are eligible to register for the Videography event only.\n\nYou may view rules, guidelines, and photos for all other events.`);
     return;
