@@ -1,0 +1,45 @@
+[
+  {
+    "_id": "BCA24077",
+    "duoTeam_it-melody": {
+      "teamName": "Raaga",
+      "members": [
+        "Apeksha Poojary",
+        "Pavithra"
+      ]
+    },
+    "registeredEvents": [
+      "it-melody",
+      "it-manager"
+    ],
+    "class": "II BCA (A)",
+    "name": "Apeksha Poojary",
+    "dob": "21-01-2007",
+    "email": "apekshapoojary755@gmail.com"
+  },
+  {
+    "_id": "DEMO01",
+    "registeredEvents": [
+      "coding"
+    ],
+    "class": "I BCA (A)",
+    "duoTeam_coding": {
+      "teamName": "cyber duo",
+      "members": [
+        "Student01",
+        "sharan"
+      ]
+    },
+    "name": "Student01",
+    "email": "ranjithshettygar2006@gmail.com",
+    "dob": "01-01-2026"
+  },
+  {
+    "_id": "DEMO02",
+    "registeredEvents": [],
+    "class": "I BCA (A)",
+    "dob": "01-01-2026",
+    "email": "demo@gmail.com",
+    "name": "demo02"
+  }
+]
