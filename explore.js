@@ -558,10 +558,64 @@ function renderEvents() {
       }
     }
 
+window.openPosterLightbox = function(src, title) {
+  if (!src) return;
+  
+  let modal = document.getElementById("posterLightboxModal");
+  let img = document.getElementById("posterLightboxImg");
+  let titleEl = document.getElementById("posterLightboxTitle");
+  let hdBtn = document.getElementById("posterLightboxHdBtn");
+
+  if (!modal) {
+    const modalDiv = document.createElement("div");
+    modalDiv.id = "posterLightboxModal";
+    modalDiv.className = "modal-overlay";
+    modalDiv.style.cssText = "display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(12px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;";
+    modalDiv.innerHTML = `
+      <div style="position: relative; max-width: 95vw; max-height: 95vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <button type="button" id="posterLightboxCloseBtn" style="position: absolute; top: -18px; right: -18px; background: rgba(10, 15, 30, 0.95); border: 2px solid var(--neon-cyan); color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); z-index: 10001;">&times;</button>
+        <h4 id="posterLightboxTitle" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; margin-bottom: 12px; text-shadow: 0 0 10px rgba(0,243,255,0.5); text-align: center;"></h4>
+        <img id="posterLightboxImg" src="" alt="Event Poster" style="max-width: 90vw; max-height: 78vh; object-fit: contain; border-radius: 12px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);">
+        <div style="margin-top: 14px; display: flex; gap: 12px;">
+          <a id="posterLightboxHdBtn" href="" target="_blank" class="cyber-btn" style="padding: 8px 18px; font-size: 0.85rem; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: #fff; text-decoration: none;">🔍 Open HD Original Image</a>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modalDiv);
+
+    modal = document.getElementById("posterLightboxModal");
+    img = document.getElementById("posterLightboxImg");
+    titleEl = document.getElementById("posterLightboxTitle");
+    hdBtn = document.getElementById("posterLightboxHdBtn");
+    const closeBtn = document.getElementById("posterLightboxCloseBtn");
+
+    const closeModal = () => {
+      modal.style.display = "none";
+      modal.classList.remove("active");
+    };
+
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.style.display !== "none") closeModal();
+    });
+  }
+
+  if (img) img.src = src;
+  if (titleEl) titleEl.innerText = title ? `${title.toUpperCase()} COVER POSTER` : "EVENT COVER POSTER";
+  if (hdBtn) hdBtn.href = src;
+
+  modal.style.display = "flex";
+  modal.classList.add("active");
+};
+
     // Poster element
     let posterHTML = `<div class="event-card-poster-fallback"><span>No Poster</span></div>`;
     if (ev.poster) {
-      posterHTML = `<img src="${ev.poster}" class="event-card-poster" alt="${ev.title} poster">`;
+      const safeTitle = (ev.title || "Event").replace(/'/g, "\\'");
+      posterHTML = `<img src="${ev.poster}" class="event-card-poster" alt="${ev.title} poster" onclick="openPosterLightbox('${ev.poster}', '${safeTitle}')" style="cursor: pointer;" title="Click to view full poster">`;
     }
 
     let resultHTML = "";
