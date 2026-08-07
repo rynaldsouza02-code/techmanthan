@@ -1473,10 +1473,47 @@ function renderSlideshow() {
       const lowerUrl = processedUrl.toLowerCase();
       const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".mov") || vUrl.startsWith("data:video") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
 
+window.toggleElementFullscreen = function(targetEl) {
+  if (!targetEl) return;
+  const mediaEl = targetEl.querySelector("video") || targetEl.querySelector("iframe") || targetEl;
+  
+  if (mediaEl.requestFullscreen) {
+    mediaEl.requestFullscreen().catch(err => {
+      if (targetEl.requestFullscreen) targetEl.requestFullscreen();
+    });
+  } else if (mediaEl.webkitRequestFullscreen) {
+    mediaEl.webkitRequestFullscreen();
+  } else if (mediaEl.webkitEnterFullscreen) {
+    mediaEl.webkitEnterFullscreen();
+  } else if (mediaEl.msRequestFullscreen) {
+    mediaEl.msRequestFullscreen();
+  } else if (targetEl.requestFullscreen) {
+    targetEl.requestFullscreen();
+  }
+};
+
       if (isDirectVideoFile) {
-        contentHTML = `<video src="${vUrl}" controls playsinline style="max-width: 100%; max-height: 75vh; border-radius: 12px; background: #000; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);"></video>`;
+        contentHTML = `
+          <div style="width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center;">
+            <div style="position: relative; width: 100%; height: 70vh; max-height: 75vh; min-height: 380px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-purple); box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); display: flex; align-items: center; justify-content: center;">
+              <video src="${vUrl}" controls playsinline style="width: 100%; height: 100%; max-height: 75vh; object-fit: contain; background: #000;"></video>
+            </div>
+            <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 10px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(168, 85, 247, 0.2); border: 1.5px solid var(--neon-purple); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);">
+              ⛶ ENTER FULL SCREEN VIDEO
+            </button>
+          </div>
+        `;
       } else {
-        contentHTML = `<div style="width: 90%; max-width: 700px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);"><iframe src="${processedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe></div>`;
+        contentHTML = `
+          <div style="width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center;">
+            <div style="position: relative; width: 100%; height: 70vh; max-height: 75vh; min-height: 380px; border-radius: 12px; overflow: hidden; background: #000; border: 1.5px solid var(--neon-purple); box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); display: flex; align-items: center; justify-content: center;">
+              <iframe src="${processedUrl}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
+            </div>
+            <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 10px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(168, 85, 247, 0.2); border: 1.5px solid var(--neon-purple); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);">
+              ⛶ ENTER FULL SCREEN VIDEO
+            </button>
+          </div>
+        `;
       }
     } else {
       const imgUrl = item.url || item;

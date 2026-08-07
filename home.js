@@ -1868,6 +1868,25 @@ window.openPromoMediaById = function(promoId) {
   }
 };
 
+window.toggleElementFullscreen = function(targetEl) {
+  if (!targetEl) return;
+  const mediaEl = targetEl.querySelector("video") || targetEl.querySelector("iframe") || targetEl;
+  
+  if (mediaEl.requestFullscreen) {
+    mediaEl.requestFullscreen().catch(err => {
+      if (targetEl.requestFullscreen) targetEl.requestFullscreen();
+    });
+  } else if (mediaEl.webkitRequestFullscreen) {
+    mediaEl.webkitRequestFullscreen();
+  } else if (mediaEl.webkitEnterFullscreen) {
+    mediaEl.webkitEnterFullscreen();
+  } else if (mediaEl.msRequestFullscreen) {
+    mediaEl.msRequestFullscreen();
+  } else if (targetEl.requestFullscreen) {
+    targetEl.requestFullscreen();
+  }
+};
+
 window.openPromoMedia = function(title, contentType, mediaUrl, description) {
   const modal = document.getElementById("promoMediaModal");
   const modalTitle = document.getElementById("promoMediaModalTitle");
@@ -1882,7 +1901,7 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
     const lowerUrl = processedUrl.toLowerCase();
     
     // Direct video files vs embeddable services
-    const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".ogg") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+    const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".ogg") || lowerUrl.endsWith(".mov") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
 
     const isEmbedService = lowerUrl.includes("youtube.com") || lowerUrl.includes("drive.google.com") || lowerUrl.includes("vimeo.com") || !isDirectVideoFile;
 
@@ -1892,17 +1911,23 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
         : processedUrl;
 
       modalBody.innerHTML = `
-        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
+        <div style="position: relative; width: 100%; height: 70vh; max-height: 75vh; min-height: 380px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); display: flex; align-items: center; justify-content: center;">
           <iframe src="${finalEmbedUrl}" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
-        ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+        <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 12px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(0, 243, 255, 0.15); border: 1.5px solid var(--neon-cyan); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(0,243,255,0.6);">
+          ⛶ ENTER FULL SCREEN VIDEO
+        </button>
+        ${description ? `<p style="color: var(--text-sub); margin-top: 12px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
     } else {
       modalBody.innerHTML = `
-        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);">
-          <video src="${mediaUrl}" controls playsinline preload="auto" autoplay style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
+        <div style="position: relative; width: 100%; height: 70vh; max-height: 75vh; min-height: 380px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); display: flex; align-items: center; justify-content: center;">
+          <video src="${mediaUrl}" controls playsinline preload="auto" autoplay style="width: 100%; height: 100%; max-height: 75vh; object-fit: contain; background: #000;"></video>
         </div>
-        ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+        <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 12px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(0, 243, 255, 0.15); border: 1.5px solid var(--neon-cyan); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(0,243,255,0.6);">
+          ⛶ ENTER FULL SCREEN VIDEO
+        </button>
+        ${description ? `<p style="color: var(--text-sub); margin-top: 12px; font-size: 0.9rem;">${description}</p>` : ''}
       `;
       const videoEl = modalBody.querySelector("video");
       if (videoEl) {
@@ -1914,10 +1939,10 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
   } else {
     const directImg = getDirectImageUrl(mediaUrl);
     modalBody.innerHTML = `
-      <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center;">
-        <img src="${directImg}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${title || 'Poster'}">
+      <div style="position: relative; width: 100%; max-height: 75vh; min-height: 300px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center;">
+        <img src="${directImg}" style="max-width: 100%; max-height: 75vh; object-fit: contain;" alt="${title || 'Poster'}">
       </div>
-      ${description ? `<p style="color: var(--text-sub); margin-top: 15px; font-size: 0.9rem;">${description}</p>` : ''}
+      ${description ? `<p style="color: var(--text-sub); margin-top: 12px; font-size: 0.9rem;">${description}</p>` : ''}
     `;
   }
 
