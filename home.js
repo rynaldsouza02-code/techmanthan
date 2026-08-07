@@ -42,7 +42,7 @@ const defaultEvents = [
   { id: "treasure-hunt", title: "Treasure Hunt", description: "Decrypt the clues. Crack cryptographic hashes and riddles across the campus to locate the flag.", venue: "Room no: 204", time: "11:00 AM (After Inauguration)", date: "2026-08-22", coordinator: "Mrs. Vijayashree, Mrs. Wilma", section: "III BCA B", rounds: "After the Inauguration @ 11:00 AM", rules: "1. Teams of 2.\n2. Use of mobile phones is permitted for decryption only.\n3. Do not tamper with campus property." },
   { id: "coding", title: "Coding", description: "Create your own world. Solve algorithmic puzzles and write clean code to win the ultimate prize.", venue: "Research Lab", time: "12:30 PM - 02:00 PM (Rounds: 19th & 21st Aug @ 3pm)", date: "2026-08-22", coordinator: "Mr. Pranam, Ms. Shivani", section: "III BCA B", rounds: "1st Round: 19-08-2026 @ 3:00pm, 2nd Round: 21-08-2026 @ 3:00pm, 3rd Round: 22-08-2026 @ 12:30pm-2:00pm", rules: "1. Supported languages: C, C++, Java, Python.\n2. Submissions judged on correctness, efficiency, and syntax cleanliness.\n3. Plagiarism leads to instant disqualification." },
   { id: "photography", title: "Photography", description: "Capture every moment. Submit the best click capturing the cyberpunk essence of our festival.", venue: "Lab 1 - Photography Submission", time: "09:00 AM - 02:00 PM", date: "2026-08-22", coordinator: "Mrs. Pavithra, Mr. Sachin", section: "III BCA A", rounds: "Submission: 22-08-2026 9:00AM - 2:00PM", rules: "1. DSLR or high-res smartphones allowed.\n2. Submissions must contain original metadata (no heavy editing).\n3. Submit top 3 shots." },
-  { id: "gaming", title: "Gaming", description: "Show the spirit. Compete head-to-head in competitive multiplayer tournaments.", venue: "Lab 1", time: "03:00 PM", date: "2026-08-12 to 2026-08-14", coordinator: "Mr. Mahesh Poojary, Mr. Akash", section: "III BCA A", rounds: "1st Round: 12-08-2026 @ 3:00pm, 2nd Round: 13-08-2026 @ 3:00pm, Final Round: 14-08-2026 @ 3:00pm", rules: "1. Teams of 4.\n2. Choose Free Fire or BGMI.\n3. Decisions of the referees are final." },
+  { id: "gaming", title: "Gaming", description: "Show the spirit. Compete head-to-head in competitive multiplayer tournaments.", venue: "Lab 1", time: "03:00 PM", date: "2026-08-12 to 2026-08-14", coordinator: "Mr. Mahesh Poojary, Mr. Akash", section: "III BCA A", rounds: "1st Round: 12-08-2026 @ 3:00pm, 2nd Round: 13-08-2026 @ 3:00pm, Final Round: 14-08-2026 @ 3:00pm", rules: "1. Teams of 4.\n2. Choose Free Fire or Mini Militia.\n3. Decisions of the referees are final." },
   { id: "poster-making", title: "Poster Making", description: "Design the future. Create a digital or physical flyer representing the core tech event vision.", venue: "Research Lab", time: "03:00 PM", date: "2026-08-11", coordinator: "Mrs. Wilma, Ms. Shraddha", section: "III BCA B", rounds: "Single Round: 11-08-2026 @ 3:00pm", rules: "1. Topic: Artificial Intelligence vs Humanity.\n2. Bring your own drawing materials or digital tablets.\n3. Duration: 2 hours." },
   { id: "ungoogling", title: "Ungoogling", description: "Find answers without using the search giant. Navigate alternative portals to crack clues.", venue: "Research Lab", time: "10:00 AM - 11:30 AM (Prelims: 18th Aug @ 3pm)", date: "2026-08-22", coordinator: "Mr. Pranam, Mr. Manjunath", section: "III BCA B", rounds: "1st Round: 18-08-2026 @ 3:00pm, Final Round: 22-08-2026 @ 10:00am-11:30am", rules: "1. Teams of 2.\n2. Google.com is strictly banned.\n3. Direct queries only via alternative directories." },
   { id: "speed-typing", title: "Speed Typing", description: "Test your WPM limit under intense pressure.", venue: "Research Lab", time: "Round 1: 12:00 PM, Round 2: 03:00 PM", date: "2026-08-08 & 2026-08-10", coordinator: "Mr. Harish, Mr. Mahesh Poojary, Ms. Shivani, Mrs. Nishmitha, Mrs. Nishchitha", section: "III BCA A", rounds: "1st Round: 08-08-2026 @ 12:00pm, 2nd Round: 10-08-2026 @ 3:00pm", rules: "1. No external keyboards allowed.\n2. Typing speed and accuracy will both be calculated.\n3. Winner chosen by highest WPM." },
@@ -803,7 +803,7 @@ window.registerEvent = async function(eventId) {
     return;
   }
   
-  // Special Handling for Gaming Event: Require Team of 4 + Free Fire / BGMI Selection
+  // Special Handling for Gaming Event: Require Team of 4 + Free Fire / Mini Militia Selection
   if (eventId === "gaming") {
     openGamingTeamRegistrationModal(ev);
     return;
@@ -907,7 +907,7 @@ function openGamingTeamRegistrationModal(ev) {
 
     const selectedRadio = form.querySelector("input[name='gameVariant']:checked");
     if (!selectedRadio) {
-      alert("Please select a game: Free Fire or BGMI.");
+      alert("Please select a game: Free Fire or Mini Militia.");
       return;
     }
 

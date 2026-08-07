@@ -2726,21 +2726,21 @@ function renderGamingTeams() {
   const tableBody = document.getElementById("gamingTeamsTableBody");
   const countAll = document.getElementById("countGamingAll");
   const countFF = document.getElementById("countGamingFF");
-  const countBGMI = document.getElementById("countGamingBGMI");
+  const countMiniMilitia = document.getElementById("countGamingMiniMilitia") || document.getElementById("countGamingBGMI");
 
   if (!tableBody) return;
 
   const totalAll = gamingTeamsList.length;
   const totalFF = gamingTeamsList.filter(t => t.gameVariant === "Free Fire").length;
-  const totalBGMI = gamingTeamsList.filter(t => t.gameVariant === "BGMI").length;
+  const totalMiniMilitia = gamingTeamsList.filter(t => t.gameVariant === "Mini Militia" || t.gameVariant === "BGMI").length;
 
   if (countAll) countAll.innerText = totalAll;
   if (countFF) countFF.innerText = totalFF;
-  if (countBGMI) countBGMI.innerText = totalBGMI;
+  if (countMiniMilitia) countMiniMilitia.innerText = totalMiniMilitia;
 
   let filtered = gamingTeamsList;
   if (currentGamingFilter !== "all") {
-    filtered = gamingTeamsList.filter(t => t.gameVariant === currentGamingFilter);
+    filtered = gamingTeamsList.filter(t => t.gameVariant === currentGamingFilter || (currentGamingFilter === "Mini Militia" && t.gameVariant === "BGMI"));
   }
 
   if (filtered.length === 0) {
@@ -2756,14 +2756,15 @@ function renderGamingTeams() {
       </div>
     `).join("");
 
-    const badgeColor = t.gameVariant === "Free Fire" ? "#f97316" : "#38bdf8";
+    const badgeColor = t.gameVariant === "Free Fire" ? "#f97316" : "#a855f7";
+    const gameLabel = t.gameVariant === "Free Fire" ? "🔥 Free Fire" : "💣 Mini Militia";
 
     return `
       <tr>
         <td><strong style="color: #fff; font-size: 0.95rem;">${t.teamName || "N/A"}</strong></td>
         <td>
           <span style="background: rgba(15, 23, 42, 0.8); border: 1px solid ${badgeColor}; color: ${badgeColor}; font-weight: bold; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; display: inline-block;">
-            ${t.gameVariant === "Free Fire" ? "🔥 Free Fire" : "🪖 BGMI"}
+            ${gameLabel}
           </span>
         </td>
         <td><strong>${t.studentClass || "N/A"}</strong></td>

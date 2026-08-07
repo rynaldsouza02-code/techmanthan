@@ -966,7 +966,7 @@ function openGamingTeamRegistrationModal(ev) {
 
     const selectedRadio = form.querySelector("input[name='gameVariant']:checked");
     if (!selectedRadio) {
-      alert("Please select a game: Free Fire or BGMI.");
+      alert("Please select a game: Free Fire or Mini Militia.");
       return;
     }
 
