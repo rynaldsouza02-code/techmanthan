@@ -126,13 +126,6 @@ function setupSessionUI() {
       `;
     }
 
-    // Adjust hero button
-    if (heroActions) {
-      heroActions.innerHTML = `
-        <a href="explore.html" class="cyber-btn">Explore Events & Photos</a>
-      `;
-    }
-
     // Render Student Profile Dropdown Panel
     renderProfileDropdown();
 
@@ -227,7 +220,7 @@ function renderProfileDropdown() {
   if (btnProfileLogout) {
     btnProfileLogout.addEventListener("click", () => {
       localStorage.clear();
-      window.location.reload();
+      window.location.href = "login.html";
     });
   }
 

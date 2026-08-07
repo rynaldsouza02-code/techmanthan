@@ -232,7 +232,7 @@ function renderProfileDropdown() {
   if (btnProfileLogout) {
     btnProfileLogout.addEventListener("click", () => {
       localStorage.clear();
-      window.location.reload();
+      window.location.href = "login.html";
     });
   }
 
