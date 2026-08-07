@@ -1223,26 +1223,26 @@ body::before {
 
 /* ================= EVENT MEDIA EXPLORE PAGE STYLING ================= */
 
-/* Event Card Poster Image */
+/* Event Card Poster Image - Autosizes to fit holder cleanly */
 .event-card-poster {
     width: 100%;
     height: auto;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
+    max-height: 380px;
+    object-fit: contain;
     border-radius: 12px;
     margin-bottom: 15px;
-    border: 1px solid var(--card-border);
-    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--neon-cyan);
+    background: rgba(5, 8, 20, 0.95);
     display: block;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
 }
 
 /* Fallback grid header if poster is missing */
 .event-card-poster-fallback {
     width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 4;
+    height: 180px;
     background: linear-gradient(135deg, rgba(3, 7, 18, 0.95), rgba(188, 19, 254, 0.1));
     border-radius: 12px;
     margin-bottom: 15px;
