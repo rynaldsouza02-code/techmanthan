@@ -3080,11 +3080,11 @@ function openOrgMediaModal() {
   const posterInput = document.getElementById("orgPosterUrlInput");
   const videoInput = document.getElementById("orgVideoUrlInput");
 
-  if (assignedEventData) {
-    orgTempPoster = assignedEventData.poster || "";
-    orgTempPhotos = Array.isArray(assignedEventData.photos) ? [...assignedEventData.photos] : [];
-    if (posterInput) posterInput.value = assignedEventData.poster || "";
-    if (videoInput) videoInput.value = assignedEventData.videoUrl || assignedEventData.video || "";
+  if (eventData) {
+    orgTempPoster = eventData.poster || "";
+    orgTempPhotos = Array.isArray(eventData.photos) ? [...eventData.photos] : [];
+    if (posterInput) posterInput.value = eventData.poster || "";
+    if (videoInput) videoInput.value = eventData.videoUrl || eventData.video || "";
   } else {
     orgTempPhotos = [];
     orgTempPoster = "";
@@ -3173,11 +3173,11 @@ async function saveOrgMediaToFirestore() {
     const eventRef = doc(db, "events", assignedEventId);
     await setDoc(eventRef, payloadObj, { merge: true });
 
-    // Refresh local assignedEventData
-    if (assignedEventData) {
-      assignedEventData.poster = payloadObj.poster;
-      assignedEventData.photos = payloadObj.photos;
-      assignedEventData.videoUrl = payloadObj.videoUrl;
+    // Refresh local eventData
+    if (eventData) {
+      eventData.poster = payloadObj.poster;
+      eventData.photos = payloadObj.photos;
+      eventData.videoUrl = payloadObj.videoUrl;
     }
 
     try {
@@ -3274,9 +3274,10 @@ function setupDedicatedPosterCard() {
       const eventRef = doc(db, "events", assignedEventId);
       await setDoc(eventRef, { poster: finalPoster }, { merge: true });
 
-      if (assignedEventData) {
-        assignedEventData.poster = finalPoster;
+      if (eventData) {
+        eventData.poster = finalPoster;
       }
+      orgTempPoster = finalPoster;
 
       try {
         localStorage.removeItem("cachedEventsList");
@@ -3296,14 +3297,53 @@ function setupDedicatedPosterCard() {
       }
     }
   });
+
+  const removeBtn = document.getElementById("btnRemoveDedicatedPoster");
+  if (removeBtn) {
+    removeBtn.addEventListener("click", async () => {
+      if (!assignedEventId) {
+        alert("No event assigned to your organizer account.");
+        return;
+      }
+
+      if (!await confirm("Are you sure you want to remove the cover poster for this event?")) return;
+
+      removeBtn.disabled = true;
+      removeBtn.innerText = "REMOVING POSTER...";
+
+      try {
+        const eventRef = doc(db, "events", assignedEventId);
+        await setDoc(eventRef, { poster: "" }, { merge: true });
+
+        if (eventData) {
+          eventData.poster = "";
+        }
+        orgTempPoster = "";
+
+        try {
+          localStorage.removeItem("cachedEventsList");
+        } catch (e) {}
+
+        updateDedicatedPosterUI();
+        alert("Cover Poster removed successfully! Changes are live on Student Dashboard & Explore.");
+      } catch (err) {
+        console.error("Error removing poster:", err);
+        alert("Failed to remove poster: " + (err.message || "Database write error."));
+      } finally {
+        removeBtn.disabled = false;
+        removeBtn.innerText = "🗑️ REMOVE COVER POSTER";
+      }
+    });
+  }
 }
 
 function updateDedicatedPosterUI() {
   const img = document.getElementById("dedicatedPosterImg");
   const noTxt = document.getElementById("dedicatedNoPosterText");
   const urlInput = document.getElementById("dedicatedPosterUrlInput");
+  const removeBtn = document.getElementById("btnRemoveDedicatedPoster");
 
-  const poster = assignedEventData ? assignedEventData.poster : "";
+  const poster = eventData ? eventData.poster : "";
   if (poster) {
     if (img) {
       img.src = poster;
@@ -3311,6 +3351,7 @@ function updateDedicatedPosterUI() {
     }
     if (noTxt) noTxt.style.display = "none";
     if (urlInput) urlInput.value = poster;
+    if (removeBtn) removeBtn.style.display = "block";
   } else {
     if (img) {
       img.src = "";
@@ -3318,6 +3359,7 @@ function updateDedicatedPosterUI() {
     }
     if (noTxt) noTxt.style.display = "block";
     if (urlInput) urlInput.value = "";
+    if (removeBtn) removeBtn.style.display = "none";
   }
 }
 
