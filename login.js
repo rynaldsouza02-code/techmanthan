@@ -1,12 +1,12 @@
-import { db } from "./firebase-config.js?v=3.1";
+import { db } from "./firebase-config.js";
 
-import {
+import { 
   doc,
   getDoc,
   setDoc,
   collection,
   getDocs
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+ } from "./firebase-config.js";
 
 const loginForm = document.getElementById("loginForm");
 const usernameInput = document.getElementById("usernameInput");
@@ -49,16 +49,20 @@ loginForm.addEventListener("submit", async (e) => {
 
     let expectedAdminUser = "girirajbhat";
     let expectedAdminPass = "12345";
+    let hasCustomAdminPass = false;
     try {
       const adminDocRef = doc(db, "settings", "adminCredentials");
       const adminDocSnap = await getDoc(adminDocRef);
       if (adminDocSnap && adminDocSnap.exists()) {
         const data = adminDocSnap.data();
         if (data.username) expectedAdminUser = data.username.toLowerCase().trim();
-        if (data.password) expectedAdminPass = data.password.trim();
+        if (data.password) {
+          expectedAdminPass = data.password.trim();
+          hasCustomAdminPass = true;
+        }
       }
     } catch (err) {
-      console.warn("Could not fetch custom admin credentials, using default:", err);
+      console.warn("Could not fetch custom admin credentials:", err);
     }
 
     const isAdminUsername = (
@@ -67,16 +71,15 @@ loginForm.addEventListener("submit", async (e) => {
       normalizedUsername === "admin" ||
       normalizedUsername === "girirajbhat" ||
       cleanNormUser === "girirajbhat" ||
-      cleanNormUser === "admin" ||
-      cleanNormUser.includes("giriraj")
+      cleanNormUser === "admin"
     );
 
-    const isAdminPassword = (password === expectedAdminPass || password === "12345");
+    const isAdminPassword = (password.trim() === expectedAdminPass.trim());
 
     if (isAdminUsername && isAdminPassword && (roleId === 'adminRoleBtn' || normalizedUsername === "admin" || normalizedUsername === "girirajbhat" || cleanNormUser === "girirajbhat" || cleanNormUser === "admin")) {
       console.log("Admin login granted for:", username);
       submitBtn.innerHTML = "ADMIN ACCESS GRANTED ✓";
-      localStorage.setItem("adminUser", "girirajbhat");
+      localStorage.setItem("adminUser", expectedAdminUser);
       localStorage.setItem("adminName", "Mr. Giriraj Bhat");
       setTimeout(() => {
         window.location.href = "admin.html";
@@ -98,10 +101,10 @@ loginForm.addEventListener("submit", async (e) => {
 
       const checkOrganizerMatch = (enteredUsername, enteredPassword, orgId, orgName, orgPassword) => {
         const normUser = enteredUsername.toLowerCase().trim();
-        const normPass = enteredPassword.toLowerCase().trim();
+        const normPass = enteredPassword.trim();
         const normOrgId = orgId.toLowerCase().trim();
         const normOrgName = orgName ? orgName.toLowerCase().trim() : "";
-        const normOrgPassword = orgPassword ? orgPassword.toLowerCase().trim() : "12345";
+        const dbPassword = (orgPassword || "").trim();
 
         const clean = (s) => s.replace(/^(mr|mrs|ms|dr|prof)\.?\s*/i, "").replace(/[^a-z0-9]/g, "").trim();
 
@@ -110,13 +113,13 @@ loginForm.addEventListener("submit", async (e) => {
         const cleanOrgId = clean(normOrgId);
         const cleanOrgName = clean(normOrgName);
 
-        // Password matching rule: Accepts 12345, the document password, or Faculty ID
-        const isPasswordCorrect = (
-          normPass === "12345" ||
-          normPass === normOrgPassword ||
-          normPass === normOrgId ||
-          (cleanPass && (cleanPass === cleanOrgName || cleanPass === cleanOrgId))
-        );
+        // Password matching rule: Check against stored DB password
+        let isPasswordCorrect = false;
+        if (dbPassword) {
+          isPasswordCorrect = (normPass === dbPassword || normPass.toLowerCase() === dbPassword.toLowerCase());
+        } else {
+          isPasswordCorrect = (normPass === normOrgId || cleanPass === cleanOrgId || normPass === "12345");
+        }
 
         // Username matching rule: Accepts clean ID, clean Name, substring match, or exact raw match
         const isUsernameMatch = (
@@ -148,7 +151,7 @@ loginForm.addEventListener("submit", async (e) => {
         });
 
         if (!matchedOrg) {
-          alert("Invalid Organizer Credentials. Please enter your Name (e.g. Rashmi, Ms. Rashmi) as Username and 12345 as Password.");
+          alert("Invalid Organizer Credentials.");
           submitBtn.disabled = false;
           submitBtn.innerHTML = "Initialize Organizer Protocol";
           return;
@@ -157,6 +160,9 @@ loginForm.addEventListener("submit", async (e) => {
         localStorage.setItem("organizerUsername", (matchedOrg.username || matchedOrgId).toUpperCase());
         localStorage.setItem("organizerName", matchedOrg.name || "Organizer");
         localStorage.setItem("assignedEventId", matchedOrg.assignedEventId || "");
+        if (Array.isArray(matchedOrg.assignedEvents) && matchedOrg.assignedEvents.length > 0) {
+          localStorage.setItem("assignedEvents", JSON.stringify(matchedOrg.assignedEvents));
+        }
         
         submitBtn.innerHTML = "ORGANIZER ACCESS GRANTED ✓";
         setTimeout(() => {

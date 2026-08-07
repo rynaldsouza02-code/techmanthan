@@ -1,768 +1,358 @@
 [
   {
-    "_id": "admin",
-    "username": "admin",
-    "designation": "Admin / Head Organizer",
-    "assignedEventId": "all",
-    "role": "admin",
-    "updatedAt": "2026-08-07T06:39:39.826Z",
-    "department": "Computer Applications",
-    "password": "12345",
-    "name": "Mr. Giriraj Bhat"
-  },
-  {
-    "_id": "akash",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "name": "Mr. Akash",
-    "updatedAt": "2026-08-07T06:39:13.290Z",
-    "assignedEventId": "gaming",
-    "department": "Computer Applications",
-    "username": "akash"
-  },
-  {
-    "_id": "archana",
-    "name": "Ms. Archana",
-    "designation": "Assistant Professor",
-    "username": "archana",
-    "updatedAt": "2026-08-07T06:39:15.540Z",
-    "password": "12345",
-    "assignedEventId": "tech-quiz",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "bbhcf004",
-    "password": "12345",
-    "assignedEventId": "ungoogling",
-    "name": "Mr. Giriraj Bhat"
-  },
-  {
-    "_id": "bbhcf040",
-    "password": "12345",
-    "name": "Mr. Mahesh Kumar",
-    "assignedEventId": "speed-typing"
-  },
-  {
-    "_id": "bbhcf041",
-    "password": "12345",
-    "name": "Mr. Harish Kanchan",
-    "assignedEventId": "it-manager"
-  },
-  {
-    "_id": "bbhcf042",
-    "assignedEventId": "poster-making",
-    "password": "12345",
-    "name": "Mrs. Wilma Sharal Cornelio"
-  },
-  {
-    "_id": "bbhcf043",
-    "assignedEventId": "tech-quiz",
-    "name": "Mrs. Jayalakshmi K",
-    "password": "12345"
-  },
-  {
-    "_id": "bbhcf044",
-    "password": "12345",
-    "name": "Mrs. Pavithra",
-    "assignedEventId": "it-model"
-  },
-  {
-    "_id": "bbhcf045",
-    "password": "12345",
-    "assignedEventId": "treasure-hunt",
-    "name": "Mr. Shreekanth"
-  },
-  {
-    "_id": "bbhcf046",
-    "password": "12345",
-    "assignedEventId": "coding",
-    "name": "Ms. Megha"
-  },
-  {
-    "_id": "bbhcf047",
-    "name": "Ms. Rashmi Gavadi",
-    "assignedEventId": "cultural",
-    "password": "12345"
-  },
-  {
-    "_id": "bbhcf048",
-    "name": "Mr. Pranam R Betrabet",
-    "password": "12345",
-    "assignedEventId": "videography"
-  },
-  {
-    "_id": "bbhcf049",
-    "password": "12345",
-    "assignedEventId": "photography",
-    "name": "Mrs. Nirmala B."
-  },
-  {
-    "_id": "bbhcf050",
-    "password": "12345",
-    "name": "Mrs. Vijaya Shree A",
-    "assignedEventId": "gaming"
-  },
-  {
-    "_id": "bbhcf051",
-    "name": "Ms. Shivani Adiga",
-    "assignedEventId": "",
-    "password": "12345"
-  },
-  {
-    "_id": "bbhcf052",
-    "name": "Mr. Mahesh Poojari",
-    "password": "12345",
-    "assignedEventId": ""
-  },
-  {
-    "_id": "girirajbhat",
-    "assignedEventId": "all",
-    "role": "admin",
-    "department": "Computer Applications",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:41.779Z",
+    "id": "BBHCF004",
+    "facultyId": "BBHCF004",
     "name": "Mr. Giriraj Bhat",
-    "username": "girirajbhat",
-    "designation": "Admin / Head Organizer"
-  },
-  {
-    "_id": "harish",
-    "designation": "Assistant Professor",
-    "name": "Mr. Harish",
-    "assignedEventId": "speed-typing",
+    "designation": "Assoc. Professor of  Comp. Applications & \nDean (Academics)",
     "department": "Computer Applications",
-    "username": "harish",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:13.919Z"
-  },
-  {
-    "_id": "madhura",
-    "assignedEventId": "it-melody",
-    "name": "Mrs. Madhura",
-    "username": "madhura",
-    "designation": "Assistant Professor",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:33.969Z",
+    "email": "giriraj.bhat@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "admin",
+    "assignedEventId": "all",
+    "assignedEvents": [
+      "all"
+    ],
     "password": "12345"
   },
   {
-    "_id": "maheshp",
-    "username": "maheshp",
-    "updatedAt": "2026-08-07T06:39:12.932Z",
-    "assignedEventId": "gaming",
+    "id": "BBHCF050",
+    "facultyId": "BBHCF050",
+    "name": "Mrs. Vijayashree A",
+    "designation": "Asst. Professor of  Comp. Applications",
     "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "name": "Mr. Mahesh Poojary",
+    "email": "vijayashreea25@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "it-manager",
+    "assignedEvents": [
+      "it-manager",
+      "treasure-hunt"
+    ],
     "password": "12345"
   },
   {
-    "_id": "manjunath",
-    "username": "manjunath",
-    "name": "Mr. Manjunath",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:10.875Z",
+    "id": "BBHCF061",
+    "facultyId": "BBHCF061",
+    "name": "Shreejesh G Naik",
     "designation": "Assistant Professor",
+    "department": "Computer Applications",
+    "email": "shreejesh81@gmail.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "it-manager",
+    "assignedEvents": [
+      "it-manager"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCF045",
+    "facultyId": "BBHCF045",
+    "name": "Mr. Shreekanth",
+    "designation": "Asst. Professor of   Comp. Applications",
+    "department": "Computer Applications",
+    "email": "shreekanth@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
     "assignedEventId": "videography",
+    "assignedEvents": [
+      "videography"
+    ],
     "password": "12345"
   },
   {
-    "_id": "megha",
-    "username": "megha",
-    "updatedAt": "2026-08-07T06:39:16.085Z",
-    "assignedEventId": "cultural",
-    "designation": "Assistant Professor",
-    "name": "Ms. Megha",
-    "password": "12345",
-    "department": "Computer Applications"
+    "id": "BBHCFN015",
+    "facultyId": "BBHCFN015",
+    "name": "Mr. Manjunath Kulala",
+    "designation": "Computer Programmer",
+    "department": "Computer Applications",
+    "email": "manjunath@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "videography",
+    "assignedEvents": [
+      "videography",
+      "ungoogling"
+    ],
+    "password": "12345"
   },
   {
-    "_id": "mr. akash",
-    "username": "akash",
-    "assignedEventId": "gaming",
-    "updatedAt": "2026-08-07T06:39:13.489Z",
+    "id": "BBHCF042",
+    "facultyId": "BBHCF042",
+    "name": "Mrs. Wilma Sharal Cornelio",
+    "designation": "Asst. Professor of  Comp Applications",
     "department": "Computer Applications",
-    "password": "12345",
+    "email": "wilmacsdept@bbhegdecollege.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "treasure-hunt",
+    "assignedEvents": [
+      "treasure-hunt",
+      "poster-making"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCF048",
+    "facultyId": "BBHCF048",
+    "name": "Mr. Pranam  R Betrabet",
+    "designation": "Asst. Professor of  Comp. Applications",
+    "department": "Computer Applications",
+    "email": "pranamrb@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "coding",
+    "assignedEvents": [
+      "coding",
+      "ungoogling"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCF051",
+    "facultyId": "BBHCF051",
+    "name": "Ms. Shivani Adiga",
+    "designation": "Asst. Professor of  Comp. Applications",
+    "department": "Computer Applications",
+    "email": "shivaniadiga1102@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "coding",
+    "assignedEvents": [
+      "coding",
+      "speed-typing"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCF044",
+    "facultyId": "BBHCF044",
+    "name": "Mrs. Pavithra",
+    "designation": "Asst. Professor of  Comp. Applications",
+    "department": "Computer Applications",
+    "email": "pavithrashetty@bbhegdecollege.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "photography",
+    "assignedEvents": [
+      "photography"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCFN014",
+    "facultyId": "BBHCFN014",
+    "name": "Mr. Sachin Kumar",
+    "designation": "Computer Programmer",
+    "department": "Computer Applications",
+    "email": "sachin@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "photography",
+    "assignedEvents": [
+      "photography",
+      "tech-quiz",
+      "it-melody"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCF052",
+    "facultyId": "BBHCF052",
+    "name": "Mr. Mahesh Poojari",
+    "designation": "Asst. Professor of  Comp. Applications",
+    "department": "Computer Applications",
+    "email": "maheshpoojary@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "gaming",
+    "assignedEvents": [
+      "gaming",
+      "speed-typing"
+    ],
+    "password": "12345"
+  },
+  {
+    "id": "BBHCFN012",
+    "facultyId": "BBHCFN012",
     "name": "Mr. Akash",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "mr. harish",
-    "name": "Mr. Harish",
-    "username": "harish",
+    "designation": "Computer Programmer",
     "department": "Computer Applications",
-    "assignedEventId": "speed-typing",
-    "updatedAt": "2026-08-07T06:39:14.114Z",
-    "designation": "Assistant Professor",
+    "email": "akashcslab@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "gaming",
+    "assignedEvents": [
+      "gaming",
+      "tech-quiz"
+    ],
     "password": "12345"
   },
   {
-    "_id": "mr. mahesh poojary",
-    "assignedEventId": "gaming",
-    "updatedAt": "2026-08-07T06:39:13.155Z",
-    "username": "maheshp",
-    "name": "Mr. Mahesh Poojary",
-    "department": "Computer Applications",
-    "password": "12345",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "mr. manjunath",
-    "name": "Mr. Manjunath",
-    "password": "12345",
-    "designation": "Assistant Professor",
-    "assignedEventId": "videography",
-    "updatedAt": "2026-08-07T06:39:11.130Z",
-    "username": "manjunath",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mr. pranam",
-    "username": "pranam",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:11.804Z",
-    "name": "Mr. Pranam",
-    "assignedEventId": "coding",
-    "password": "12345",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "mr. rakshith",
-    "assignedEventId": "tech-quiz",
-    "name": "Mr. Rakshith",
-    "password": "12345",
-    "username": "rakshith",
-    "updatedAt": "2026-08-07T06:39:15.224Z",
-    "designation": "Assistant Professor",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mr. sachin",
-    "username": "sachin",
-    "updatedAt": "2026-08-07T06:39:12.802Z",
-    "assignedEventId": "photography",
-    "name": "Mr. Sachin",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mr. shreejesh",
-    "designation": "Assistant Professor",
-    "username": "shreejesh",
-    "department": "Computer Applications",
-    "name": "Mr. Shreejesh",
-    "assignedEventId": "it-manager",
-    "updatedAt": "2026-08-07T06:39:10.411Z",
-    "password": "12345"
-  },
-  {
-    "_id": "mr. shreekanth",
-    "department": "Computer Applications",
-    "password": "12345",
-    "designation": "Assistant Professor",
-    "name": "Mr. Shreekanth",
-    "updatedAt": "2026-08-07T06:39:10.769Z",
-    "assignedEventId": "videography",
-    "username": "shreekanth"
-  },
-  {
-    "_id": "mrakash",
-    "updatedAt": "2026-08-07T06:39:13.388Z",
-    "username": "akash",
-    "password": "12345",
-    "name": "Mr. Akash",
-    "designation": "Assistant Professor",
-    "assignedEventId": "gaming",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mrharish",
-    "username": "harish",
-    "name": "Mr. Harish",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:14.010Z",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "assignedEventId": "speed-typing"
-  },
-  {
-    "_id": "mrmaheshpoojary",
-    "name": "Mr. Mahesh Poojary",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "assignedEventId": "gaming",
-    "department": "Computer Applications",
-    "username": "maheshp",
-    "updatedAt": "2026-08-07T06:39:13.035Z"
-  },
-  {
-    "_id": "mrmanjunath",
-    "password": "12345",
-    "department": "Computer Applications",
-    "username": "manjunath",
-    "updatedAt": "2026-08-07T06:39:10.998Z",
-    "assignedEventId": "videography",
-    "designation": "Assistant Professor",
-    "name": "Mr. Manjunath"
-  },
-  {
-    "_id": "mrpranam",
-    "name": "Mr. Pranam",
-    "username": "pranam",
-    "assignedEventId": "coding",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:11.689Z",
-    "password": "12345",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mrrakshith",
-    "username": "rakshith",
-    "department": "Computer Applications",
-    "assignedEventId": "tech-quiz",
-    "designation": "Assistant Professor",
-    "name": "Mr. Rakshith",
-    "updatedAt": "2026-08-07T06:39:15.030Z",
-    "password": "12345"
-  },
-  {
-    "_id": "mrs. madhura",
-    "updatedAt": "2026-08-07T06:39:38.251Z",
-    "username": "madhura",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "assignedEventId": "it-melody",
-    "name": "Mrs. Madhura",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mrs. nirmala",
-    "assignedEventId": "it-melody",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:32.392Z",
-    "name": "Mrs. Nirmala",
-    "department": "Computer Applications",
-    "username": "nirmala"
-  },
-  {
-    "_id": "mrs. nishchitha",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "name": "Mrs. Nishchitha",
-    "assignedEventId": "speed-typing",
-    "updatedAt": "2026-08-07T06:39:14.820Z",
-    "username": "nishchitha"
-  },
-  {
-    "_id": "mrs. nishmitha",
-    "name": "Mrs. Nishmitha",
-    "assignedEventId": "speed-typing",
-    "password": "12345",
-    "username": "nishmitha",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:14.483Z"
-  },
-  {
-    "_id": "mrs. pavithra",
-    "name": "Mrs. Pavithra",
-    "password": "12345",
+    "id": "BBHCF060",
+    "facultyId": "BBHCF060",
+    "name": "Shraddha",
     "designation": "Assistant Professor",
     "department": "Computer Applications",
-    "username": "pavithra",
-    "assignedEventId": "photography",
-    "updatedAt": "2026-08-07T06:39:12.496Z"
-  },
-  {
-    "_id": "mrs. ramya",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:28.951Z",
-    "department": "Computer Applications",
-    "username": "ramya",
-    "password": "12345",
-    "name": "Mrs. Ramya",
-    "assignedEventId": "it-model"
-  },
-  {
-    "_id": "mrs. vijayashree",
-    "username": "vijayashree",
-    "updatedAt": "2026-08-07T06:39:09.963Z",
-    "name": "Mrs. Vijayashree",
-    "designation": "Assistant Professor",
-    "assignedEventId": "it-manager",
-    "password": "12345",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mrs. wilma",
+    "email": "shraddhadevadiga2004@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
     "assignedEventId": "poster-making",
-    "name": "Mrs. Wilma",
-    "username": "wilma",
-    "updatedAt": "2026-08-07T06:39:11.489Z",
-    "designation": "Assistant Professor",
-    "department": "Computer Applications",
+    "assignedEvents": [
+      "poster-making"
+    ],
     "password": "12345"
   },
   {
-    "_id": "mrsachin",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:12.709Z",
-    "name": "Mr. Sachin",
-    "password": "12345",
+    "id": "BBHCF041",
+    "facultyId": "BBHCF041",
+    "name": "Mr. Harish Kanchan",
+    "designation": "Asst. Professor of  Comp. Applications",
     "department": "Computer Applications",
-    "username": "sachin",
-    "assignedEventId": "photography"
-  },
-  {
-    "_id": "mrshreejesh",
-    "updatedAt": "2026-08-07T06:39:10.254Z",
-    "assignedEventId": "it-manager",
-    "password": "12345",
-    "username": "shreejesh",
-    "department": "Computer Applications",
-    "name": "Mr. Shreejesh",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "mrshreekanth",
-    "assignedEventId": "videography",
-    "updatedAt": "2026-08-07T06:39:10.633Z",
-    "username": "shreekanth",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "name": "Mr. Shreekanth",
-    "password": "12345"
-  },
-  {
-    "_id": "mrsmadhura",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:36.265Z",
-    "username": "madhura",
-    "name": "Mrs. Madhura",
-    "assignedEventId": "it-melody",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "mrsnirmala",
-    "updatedAt": "2026-08-07T06:39:31.784Z",
-    "assignedEventId": "it-melody",
-    "designation": "Assistant Professor",
-    "department": "Computer Applications",
-    "username": "nirmala",
-    "name": "Mrs. Nirmala",
-    "password": "12345"
-  },
-  {
-    "_id": "mrsnishchitha",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "name": "Mrs. Nishchitha",
-    "username": "nishchitha",
-    "updatedAt": "2026-08-07T06:39:14.686Z",
-    "password": "12345",
-    "assignedEventId": "speed-typing"
-  },
-  {
-    "_id": "mrsnishmitha",
+    "email": "harishbcadep@bbhegdecollege.com",
+    "gender": "Male",
+    "role": "organizer",
     "assignedEventId": "speed-typing",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:14.370Z",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "name": "Mrs. Nishmitha",
-    "username": "nishmitha"
-  },
-  {
-    "_id": "mrspavithra",
-    "updatedAt": "2026-08-07T06:39:12.389Z",
-    "designation": "Assistant Professor",
-    "name": "Mrs. Pavithra",
-    "password": "12345",
-    "department": "Computer Applications",
-    "username": "pavithra",
-    "assignedEventId": "photography"
-  },
-  {
-    "_id": "mrsramya",
-    "assignedEventId": "it-model",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "password": "12345",
-    "name": "Mrs. Ramya",
-    "username": "ramya",
-    "updatedAt": "2026-08-07T06:39:27.511Z"
-  },
-  {
-    "_id": "mrsvijayashree",
-    "updatedAt": "2026-08-07T06:39:09.817Z",
-    "designation": "Assistant Professor",
-    "username": "vijayashree",
-    "assignedEventId": "it-manager",
-    "password": "12345",
-    "name": "Mrs. Vijayashree",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "mrswilma",
-    "username": "wilma",
-    "updatedAt": "2026-08-07T06:39:11.347Z",
-    "designation": "Assistant Professor",
-    "assignedEventId": "poster-making",
-    "department": "Computer Applications",
-    "name": "Mrs. Wilma",
+    "assignedEvents": [
+      "speed-typing",
+      "tech-quiz"
+    ],
     "password": "12345"
   },
   {
-    "_id": "ms. archana",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:15.900Z",
-    "name": "Ms. Archana",
-    "password": "12345",
+    "id": "BBHCFN016",
+    "facultyId": "BBHCFN016",
+    "name": "Mrs. Nishmitha K",
+    "designation": "Computer Programmer",
     "department": "Computer Applications",
-    "username": "archana",
-    "assignedEventId": "tech-quiz"
+    "email": "nishmitha@bbhegdecollege.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "speed-typing",
+    "assignedEvents": [
+      "speed-typing"
+    ],
+    "password": "12345"
   },
   {
-    "_id": "ms. megha",
+    "id": "BBHCFN033",
+    "facultyId": "BBHCFN033",
+    "name": "Nishchitha N",
+    "designation": "Computer Programmer",
     "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "assignedEventId": "cultural",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:19.103Z",
-    "username": "megha",
-    "name": "Ms. Megha"
+    "email": "nishchitha.n1995@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "speed-typing",
+    "assignedEvents": [
+      "speed-typing"
+    ],
+    "password": "12345"
   },
   {
-    "_id": "ms. rashmi",
-    "department": "Computer Applications",
-    "password": "12345",
-    "name": "Ms. Rashmi",
-    "assignedEventId": "cultural",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:23.103Z",
-    "username": "rashmi"
+    "id": "BBHCFN008",
+    "facultyId": "BBHCFN008",
+    "name": "Mr. Rakshith K.",
+    "designation": "PA to Principal & System Admn",
+    "department": "Administrative Staff",
+    "email": "rakshithkanchan78@gmail.com",
+    "gender": "Male",
+    "role": "organizer",
+    "assignedEventId": "tech-quiz",
+    "assignedEvents": [
+      "tech-quiz"
+    ],
+    "password": "12345"
   },
   {
-    "_id": "ms. shivani",
+    "id": "BBHCFN032",
+    "facultyId": "BBHCFN032",
+    "name": "Archana",
+    "designation": "Computer Programmer",
     "department": "Computer Applications",
-    "password": "12345",
-    "assignedEventId": "coding",
-    "username": "shivani",
-    "name": "Ms. Shivani",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:12.142Z"
+    "email": "archana321archanaacchu@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "tech-quiz",
+    "assignedEvents": [
+      "tech-quiz"
+    ],
+    "password": "12345"
   },
   {
-    "_id": "ms. shraddha",
-    "password": "12345",
-    "updatedAt": "2026-08-07T06:39:13.770Z",
-    "designation": "Assistant Professor",
-    "name": "Ms. Shraddha",
-    "username": "shraddha",
-    "department": "Computer Applications",
-    "assignedEventId": "poster-making"
-  },
-  {
-    "_id": "msarchana",
-    "password": "12345",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:15.721Z",
-    "name": "Ms. Archana",
-    "designation": "Assistant Professor",
-    "username": "archana",
-    "assignedEventId": "tech-quiz"
-  },
-  {
-    "_id": "msmegha",
+    "id": "BBHCF046",
+    "facultyId": "BBHCF046",
     "name": "Ms. Megha",
-    "username": "megha",
-    "updatedAt": "2026-08-07T06:39:16.262Z",
-    "password": "12345",
+    "designation": "Asst. Professor of  Comp. Applications",
     "department": "Computer Applications",
+    "email": "meghacsdept@bbhegdecollege.com",
+    "gender": "Female",
+    "role": "organizer",
     "assignedEventId": "cultural",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "msrashmi",
-    "password": "12345",
-    "assignedEventId": "cultural",
-    "department": "Computer Applications",
-    "name": "Ms. Rashmi",
-    "updatedAt": "2026-08-07T06:39:21.707Z",
-    "username": "rashmi",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "msshivani",
-    "username": "shivani",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:12.039Z",
-    "designation": "Assistant Professor",
-    "name": "Ms. Shivani",
-    "assignedEventId": "coding",
+    "assignedEvents": [
+      "cultural",
+      "it-model"
+    ],
     "password": "12345"
   },
   {
-    "_id": "msshraddha",
-    "assignedEventId": "poster-making",
-    "password": "12345",
-    "designation": "Assistant Professor",
-    "username": "shraddha",
+    "id": "BBHCF047",
+    "facultyId": "BBHCF047",
+    "name": "Ms. Rashmi Gavadi",
+    "designation": "Asst. Professor of  Comp. Applications",
     "department": "Computer Applications",
-    "name": "Ms. Shraddha",
-    "updatedAt": "2026-08-07T06:39:13.679Z"
-  },
-  {
-    "_id": "nirmala",
-    "name": "Mrs. Nirmala",
-    "password": "12345",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:31.500Z",
-    "username": "nirmala",
-    "assignedEventId": "it-melody",
-    "department": "Computer Applications"
-  },
-  {
-    "_id": "nishchitha",
-    "username": "nishchitha",
-    "updatedAt": "2026-08-07T06:39:14.579Z",
-    "name": "Mrs. Nishchitha",
-    "department": "Computer Applications",
-    "assignedEventId": "speed-typing",
-    "designation": "Assistant Professor",
+    "email": "rashmi@bbhegdecollege.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "cultural",
+    "assignedEvents": [
+      "cultural"
+    ],
     "password": "12345"
   },
   {
-    "_id": "nishmitha",
-    "updatedAt": "2026-08-07T06:39:14.238Z",
-    "username": "nishmitha",
-    "department": "Computer Applications",
-    "password": "12345",
-    "name": "Mrs. Nishmitha",
+    "id": "BBHCF063",
+    "facultyId": "BBHCF063",
+    "name": "Ramya C",
     "designation": "Assistant Professor",
-    "assignedEventId": "speed-typing"
-  },
-  {
-    "_id": "pavithra",
     "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:12.248Z",
-    "password": "12345",
-    "designation": "Assistant Professor",
-    "username": "pavithra",
-    "name": "Mrs. Pavithra",
-    "assignedEventId": "photography"
-  },
-  {
-    "_id": "pranam",
-    "name": "Mr. Pranam",
-    "username": "pranam",
-    "department": "Computer Applications",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:11.592Z",
-    "password": "12345",
-    "assignedEventId": "coding"
-  },
-  {
-    "_id": "rakshith",
-    "username": "rakshith",
-    "assignedEventId": "tech-quiz",
-    "updatedAt": "2026-08-07T06:39:14.940Z",
-    "department": "Computer Applications",
-    "password": "12345",
-    "name": "Mr. Rakshith",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "ramya",
-    "name": "Mrs. Ramya",
-    "department": "Computer Applications",
+    "email": "ramyac643@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
     "assignedEventId": "it-model",
-    "password": "12345",
-    "username": "ramya",
-    "designation": "Assistant Professor",
-    "updatedAt": "2026-08-07T06:39:25.895Z"
-  },
-  {
-    "_id": "rashmi",
-    "department": "Computer Applications",
-    "assignedEventId": "cultural",
-    "username": "rashmi",
-    "updatedAt": "2026-08-07T06:39:20.130Z",
-    "designation": "Assistant Professor",
-    "name": "Ms. Rashmi",
+    "assignedEvents": [
+      "it-model"
+    ],
     "password": "12345"
   },
   {
-    "_id": "sachin",
-    "updatedAt": "2026-08-07T06:39:12.590Z",
-    "designation": "Assistant Professor",
-    "password": "12345",
+    "id": "BBHCF049",
+    "facultyId": "BBHCF049",
+    "name": "Mrs.  Nirmala  B.",
+    "designation": "Asst. Professor of  Comp. Applications",
     "department": "Computer Applications",
-    "username": "sachin",
-    "assignedEventId": "photography",
-    "name": "Mr. Sachin"
-  },
-  {
-    "_id": "shivani",
-    "password": "12345",
-    "department": "Computer Applications",
-    "assignedEventId": "coding",
-    "name": "Ms. Shivani",
-    "updatedAt": "2026-08-07T06:39:11.939Z",
-    "designation": "Assistant Professor",
-    "username": "shivani"
-  },
-  {
-    "_id": "shraddha",
-    "department": "Computer Applications",
-    "password": "12345",
-    "name": "Ms. Shraddha",
-    "assignedEventId": "poster-making",
-    "designation": "Assistant Professor",
-    "username": "shraddha",
-    "updatedAt": "2026-08-07T06:39:13.579Z"
-  },
-  {
-    "_id": "shreejesh",
-    "name": "Mr. Shreejesh",
-    "username": "shreejesh",
-    "department": "Computer Applications",
-    "updatedAt": "2026-08-07T06:39:10.142Z",
-    "designation": "Assistant Professor",
-    "assignedEventId": "it-manager",
+    "email": "nirmalamathsdept@bbhegdecollege.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "it-melody",
+    "assignedEvents": [
+      "it-melody"
+    ],
     "password": "12345"
   },
   {
-    "_id": "shreekanth",
-    "username": "shreekanth",
-    "assignedEventId": "videography",
-    "updatedAt": "2026-08-07T06:39:10.521Z",
+    "id": "BBHCFN034",
+    "facultyId": "BBHCFN034",
+    "name": "Madhura",
+    "designation": "Computer Programmer",
     "department": "Computer Applications",
-    "password": "12345",
-    "name": "Mr. Shreekanth",
-    "designation": "Assistant Professor"
-  },
-  {
-    "_id": "vijayashree",
-    "designation": "Assistant Professor",
-    "department": "Computer Applications",
-    "username": "vijayashree",
-    "assignedEventId": "it-manager",
-    "updatedAt": "2026-08-07T06:39:09.657Z",
-    "password": "12345",
-    "name": "Mrs. Vijayashree"
-  },
-  {
-    "_id": "wilma",
-    "username": "wilma",
-    "updatedAt": "2026-08-07T06:39:11.239Z",
-    "designation": "Assistant Professor",
-    "assignedEventId": "poster-making",
-    "name": "Mrs. Wilma",
-    "password": "12345",
-    "department": "Computer Applications"
+    "email": "madhuraganesh97@gmail.com",
+    "gender": "Female",
+    "role": "organizer",
+    "assignedEventId": "it-melody",
+    "assignedEvents": [
+      "it-melody"
+    ],
+    "password": "12345"
   }
 ]

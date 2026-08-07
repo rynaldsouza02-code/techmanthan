@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Manthan 6.0 | Organizer Panel</title>
     <link rel="stylesheet" href="style.css?v=2.9">
+    <link rel="stylesheet" href="organizer-white.css?v=1.0">
     <script>
         // Check session before loading page
         if (!localStorage.getItem("organizerUsername")) {
             window.location.href = "login.html";
         }
     </script>
+  <link rel="icon" type="image/png" href="TC1.png">
+  <link rel="shortcut icon" type="image/png" href="TC1.png">
 </head>
 <body>
-    <div class="cyber-crt-overlay"></div>
-    <div class="cyber-vignette"></div>
-    <div class="cyber-grid"></div>
 
     <!-- Navigation Bar -->
     <nav class="navbar">
@@ -654,20 +654,28 @@
             
             <form id="credentialsForm">
                 <div class="form-group">
-                    <label for="editOrgName">Coordinator Display Name</label>
+                    <label for="editOrgName">COORDINATOR DISPLAY NAME</label>
                     <input type="text" id="editOrgName" required placeholder="e.g. Mr. Mahesh Kumar" style="width: 100%;">
                 </div>
                 <div class="form-group">
-                    <label for="editOrgUsername">Username (Login ID)</label>
-                    <input type="text" id="editOrgUsername" required placeholder="e.g. mahesh" style="width: 100%;">
+                    <label for="editOrgUsername">USERNAME (LOGIN ID)</label>
+                    <input type="text" id="editOrgUsername" required placeholder="e.g. BBHCF046" style="width: 100%;">
                     <span style="font-size: 0.72rem; color: var(--text-sub); margin-top: 2px; display: block;">This username is used to log in to the organizer portal.</span>
                 </div>
+                <div class="form-group" style="margin-top: 14px;">
+                    <label for="editCurrentPassword">CURRENT PASSWORD</label>
+                    <input type="password" id="editCurrentPassword" placeholder="Enter current password" style="width: 100%;">
+                </div>
                 <div class="form-group">
-                    <label for="editOrgPassword">Password</label>
+                    <label for="editOrgPassword">NEW PASSWORD</label>
                     <div style="position: relative; display: flex; align-items: center;">
-                        <input type="password" id="editOrgPassword" required placeholder="Enter password" style="width: 100%; padding-right: 45px;">
+                        <input type="password" id="editOrgPassword" placeholder="Enter new password" style="width: 100%; padding-right: 45px;">
                         <button type="button" id="btnToggleOrgPassword" style="position: absolute; right: 10px; background: none; border: none; color: var(--neon-cyan); cursor: pointer; font-size: 1.1rem; padding: 2px 6px;" title="Toggle Password Visibility">👁️</button>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="editConfirmPassword">CONFIRM NEW PASSWORD</label>
+                    <input type="password" id="editConfirmPassword" placeholder="Confirm new password" style="width: 100%;">
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 22px;">
                     <button type="submit" class="cyber-btn" style="flex: 1; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 6px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); cursor: pointer; letter-spacing: 1px;">SAVE CREDENTIALS</button>
@@ -828,6 +836,5 @@
 
     <!-- Organizer script -->
     <script type="module" src="organizer.js?v=6.7"></script>
-    <script src="cyber-bg.js"></script>
 </body>
 </html>

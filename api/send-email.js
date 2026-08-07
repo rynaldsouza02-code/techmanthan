@@ -43,9 +43,10 @@ module.exports = async (req, res) => {
   const from = process.env.SMTP_FROM || '"Tech Manthan 6.0" <techmanthan6.0@gmail.com>';
 
   if (!pass) {
-    console.error('SMTP App Password (SMTP_PASS) not configured in Vercel environment variables.');
-    return res.status(500).json({ 
-      error: 'SMTP_PASS environment variable is not configured on Vercel. Please set it in your Vercel Project Settings.' 
+    console.warn('SMTP App Password (SMTP_PASS) not configured in environment. Skipping email dispatch.');
+    return res.status(200).json({ 
+      success: false, 
+      warning: 'SMTP_PASS environment variable is not configured. Email dispatch skipped.' 
     });
   }
 
@@ -68,7 +69,7 @@ module.exports = async (req, res) => {
     console.log('Email sent successfully: %s', info.messageId);
     return res.status(200).json({ success: true, messageId: info.messageId });
   } catch (error) {
-    console.error('Error sending email:', error);
-    return res.status(500).json({ error: 'Failed to send email', details: error.message });
+    console.warn('Background email dispatch failed:', error.message);
+    return res.status(200).json({ success: false, error: 'Failed to send email', details: error.message });
   }
 };

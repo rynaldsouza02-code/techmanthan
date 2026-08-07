@@ -1,5 +1,5 @@
-import { db } from "./firebase-config.js?v=3.1";
-import {
+import { db } from "./firebase-config.js";
+import { 
   collection,
   getDocs,
   doc,
@@ -11,11 +11,11 @@ import {
   arrayRemove,
   query,
   where
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+ } from "./firebase-config.js";
 
 // Session check
-const organizerUsername = localStorage.getItem("organizerUsername");
-const organizerName = localStorage.getItem("organizerName");
+let organizerUsername = localStorage.getItem("organizerUsername");
+let organizerName = localStorage.getItem("organizerName");
 let assignedEventId = localStorage.getItem("assignedEventId") || "";
 
 if (!organizerUsername) {
@@ -360,26 +360,73 @@ async function loadEventData() {
 }
 
 async function loadRegistrants() {
-  try {
-    // Fetch students registered for this event
-    const q = query(collection(db, "students"), where("registeredEvents", "array-contains", assignedEventId));
-    const querySnap = await getDocs(q);
+  if (!assignedEventId) {
+    if (registrantsTableBody) {
+      registrantsTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">Select an event to view registrations.</td></tr>`;
+    }
+    return;
+  }
 
+  try {
     registeredStudents = [];
-    querySnap.forEach(snap => {
-      registeredStudents.push({ regNo: snap.id, ...snap.data() });
-    });
+    const seenRegNos = new Set();
+    const targetEventNorm = String(assignedEventId).toLowerCase().trim();
+    const targetEventClean = targetEventNorm.replace(/[^a-z0-9]/g, '');
+
+    // 1. Primary Query: array-contains assignedEventId
+    try {
+      const q = query(collection(db, "students"), where("registeredEvents", "array-contains", assignedEventId));
+      const querySnap = await getDocs(q);
+      querySnap.forEach(snap => {
+        const st = { regNo: snap.id, ...snap.data() };
+        if (!seenRegNos.has(st.regNo)) {
+          seenRegNos.add(st.regNo);
+          registeredStudents.push(st);
+        }
+      });
+    } catch (e) {
+      console.warn("Primary array-contains query failed, falling back to full student scan:", e);
+    }
+
+    // 2. Fallback Scan: Fetch all student records to capture case variations or missing indexes
+    if (registeredStudents.length === 0) {
+      try {
+        const studentsSnap = await getDocs(collection(db, "students"));
+        studentsSnap.forEach(snap => {
+          const st = { regNo: snap.id, ...snap.data() };
+          if (seenRegNos.has(st.regNo)) return;
+
+          const regEvents = Array.isArray(st.registeredEvents) ? st.registeredEvents : [];
+          const isMatch = regEvents.some(ev => {
+            const evNorm = String(ev).toLowerCase().trim();
+            const evClean = evNorm.replace(/[^a-z0-9]/g, '');
+            return evNorm === targetEventNorm || evClean === targetEventClean;
+          });
+
+          if (isMatch) {
+            seenRegNos.add(st.regNo);
+            registeredStudents.push(st);
+          }
+        });
+      } catch (errScan) {
+        console.error("Student fallback scan failed:", errScan);
+      }
+    }
 
     renderRegistrants();
-    populateWinnerDropdowns();
-    renderMarksSheet();
-    await loadGamingTeams();
-    await loadCulturalTeams();
-    await loadDuoTeams();
+    try { populateWinnerDropdowns(); } catch (e) { console.warn("Winner dropdown populate error:", e); }
+    try { renderMarksSheet(); } catch (e) { console.warn("Marksheet render error:", e); }
   } catch (error) {
     console.error("Error loading registrants:", error);
-    registrantsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--neon-red);">Failed to load registrants.</td></tr>`;
+    if (registrantsTableBody) {
+      registrantsTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No students registered for this event.</td></tr>`;
+    }
   }
+
+  // Load team panels independently so team rendering issues never break the student registrants list
+  try { await loadGamingTeams(); } catch(e) { console.warn("Gaming teams load error:", e); }
+  try { await loadCulturalTeams(); } catch(e) { console.warn("Cultural teams load error:", e); }
+  try { await loadDuoTeams(); } catch(e) { console.warn("Duo teams load error:", e); }
 }
 
 function renderRegistrants() {
@@ -1963,13 +2010,42 @@ function calculateStudentScoresForRound(roundName) {
 // STUDENT COORDINATORS MANAGEMENT (MAX 2)
 // ==========================================
 
-function renderStudentCoordinators() {
+async function renderStudentCoordinators() {
   const tableBody = document.getElementById("studentCoordTableBody");
   const countBadge = document.getElementById("studentCoordCountBadge");
   const addBtn = document.getElementById("btnAddStudentCoord");
   if (!tableBody) return;
 
-  const studentCoordinators = eventData.studentCoordinators || [];
+  let studentCoordinators = Array.isArray(eventData.studentCoordinators) ? [...eventData.studentCoordinators] : [];
+
+  // Fetch from studentcoordinators collection to ensure full hydration
+  try {
+    const scSnap = await getDocs(collection(db, "studentcoordinators"));
+    const evId = (assignedEventId || "").toLowerCase().trim();
+    const evTitle = (eventData ? eventData.title || "" : "").toLowerCase().trim();
+
+    scSnap.forEach(docSnap => {
+      const sc = docSnap.data();
+      const scEvId = (sc.eventId || "").toLowerCase().trim();
+      const scEvName = (sc.eventName || "").toLowerCase().trim();
+
+      if ((scEvId && (scEvId === evId || evId.includes(scEvId))) || (scEvName && (scEvName === evTitle || evTitle.includes(scEvName)))) {
+        const sName = sc.studentName || sc.name;
+        if (sName && !studentCoordinators.some(existing => (existing.name || existing.studentName || "").toLowerCase() === sName.toLowerCase())) {
+          studentCoordinators.push({
+            id: sc._id || sc.id || docSnap.id,
+            name: sName,
+            rollNo: sc.rollNo || sc.regNo || sc.sno || "N/A",
+            phone: sc.contactNo || sc.phone || "N/A",
+            studentClass: sc.class || sc.studentClass || "N/A"
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.warn("Could not fetch studentcoordinators collection:", err);
+  }
+
   if (countBadge) {
     countBadge.innerText = `Assigned: ${studentCoordinators.length} / 4`;
   }
@@ -2315,7 +2391,9 @@ function setupCredentialsModal() {
 
   const editOrgName = document.getElementById("editOrgName");
   const editOrgUsername = document.getElementById("editOrgUsername");
+  const editCurrentPassword = document.getElementById("editCurrentPassword");
   const editOrgPassword = document.getElementById("editOrgPassword");
+  const editConfirmPassword = document.getElementById("editConfirmPassword");
   const btnToggleOrgPassword = document.getElementById("btnToggleOrgPassword");
 
   if (btnToggleOrgPassword && editOrgPassword) {
@@ -2330,20 +2408,27 @@ function setupCredentialsModal() {
     });
   }
 
+  let actualCurrentPassword = "";
+
   if (btnEditCredentials && credentialsModal) {
     btnEditCredentials.addEventListener("click", async () => {
       editOrgName.value = organizerName || "";
       editOrgUsername.value = organizerUsername || "";
-      
-      // Fetch current password from Firestore
+      if (editCurrentPassword) editCurrentPassword.value = "";
+      if (editOrgPassword) editOrgPassword.value = "";
+      if (editConfirmPassword) editConfirmPassword.value = "";
+
+      // Fetch actual current password from Firestore
       try {
         if (organizerUsername) {
           const orgRef = doc(db, "organizers", organizerUsername);
-          const orgSnap = await getDoc(orgRef);
+          let orgSnap = await getDoc(orgRef);
+          if (!orgSnap.exists()) {
+            const upperRef = doc(db, "organizers", organizerUsername.toUpperCase());
+            orgSnap = await getDoc(upperRef);
+          }
           if (orgSnap.exists()) {
-            editOrgPassword.value = orgSnap.data().password || "";
-          } else {
-            editOrgPassword.value = "";
+            actualCurrentPassword = orgSnap.data().password || "12345";
           }
         }
       } catch (err) {
@@ -2375,56 +2460,115 @@ function setupCredentialsModal() {
       e.preventDefault();
 
       const newName = editOrgName.value.trim();
-      const newUsername = editOrgUsername.value.trim().toLowerCase();
-      const newPassword = editOrgPassword.value.trim();
+      const newUsername = editOrgUsername.value.trim();
+      const currentPassVal = editCurrentPassword ? editCurrentPassword.value.trim() : "";
+      const newPassVal = editOrgPassword ? editOrgPassword.value.trim() : "";
+      const confirmPassVal = editConfirmPassword ? editConfirmPassword.value.trim() : "";
 
-      if (!newName || !newUsername || !newPassword) {
-        alert("Please fill in all fields (Name, Username, Password).");
+      if (!newName || !newUsername) {
+        alert("Please enter both display name and username.");
         return;
       }
 
-      const oldUsername = organizerUsername;
       const submitBtn = credentialsForm.querySelector("button[type='submit']");
       submitBtn.disabled = true;
       submitBtn.innerText = "SAVING...";
 
+      let passwordToSave = actualCurrentPassword;
+
+      // If user entered any password field
+      if (currentPassVal || newPassVal || confirmPassVal) {
+        if (!currentPassVal) {
+          alert("Please enter your current password to change password.");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "SAVE CREDENTIALS";
+          return;
+        }
+
+        if (actualCurrentPassword && currentPassVal !== actualCurrentPassword) {
+          alert("Current password entered is incorrect. Please try again.");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "SAVE CREDENTIALS";
+          return;
+        }
+
+        if (!newPassVal) {
+          alert("Please enter your new password.");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "SAVE CREDENTIALS";
+          return;
+        }
+
+        if (newPassVal !== confirmPassVal) {
+          alert("New password and Confirm password do not match. Please re-check.");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "SAVE CREDENTIALS";
+          return;
+        }
+
+        passwordToSave = newPassVal;
+      }
+
+      const oldUsername = organizerUsername || "";
+      const oldClean = oldUsername.trim().toLowerCase();
+      const newClean = newUsername.trim().toLowerCase();
+
       try {
-        if (newUsername !== oldUsername) {
-          // Verify if new username already exists
+        if (newClean !== oldClean) {
+          // Verify if new username already exists under ANOTHER user
           const newOrgRef = doc(db, "organizers", newUsername);
           const newOrgSnap = await getDoc(newOrgRef);
-          if (newOrgSnap.exists()) {
-            alert(`Username "${newUsername}" is already taken by another coordinator. Please choose a different username.`);
-            submitBtn.disabled = false;
-            submitBtn.innerText = "SAVE CREDENTIALS";
-            return;
+          const upperRef = doc(db, "organizers", newUsername.toUpperCase());
+          const upperSnap = await getDoc(upperRef);
+
+          const foundSnap = newOrgSnap.exists() ? newOrgSnap : (upperSnap.exists() ? upperSnap : null);
+
+          if (foundSnap) {
+            const foundData = foundSnap.data();
+            const foundFacultyId = ((foundData && (foundData.facultyId || foundData.id || foundSnap.id)) || "").toLowerCase();
+
+            if (foundFacultyId && foundFacultyId !== oldClean) {
+              alert(`Username "${newUsername}" is already taken by another coordinator. Please choose a different username.`);
+              submitBtn.disabled = false;
+              submitBtn.innerText = "SAVE CREDENTIALS";
+              return;
+            }
           }
 
           // Read old doc data
           const oldOrgRef = doc(db, "organizers", oldUsername);
-          const oldOrgSnap = await getDoc(oldOrgRef);
+          let oldOrgSnap = await getDoc(oldOrgRef);
+          if (!oldOrgSnap.exists()) {
+            oldOrgSnap = await getDoc(doc(db, "organizers", oldUsername.toUpperCase()));
+          }
           const oldData = oldOrgSnap.exists() ? oldOrgSnap.data() : {};
 
           // Write to new doc
-          await setDoc(newOrgRef, {
+          await setDoc(doc(db, "organizers", newUsername), {
             ...oldData,
+            id: newUsername,
+            facultyId: newUsername,
             name: newName,
             username: newUsername,
-            password: newPassword,
+            password: passwordToSave,
             assignedEventId: assignedEventId || oldData.assignedEventId || ""
-          });
+          }, { merge: true });
 
-          // Delete old doc
-          if (oldOrgSnap.exists()) {
-            await deleteDoc(oldOrgRef);
+          // Delete old doc if username doc changed
+          if (oldOrgSnap.exists() && oldOrgSnap.id !== newUsername) {
+            await deleteDoc(oldOrgSnap.ref);
           }
         } else {
           // Update existing doc
-          const orgRef = doc(db, "organizers", oldUsername);
-          await updateDoc(orgRef, {
+          let orgRef = doc(db, "organizers", oldUsername);
+          let orgSnap = await getDoc(orgRef);
+          if (!orgSnap.exists()) {
+            orgRef = doc(db, "organizers", oldUsername.toUpperCase());
+          }
+          await setDoc(orgRef, {
             name: newName,
-            password: newPassword
-          });
+            password: passwordToSave
+          }, { merge: true });
         }
 
         // Update localStorage and in-memory variables
@@ -3517,35 +3661,66 @@ let organizerAssignedEvents = [];
 async function setupMultiEventSelection() {
   organizerAssignedEvents = [];
   try {
-    // 1. Fetch organizer doc from Firestore
-    const orgDocRef = doc(db, "organizers", organizerUsername);
-    const orgSnap = await getDoc(orgDocRef);
+    const cleanUsername = (organizerUsername || "").trim();
+    const upperUsername = cleanUsername.toUpperCase();
+    const lowerUsername = cleanUsername.toLowerCase();
+    const orgName = (localStorage.getItem("organizerName") || "").toLowerCase().trim();
+
+    // 1. Fetch organizer doc from Firestore with robust case handling
+    let orgSnap = await getDoc(doc(db, "organizers", cleanUsername));
+    if (!orgSnap.exists() && upperUsername !== cleanUsername) {
+      orgSnap = await getDoc(doc(db, "organizers", upperUsername));
+    }
+    if (!orgSnap.exists() && lowerUsername !== cleanUsername) {
+      orgSnap = await getDoc(doc(db, "organizers", lowerUsername));
+    }
+
     let explicitIds = [];
+    let isAllAssigned = false;
 
     if (orgSnap.exists()) {
       const data = orgSnap.data();
       if (Array.isArray(data.assignedEvents) && data.assignedEvents.length > 0) {
-        explicitIds = data.assignedEvents;
-      } else if (data.assignedEventId) {
-        explicitIds = [data.assignedEventId];
+        data.assignedEvents.forEach(id => {
+          if (id && !explicitIds.includes(id)) explicitIds.push(id);
+        });
       }
+      if (data.assignedEventId && !explicitIds.includes(data.assignedEventId)) {
+        explicitIds.push(data.assignedEventId);
+      }
+
+      if (data.role === "admin" || explicitIds.includes("all") || data.assignedEventId === "all") {
+        isAllAssigned = true;
+      }
+    } else {
+      if (lowerUsername === "admin" || localStorage.getItem("adminUser") === "admin") {
+        isAllAssigned = true;
+      }
+    }
+
+    if (explicitIds.includes("all")) {
+      isAllAssigned = true;
     }
 
     // 2. Fetch all events from Firestore to match coordinator string or explicit IDs
     const eventsSnap = await getDocs(collection(db, "events"));
-    const orgName = (localStorage.getItem("organizerName") || "").toLowerCase().trim();
 
     eventsSnap.forEach((docSnap) => {
       const ev = docSnap.data();
       const evId = ev.id || docSnap.id;
       const coord = (ev.coordinator || "").toLowerCase();
 
-      let isMatch = explicitIds.includes(evId);
+      let isMatch = isAllAssigned || explicitIds.includes(evId);
 
-      if (!isMatch && orgName && orgName.length > 3) {
-        const nameParts = orgName.split(/\s+/).filter(p => p.length > 2 && !["mr.", "mrs.", "ms.", "dr."].includes(p));
-        if (nameParts.length > 0 && nameParts.some(part => coord.includes(part))) {
+      // Match by coordinator name or username/facultyId in event doc
+      if (!isMatch) {
+        if (coord.includes(lowerUsername) || coord.includes(upperUsername.toLowerCase())) {
           isMatch = true;
+        } else if (orgName && orgName.length > 2) {
+          const nameParts = orgName.split(/\s+/).filter(p => p.length > 2 && !["mr.", "mrs.", "ms.", "dr."].includes(p));
+          if (nameParts.length > 0 && nameParts.some(part => coord.includes(part))) {
+            isMatch = true;
+          }
         }
       }
 
@@ -3563,14 +3738,6 @@ async function setupMultiEventSelection() {
     console.error("Error detecting multi-event assignments:", err);
   }
 
-  // Fallback if empty
-  if (organizerAssignedEvents.length === 0 && currentAssignedEventId) {
-    organizerAssignedEvents.push({
-      id: currentAssignedEventId,
-      title: currentAssignedEventId
-    });
-  }
-
   // Deduplicate and filter valid events
   const seenIds = new Set();
   organizerAssignedEvents = organizerAssignedEvents.filter(e => {
@@ -3579,37 +3746,39 @@ async function setupMultiEventSelection() {
     return true;
   });
 
-  // If no assignedEventId is currently selected, pick first
-  if (!currentAssignedEventId && organizerAssignedEvents.length > 0) {
+  // Verify currently selected assignedEventId:
+  // If currentAssignedEventId is empty OR is NOT in organizerAssignedEvents:
+  const isCurrentValid = organizerAssignedEvents.some(e => e.id === currentAssignedEventId);
+
+  if ((!currentAssignedEventId || !isCurrentValid) && organizerAssignedEvents.length > 0) {
     currentAssignedEventId = organizerAssignedEvents[0].id;
     assignedEventId = currentAssignedEventId;
     localStorage.setItem("assignedEventId", currentAssignedEventId);
   }
 
-  // Populate Header Switcher & Modal ONLY if multiple (2+) events found
+  // Populate Header Switcher & Modal
   const switcherContainer = document.getElementById("eventSwitcherContainer");
   const headerSelect = document.getElementById("headerEventSelect");
 
+  if (switcherContainer) switcherContainer.style.display = "flex";
+
+  if (headerSelect) {
+    headerSelect.innerHTML = organizerAssignedEvents.map(e => `
+      <option value="${e.id}" ${e.id === currentAssignedEventId ? "selected" : ""} style="background-color: #0f172a; color: #ffffff; padding: 6px;">${e.title}</option>
+    `).join("");
+
+    headerSelect.onchange = (e) => {
+      switchManagedEvent(e.target.value);
+    };
+  }
+
+  // Check if we should pop up the Event Selection Modal (only if > 1 events)
   if (organizerAssignedEvents.length > 1) {
-    if (switcherContainer) switcherContainer.style.display = "flex";
-    if (headerSelect) {
-      headerSelect.innerHTML = organizerAssignedEvents.map(e => `
-        <option value="${e.id}" ${e.id === currentAssignedEventId ? "selected" : ""} style="background-color: #0f172a; color: #ffffff; padding: 6px;">${e.title}</option>
-      `).join("");
-
-      headerSelect.onchange = (e) => {
-        switchManagedEvent(e.target.value);
-      };
-    }
-
-    // Check if we should pop up the Event Selection Modal
     const hasPrompted = sessionStorage.getItem("hasPromptedEventPicker");
     if (!hasPrompted) {
       sessionStorage.setItem("hasPromptedEventPicker", "true");
       openEventPickerModal();
     }
-  } else {
-    if (switcherContainer) switcherContainer.style.display = "none";
   }
 }
 

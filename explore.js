@@ -1,5 +1,5 @@
-import { db } from "./firebase-config.js?v=3.1";
-import {
+import { db } from "./firebase-config.js";
+import { 
   collection,
   onSnapshot,
   doc,
@@ -7,7 +7,7 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+ } from "./firebase-config.js";
 
 // Session elements
 const navUserArea = document.getElementById("navUserArea");
@@ -59,6 +59,16 @@ const uploadCloseBtn = document.getElementById("uploadCloseBtn");
 // State
 let eventsList = [];
 let registeredEventsIds = [];
+
+function isStudentRegisteredFor(eventId) {
+  if (!Array.isArray(registeredEventsIds)) {
+    registeredEventsIds = [];
+    return false;
+  }
+  if (!eventId) return false;
+  const target = String(eventId).toLowerCase().trim();
+  return registeredEventsIds.some(id => String(id).toLowerCase().trim() === target);
+}
 let currentFilter = "all"; // "all" or "registered"
 let searchQuery = "";
 let currentGallerySlides = [];
@@ -262,7 +272,7 @@ function renderProfileEventsList() {
   const container = document.getElementById("profileRegisteredEventsList");
   if (!container) return;
 
-  if (registeredEventsIds.length === 0) {
+  if (!Array.isArray(registeredEventsIds) || registeredEventsIds.length === 0) {
     container.innerHTML = `<div style="color: var(--text-sub); font-size: 0.8rem; font-style: italic;">You have not registered for any events yet.</div>`;
     return;
   }
@@ -345,7 +355,7 @@ async function loadStudentRegisteredEvents() {
     const studentSnap = await getDoc(studentRef);
     if (studentSnap.exists()) {
       const data = studentSnap.data();
-      registeredEventsIds = data.registeredEvents || [];
+      registeredEventsIds = Array.isArray(data.registeredEvents) ? data.registeredEvents : [];
       if (data.email) localStorage.setItem("email", data.email);
       if (data.name) localStorage.setItem("name", data.name);
       if (data.class) {
@@ -524,15 +534,20 @@ function isRegistrationClosed(ev) {
 // Render dynamic event cards
 function renderEvents() {
   let filtered = eventsList.filter(ev => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = ev.title.toLowerCase().includes(query) || 
-                          ev.description.toLowerCase().includes(query) ||
-                          (ev.rules && ev.rules.toLowerCase().includes(query)) ||
-                          (ev.venue && ev.venue.toLowerCase().includes(query));
+    if (!ev) return false;
+    const query = (searchQuery || "").toLowerCase();
+    const title = String(ev.title || "").toLowerCase();
+    const desc = String(ev.description || "").toLowerCase();
+    const rules = String(ev.rules || "").toLowerCase();
+    const venue = String(ev.venue || "").toLowerCase();
+    const matchesSearch = title.includes(query) || 
+                          desc.includes(query) ||
+                          rules.includes(query) ||
+                          venue.includes(query);
     if (!matchesSearch) return false;
 
     if (currentFilter === "registered") {
-      return registeredEventsIds.includes(ev.id);
+      return isStudentRegisteredFor(ev.id);
     }
     return true;
   });
@@ -547,7 +562,7 @@ function renderEvents() {
   }
 
   eventGrid.innerHTML = filtered.map(ev => {
-    const isRegistered = registeredEventsIds.includes(ev.id);
+    const isRegistered = isStudentRegisteredFor(ev.id);
     const isStarted = ev.status === "started";
     const hasResults = ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third);
     const isClosed = isRegistrationClosed(ev);
@@ -932,9 +947,9 @@ window.registerEvent = async function(eventId) {
 
   try {
     const studentRef = doc(db, "students", username);
-    await updateDoc(studentRef, {
+    await setDoc(studentRef, {
       registeredEvents: arrayUnion(eventId)
-    });
+    }, { merge: true });
     registeredEventsIds.push(eventId);
     renderEvents();
     
@@ -1047,14 +1062,14 @@ function openGamingTeamRegistrationModal(ev) {
 
       // 2. Update student document registeredEvents & gamingTeam details
       const studentRef = doc(db, "students", username);
-      await updateDoc(studentRef, {
+      await setDoc(studentRef, {
         registeredEvents: arrayUnion("gaming"),
         gamingTeam: {
           teamName: teamName,
           gameVariant: gameVariant,
           members: squadMembers
         }
-      });
+      }, { merge: true });
 
       registeredEventsIds.push("gaming");
       renderEvents();
@@ -1258,13 +1273,13 @@ function openDuoTeamRegistrationModal(ev) {
 
       // 2. Update student document registeredEvents & duoTeams data
       const studentRef = doc(db, "students", username);
-      await updateDoc(studentRef, {
+      await setDoc(studentRef, {
         registeredEvents: arrayUnion(ev.id),
         [`duoTeam_${ev.id}`]: {
           teamName: teamName,
           members: duoMembers
         }
-      });
+      }, { merge: true });
 
       registeredEventsIds.push(ev.id);
       renderEvents();

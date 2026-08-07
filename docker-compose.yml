@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: techmanthana_mongo
+    restart: always
+    ports:
+      - "27019:27017"
+    volumes:
+      - techmanthana_mongodb_data:/data/db
+    networks:
+      - techmanthana_net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: techmanthana_app
+    restart: always
+    ports:
+      - "8085:8080"
+    environment:
+      - PORT=8080
+      - MONGO_URI=mongodb://mongo:27017/tech_manthana
+    depends_on:
+      - mongo
+    networks:
+      - techmanthana_net
+
+networks:
+  techmanthana_net:
+    driver: bridge
+
+volumes:
+  techmanthana_mongodb_data:

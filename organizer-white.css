@@ -1,0 +1,390 @@
+/* ==========================================
+   ORGANIZER DASHBOARD CLEAN WHITE THEME OVERRIDES
+   Exclusively for organizer.html
+   ========================================== */
+
+/* 1. Pure White Page & Body Background (Overrides hacker-bg and dark overlays) */
+html, 
+body {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #0f172a !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Strip out all dark background pseudo-elements and CRT grid overlays */
+body::before,
+body::after,
+#cyberCanvas,
+.cyber-crt-overlay,
+.cyber-vignette,
+.cyber-grid,
+.bg-logo-watermark {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+/* 2. Navigation Bar */
+.navbar {
+  background: #ffffff !important;
+  border-bottom: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.nav-brand span {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: none !important;
+}
+
+.nav-user .user-badge {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.nav-user .user-badge span {
+  color: #0f172a !important;
+}
+
+/* 3. Dashboard Container & Page Titles */
+.dashboard-container {
+  max-width: 1300px;
+  margin: 30px auto;
+  padding: 0 20px;
+  background: transparent !important;
+}
+
+.dashboard-title h2,
+#assignedEventTitle {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+  font-size: 2.2rem !important;
+}
+
+.dashboard-title p,
+#assignedEventSubtitle {
+  color: #475569 !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+#eventSwitcherContainer {
+  background: #ffffff !important;
+  border: 1.5px solid #0f172a !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  color: #0f172a !important;
+}
+
+#eventSwitcherContainer span {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+#headerEventSelect {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* 4. White Cards & Form Panels */
+.form-panel,
+.cyber-corners,
+.stat-card,
+.event-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important;
+  backdrop-filter: none !important;
+}
+
+/* Strip glowing neon corner lines */
+.form-panel::before,
+.form-panel::after,
+.cyber-corners::before,
+.cyber-corners::after,
+.event-card::before,
+.event-card::after {
+  display: none !important;
+}
+
+/* Headings inside white cards */
+.form-title,
+.form-panel h3,
+.form-panel h4,
+.stat-card h3,
+.stat-card h4,
+#classLimitsPanelTitle,
+#gamingTeamsPanel .form-title,
+#culturalTeamsPanel .form-title,
+#duoTeamsPanel .form-title {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+
+.form-panel p,
+.form-panel span,
+.form-panel label,
+.stat-label {
+  color: #334155 !important;
+}
+
+.form-group label {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 6px !important;
+}
+
+/* 5. Solid Black Buttons with White Text */
+.cyber-btn,
+button.cyber-btn,
+button[type="submit"],
+.btn-action {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 1.5px solid #0f172a !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.cyber-btn:hover,
+button.cyber-btn:hover,
+button[type="submit"]:hover {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Red Logout Button */
+#btnLogout,
+#profileModalLogoutBtn {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+#btnLogout:hover {
+  background: #b91c1c !important;
+}
+
+/* Tab filter buttons */
+.gaming-tab-btn {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.gaming-tab-btn.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+}
+
+/* 6. Form Inputs & Dropdowns */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="password"],
+select,
+textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #0f172a !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* 7. Tables */
+.table-container {
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+}
+
+.cyber-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+.cyber-table th,
+.cyber-table th * {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  padding: 12px 14px !important;
+}
+
+.cyber-table td,
+.cyber-table td * {
+  background: transparent !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-weight: 600 !important;
+}
+
+.cyber-table td {
+  background: #ffffff !important;
+  padding: 12px 14px !important;
+}
+
+.cyber-table tr:hover td {
+  background: #f8fafc !important;
+}
+
+/* 8. Modals & Popovers */
+.modal-overlay {
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.modal-content {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.modal-title,
+.modal-content h3,
+.modal-content h4,
+.modal-content * {
+  color: #0f172a !important;
+}
+
+.modal-close {
+  color: #64748b !important;
+}
+
+.modal-close:hover {
+  color: #0f172a !important;
+}
+
+/* Profile Protocol Popover */
+#profileProtocolModal {
+  background: #ffffff !important;
+  border: 1.5px solid #0f172a !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  color: #0f172a !important;
+}
+
+#profileProtocolModal span,
+#profileProtocolModal div,
+#profileProtocolModal label,
+#profileFullName,
+#profileUsernameVal,
+#profileRoleVal {
+  color: #0f172a !important;
+}
+
+#profileAvatarCircle {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* Statuses & Preview Cards */
+#registeredCount {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+#checkedInCount {
+  color: #166534 !important;
+  font-weight: 800 !important;
+}
+
+#eventStatusText {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+#dedicatedPosterPreviewBox,
+#dedicatedPosterPreviewBox *,
+#dedicatedPosterStatus,
+#dedicatedPosterStatus * {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* 9. Universal High-Contrast Black Text Overrides for all card content */
+.dashboard-container p,
+.dashboard-container span,
+.dashboard-container div,
+.dashboard-container td,
+.dashboard-container th,
+.dashboard-container a,
+.dashboard-container strong,
+.dashboard-container small,
+.dashboard-container code,
+.dashboard-container label,
+.form-panel p,
+.form-panel span,
+.form-panel div,
+.form-panel td,
+.form-panel th,
+.form-panel a,
+.form-panel strong,
+.form-panel small,
+.form-panel code,
+.form-panel label {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+/* Preserve white text inside solid black buttons */
+.cyber-btn,
+button.cyber-btn,
+button[type="submit"],
+.btn-action,
+.cyber-btn *,
+button.cyber-btn *,
+button[type="submit"] *,
+.btn-action * {
+  color: #ffffff !important;
+}
+
+/* Preserve red styling for logout/danger buttons */
+#btnLogout,
+#btnLogout *,
+#profileModalLogoutBtn,
+#profileModalLogoutBtn *,
+.btn-danger,
+.btn-danger * {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}

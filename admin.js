@@ -1,5 +1,5 @@
-import { db } from "./firebase-config.js?v=3.1";
-import {
+import { db } from "./firebase-config.js";
+import { 
   collection,
   getDocs,
   doc,
@@ -9,7 +9,7 @@ import {
   deleteDoc,
   query,
   where
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+ } from "./firebase-config.js";
 
 // Session check
 if (!localStorage.getItem("adminUser")) {
@@ -282,6 +282,8 @@ function setupAdminProfileProtocol() {
   }
 }
 
+let allStudentCoordinators = [];
+
 // Fetch all database records
 async function loadAllData() {
   try {
@@ -301,16 +303,69 @@ async function loadAllData() {
     // 3. Fetch Organizers
     const orgsSnap = await getDocs(collection(db, "organizers"));
     allOrganizers = [];
+    const seenOrgKeys = new Set();
     orgsSnap.forEach(s => {
       const data = s.data();
-      allOrganizers.push({ username: s.id, ...data });
+      const rawId = s.id;
+      const key = (data.facultyId || data.id || rawId || "").toUpperCase().trim();
+      if (key && !seenOrgKeys.has(key)) {
+        seenOrgKeys.add(key);
+        allOrganizers.push({ username: rawId, ...data });
+      }
     });
+
+    // 4. Fetch Student Coordinators
+    try {
+      const scSnap = await getDocs(collection(db, "studentcoordinators"));
+      allStudentCoordinators = [];
+      scSnap.forEach(s => {
+        allStudentCoordinators.push(s.data());
+      });
+    } catch (e) {
+      console.warn("Could not fetch studentcoordinators:", e);
+    }
 
     renderOverview();
     populateDropdowns();
   } catch (error) {
     console.error("Error loading admin data:", error);
   }
+}
+
+function getEventStudentCoordinators(ev) {
+  const evId = (ev.id || "").toLowerCase().trim();
+  const evTitle = (ev.title || "").toLowerCase().trim();
+
+  const matched = allStudentCoordinators.filter(sc => {
+    const scEvId = (sc.eventId || "").toLowerCase().trim();
+    const scEvName = (sc.eventName || "").toLowerCase().trim();
+    return (scEvId && (scEvId === evId || evId.includes(scEvId) || scEvId.includes(evId))) ||
+           (scEvName && (scEvName === evTitle || evTitle.includes(scEvName) || scEvName.includes(evTitle)));
+  });
+
+  const list = [];
+  if (Array.isArray(ev.studentCoordinators)) {
+    ev.studentCoordinators.forEach(sc => {
+      list.push({
+        name: sc.name || sc.studentName || "N/A",
+        studentClass: sc.studentClass || sc.class || "N/A",
+        phone: sc.phone || sc.contactNo || "N/A"
+      });
+    });
+  }
+
+  matched.forEach(sc => {
+    const name = sc.studentName || sc.name;
+    if (name && !list.some(item => item.name.toLowerCase() === name.toLowerCase())) {
+      list.push({
+        name: name,
+        studentClass: sc.class || sc.studentClass || "N/A",
+        phone: sc.contactNo || sc.phone || "N/A"
+      });
+    }
+  });
+
+  return list;
 }
 
 // ----------------- OVERVIEW SECTION -----------------
@@ -332,10 +387,12 @@ function renderOverview() {
   }
 
   overviewEventsTable.innerHTML = allEvents.map(ev => {
+    const studentCoords = getEventStudentCoordinators(ev);
+
     let studentCoordsHTML = "";
-    if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
-      studentCoordsHTML = ev.studentCoordinators.map(sc => 
-        `<span class="user-badge" style="border-color: var(--neon-cyan); color: var(--neon-cyan); margin-bottom: 4px; display: inline-block;">🎓 ${sc.name} (${sc.studentClass} - 📞 ${sc.phone})</span>`
+    if (studentCoords.length > 0) {
+      studentCoordsHTML = studentCoords.map(sc => 
+        `<span class="user-badge" style="border-color: var(--neon-cyan); color: var(--neon-cyan); margin-bottom: 4px; display: inline-block;">🎓 ${sc.name} (${sc.studentClass}${sc.phone && sc.phone !== "N/A" ? ' - 📞 ' + sc.phone : ''})</span>`
       ).join("<br>");
     } else {
       studentCoordsHTML = `<span style="font-size: 0.8rem; color: var(--text-sub); font-style: italic;">None Assigned</span>`;
@@ -361,9 +418,11 @@ function renderEvents() {
   }
 
   eventsListTable.innerHTML = allEvents.map(ev => {
+    const studentCoords = getEventStudentCoordinators(ev);
+
     let studentCoordsText = "None";
-    if (ev.studentCoordinators && ev.studentCoordinators.length > 0) {
-      studentCoordsText = ev.studentCoordinators.map(sc => `🎓 ${sc.name} (${sc.studentClass})`).join(", ");
+    if (studentCoords.length > 0) {
+      studentCoordsText = studentCoords.map(sc => `🎓 ${sc.name} (${sc.studentClass})`).join(", ");
     }
 
     return `
@@ -376,7 +435,6 @@ function renderEvents() {
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="btn-action btn-success" onclick="editEvent('${ev.id}')">Edit</button>
             <button class="btn-action btn-danger" onclick="deleteEvent('${ev.id}')">Delete</button>
-            <button class="btn-action" onclick="window.location.href='explore.html?event=${ev.id}'" style="background: var(--neon-purple); border-color: var(--neon-purple); color: #fff;">Media</button>
           </div>
         </td>
       </tr>
@@ -606,21 +664,46 @@ window.deleteStudent = async function(regNo) {
 
 // ----------------- ORGANIZERS MANAGEMENT -----------------
 function renderOrganizers() {
-  if (allOrganizers.length === 0) {
+  const seen = new Set();
+  const uniqueOrganizers = allOrganizers.filter(org => {
+    const key = (org.username || org.id || org.facultyId || org.name || "").toUpperCase().trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  if (uniqueOrganizers.length === 0) {
     organizersListTable.innerHTML = `<tr><td colspan="5" style="text-align: center;">No organizers registered.</td></tr>`;
     return;
   }
 
-  organizersListTable.innerHTML = allOrganizers.map(org => {
-    const ev = allEvents.find(e => e.id === org.assignedEventId);
-    const eventName = ev ? ev.title : `Unmapped (${org.assignedEventId})`;
-    const passDisplay = org.password || "12345";
+  organizersListTable.innerHTML = uniqueOrganizers.map(org => {
+    let eventName = "Unmapped";
+    if (org.assignedEvents && Array.isArray(org.assignedEvents) && org.assignedEvents.length > 0) {
+      if (org.assignedEvents.includes("all") || org.assignedEventId === "all") {
+        eventName = "Unmapped (all)";
+      } else {
+        const titles = org.assignedEvents.map(eId => {
+          const ev = allEvents.find(e => e.id === eId);
+          return ev ? ev.title : eId;
+        });
+        eventName = titles.join(", ");
+      }
+    } else if (org.assignedEventId) {
+      if (org.assignedEventId === "all") {
+        eventName = "Unmapped (all)";
+      } else {
+        const ev = allEvents.find(e => e.id === org.assignedEventId);
+        eventName = ev ? ev.title : `Unmapped (${org.assignedEventId})`;
+      }
+    }
+
     return `
       <tr>
         <td><strong>${org.username}</strong></td>
         <td>${org.name}</td>
         <td>${eventName}</td>
-        <td><code style="color: var(--neon-cyan);">${passDisplay}</code></td>
+        <td><code style="color: #94a3b8; letter-spacing: 2px;">••••••••</code></td>
         <td>
           <button class="btn-action" style="background: rgba(188,19,254,0.2); border-color: var(--neon-purple); color: #fff; margin-right: 6px;" onclick="changeOrganizerPassword('${org.username}')">Edit Password</button>
           <button class="btn-action btn-danger" onclick="deleteOrganizer('${org.username}')">Remove Access</button>
@@ -649,7 +732,7 @@ function setupOrganizerForm() {
   organizerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const username = orgUsernameInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    const username = orgUsernameInput.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
     const name = orgNameInput.value.trim();
     const password = orgPasswordInput.value.trim() || "12345";
     const assignedEventId = orgEventSelect.value;
@@ -662,10 +745,13 @@ function setupOrganizerForm() {
     try {
       const docRef = doc(db, "organizers", username);
       await setDoc(docRef, {
+        id: username,
+        facultyId: username,
         name: name,
         password: password,
-        assignedEventId: assignedEventId
-      });
+        assignedEventId: assignedEventId,
+        assignedEvents: [assignedEventId]
+      }, { merge: true });
 
       alert("Organizer registered successfully!");
       orgUsernameInput.value = "";

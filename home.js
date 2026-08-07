@@ -1,5 +1,5 @@
-import { db } from "./firebase-config.js?v=3.1";
-import {
+import { db } from "./firebase-config.js";
+import { 
   collection,
   getDocs,
   doc,
@@ -9,7 +9,7 @@ import {
   arrayRemove,
   setDoc,
   onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+ } from "./firebase-config.js";
 
 // Session elements
 const navUserArea = document.getElementById("navUserArea");
@@ -28,6 +28,16 @@ const modalCloseBtn = document.getElementById("modalCloseBtn");
 // Local state
 let eventsList = [];
 let registeredEventsIds = [];
+
+function isStudentRegisteredFor(eventId) {
+  if (!Array.isArray(registeredEventsIds)) {
+    registeredEventsIds = [];
+    return false;
+  }
+  if (!eventId) return false;
+  const target = String(eventId).toLowerCase().trim();
+  return registeredEventsIds.some(id => String(id).toLowerCase().trim() === target);
+}
 let currentFilter = "all"; // "all" or "registered"
 let searchQuery = "";
 
@@ -251,7 +261,7 @@ function renderProfileEventsList() {
   const container = document.getElementById("profileRegisteredEventsList");
   if (!container) return;
 
-  if (registeredEventsIds.length === 0) {
+  if (!Array.isArray(registeredEventsIds) || registeredEventsIds.length === 0) {
     container.innerHTML = `<div style="color: var(--text-sub); font-size: 0.8rem; font-style: italic;">You have not registered for any events yet.</div>`;
     return;
   }
@@ -333,7 +343,7 @@ async function loadUserData() {
     const studentSnap = await getDoc(studentRef);
     if (studentSnap.exists()) {
       const data = studentSnap.data();
-      registeredEventsIds = data.registeredEvents || [];
+      registeredEventsIds = Array.isArray(data.registeredEvents) ? data.registeredEvents : [];
       if (data.email) localStorage.setItem("email", data.email);
       if (data.name) localStorage.setItem("name", data.name);
       if (data.class) {
@@ -478,12 +488,15 @@ function isRegistrationClosed(ev) {
 
 function renderEvents() {
   let filtered = eventsList.filter(ev => {
-    const matchesSearch = ev.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          ev.description.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!ev) return false;
+    const query = (searchQuery || "").toLowerCase();
+    const title = String(ev.title || "").toLowerCase();
+    const desc = String(ev.description || "").toLowerCase();
+    const matchesSearch = title.includes(query) || desc.includes(query);
     if (!matchesSearch) return false;
 
     if (currentFilter === "registered") {
-      return registeredEventsIds.includes(ev.id);
+      return isStudentRegisteredFor(ev.id);
     }
     return true;
   });
@@ -498,7 +511,7 @@ function renderEvents() {
   }
 
   eventGrid.innerHTML = filtered.map(ev => {
-    const isRegistered = registeredEventsIds.includes(ev.id);
+    const isRegistered = isStudentRegisteredFor(ev.id);
     const isStarted = ev.status === "started";
     const hasResults = ev.resultsApproved && ev.results && (ev.results.first || ev.results.second || ev.results.third);
     
@@ -872,9 +885,9 @@ window.registerEvent = async function(eventId) {
 
   try {
     const studentRef = doc(db, "students", username);
-    await updateDoc(studentRef, {
+    await setDoc(studentRef, {
       registeredEvents: arrayUnion(eventId)
-    });
+    }, { merge: true });
     
     registeredEventsIds.push(eventId);
     renderEvents();
@@ -988,14 +1001,14 @@ function openGamingTeamRegistrationModal(ev) {
 
       // 2. Update student document registeredEvents & gamingTeam details
       const studentRef = doc(db, "students", username);
-      await updateDoc(studentRef, {
+      await setDoc(studentRef, {
         registeredEvents: arrayUnion("gaming"),
         gamingTeam: {
           teamName: teamName,
           gameVariant: gameVariant,
           members: squadMembers
         }
-      });
+      }, { merge: true });
 
       registeredEventsIds.push("gaming");
       renderEvents();
@@ -1248,13 +1261,13 @@ function openCulturalTeamRegistrationModal(ev) {
 
       // 2. Update student document registeredEvents & culturalTeam details
       const studentRef = doc(db, "students", username);
-      await updateDoc(studentRef, {
+      await setDoc(studentRef, {
         registeredEvents: arrayUnion("cultural"),
         culturalTeam: {
           teamName: teamName,
           members: allMembers
         }
-      });
+      }, { merge: true });
 
       registeredEventsIds.push("cultural");
       renderEvents();
@@ -1458,13 +1471,13 @@ function openDuoTeamRegistrationModal(ev) {
 
       // 2. Update student document registeredEvents & duoTeams data
       const studentRef = doc(db, "students", username);
-      await updateDoc(studentRef, {
+      await setDoc(studentRef, {
         registeredEvents: arrayUnion(ev.id),
         [`duoTeam_${ev.id}`]: {
           teamName: teamName,
           members: duoMembers
         }
-      });
+      }, { merge: true });
 
       registeredEventsIds.push(ev.id);
       renderEvents();
@@ -1828,12 +1841,16 @@ async function loadPromosForHome() {
 
   track.innerHTML = adminPromos.map((p, idx) => {
     const isVideo = p.contentType === "video";
-    const rawMediaUrl = p.mediaUrl || "";
-    const rawThumb = p.thumbnail || rawMediaUrl;
-    const thumbUrl = getDirectVideoThumbnailUrl(rawThumb);
-
+    const rawMediaUrl = (p.mediaUrl || "").trim();
     const lowerMediaUrl = rawMediaUrl.toLowerCase();
-    const isDirectMp4 = isVideo && (lowerMediaUrl.endsWith(".mp4") || lowerMediaUrl.endsWith(".webm") || lowerMediaUrl.endsWith(".ogg") || (lowerMediaUrl.includes("firebasestorage.googleapis.com") && !lowerMediaUrl.includes("drive.google.com")));
+    
+    const isDirectMp4 = isVideo && (
+      lowerMediaUrl.includes(".mp4") || 
+      lowerMediaUrl.includes(".webm") || 
+      lowerMediaUrl.includes(".ogg") || 
+      lowerMediaUrl.includes(".mov") || 
+      (lowerMediaUrl.includes("firebasestorage") && !lowerMediaUrl.includes("drive.google.com"))
+    );
 
     const badgeText = p.badge || `PROMO #${idx + 1}`;
     const subtitleText = p.subtitle || (isVideo ? "Official Video Reel" : "Official Event Poster");
@@ -1841,13 +1858,21 @@ async function loadPromosForHome() {
 
     let mediaPreviewHTML = "";
     if (isDirectMp4 && !p.thumbnail) {
-      mediaPreviewHTML = `<video src="${rawMediaUrl}#t=0.5" preload="metadata" muted style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.85;"></video>`;
+      mediaPreviewHTML = `<video src="${rawMediaUrl}#t=0.5" preload="metadata" muted playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.9;"></video>`;
+    } else if (p.thumbnail) {
+      mediaPreviewHTML = `<img src="${p.thumbnail}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">`;
     } else {
-      mediaPreviewHTML = `<img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">`;
+      const thumbUrl = getDirectVideoThumbnailUrl(rawMediaUrl);
+      const lowerThumb = (thumbUrl || "").toLowerCase();
+      if (thumbUrl && (lowerThumb.includes("img.youtube.com") || lowerThumb.includes("googleusercontent.com") || lowerThumb.endsWith(".jpg") || lowerThumb.endsWith(".png") || lowerThumb.endsWith(".webp") || lowerThumb.endsWith(".jpeg"))) {
+        mediaPreviewHTML = `<img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">`;
+      } else {
+        mediaPreviewHTML = `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, rgba(10,15,30,0.95) 0%, rgba(20,30,60,0.95) 100%); display: flex; align-items: center; justify-content: center; color: var(--neon-cyan); font-size: 2.2rem;">🎬</div>`;
+      }
     }
 
     return `
-      <div class="promo-card-item" onclick="openPromoMediaById('${p.id}')" style="background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; width: 280px; flex-shrink: 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+      <div class="promo-card-item" onclick="openPromoMediaById('${p.id}')">
         <!-- Top Badge -->
         <div style="position: absolute; top: 10px; left: 10px; z-index: 3; background: rgba(10, 15, 30, 0.85); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.4); font-weight: 800; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; font-family: monospace; letter-spacing: 1px;">
           ${badgeText}
@@ -1858,14 +1883,14 @@ async function loadPromosForHome() {
           ${mediaPreviewHTML}
           
           <!-- Center Play / Eye Action Button -->
-          <div style="width: 46px; height: 46px; border-radius: 50%; background: rgba(10, 15, 30, 0.85); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
+          <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 15, 30, 0.85); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.5); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; padding-left: ${isVideo ? '3px' : '0'};">
             ${iconSymbol}
           </div>
         </div>
 
         <!-- Card Text Info -->
         <div style="padding: 12px 14px;">
-          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; margin: 0 0 4px 0;">${p.title || 'Promo'}</h3>
+          <h3 style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.92rem; font-weight: 700; margin: 0 0 4px 0;">${p.title || 'Promo'}</h3>
           <p style="color: #94a3b8; font-size: 0.78rem; margin: 0; font-family: 'Inter', sans-serif;">${subtitleText}</p>
         </div>
       </div>
@@ -1908,33 +1933,20 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
 
   modalTitle.innerText = `TECH MANTHANA 6.0 PROMO: ${title || 'View Media'}`;
 
+  const rawUrl = (mediaUrl || "").trim();
+  const lowerUrl = rawUrl.toLowerCase();
+
   if (contentType === "video") {
-    const processedUrl = getEmbedMediaUrl(mediaUrl);
-    const lowerUrl = processedUrl.toLowerCase();
-    
-    // Direct video files vs embeddable services
-    const isDirectVideoFile = lowerUrl.endsWith(".mp4") || lowerUrl.endsWith(".webm") || lowerUrl.endsWith(".ogg") || lowerUrl.endsWith(".mov") || (lowerUrl.includes("firebasestorage.googleapis.com") && !lowerUrl.includes("drive.google.com"));
+    const isDirectVideoFile = lowerUrl.includes(".mp4") || 
+                              lowerUrl.includes(".webm") || 
+                              lowerUrl.includes(".ogg") || 
+                              lowerUrl.includes(".mov") || 
+                              (lowerUrl.includes("firebasestorage") && !lowerUrl.includes("drive.google.com"));
 
-    const isEmbedService = lowerUrl.includes("youtube.com") || lowerUrl.includes("drive.google.com") || lowerUrl.includes("vimeo.com") || !isDirectVideoFile;
-
-    if (isEmbedService) {
-      const finalEmbedUrl = lowerUrl.includes("youtube.com") 
-        ? (processedUrl.includes("?") ? `${processedUrl}&autoplay=1&rel=0` : `${processedUrl}?autoplay=1&rel=0`)
-        : processedUrl;
-
+    if (isDirectVideoFile) {
       modalBody.innerHTML = `
-        <div style="position: relative; width: 100%; height: 70vh; max-height: 75vh; min-height: 380px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); display: flex; align-items: center; justify-content: center;">
-          <iframe src="${finalEmbedUrl}" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-        </div>
-        <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 12px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(0, 243, 255, 0.15); border: 1.5px solid var(--neon-cyan); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(0,243,255,0.6);">
-          ⛶ ENTER FULL SCREEN VIDEO
-        </button>
-        ${description ? `<p style="color: var(--text-sub); margin-top: 12px; font-size: 0.9rem;">${description}</p>` : ''}
-      `;
-    } else {
-      modalBody.innerHTML = `
-        <div style="position: relative; width: 100%; height: 70vh; max-height: 75vh; min-height: 380px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); display: flex; align-items: center; justify-content: center;">
-          <video src="${mediaUrl}" controls playsinline preload="auto" autoplay style="width: 100%; height: 100%; max-height: 75vh; object-fit: contain; background: #000;"></video>
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 60vh; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); display: flex; align-items: center; justify-content: center;">
+          <video src="${rawUrl}" controls playsinline preload="auto" autoplay style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
         </div>
         <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 12px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(0, 243, 255, 0.15); border: 1.5px solid var(--neon-cyan); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(0,243,255,0.6);">
           ⛶ ENTER FULL SCREEN VIDEO
@@ -1947,12 +1959,28 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
           console.warn("Autoplay required user interaction:", err);
         });
       }
+    } else {
+      const processedUrl = getEmbedMediaUrl(rawUrl);
+      const processedLower = processedUrl.toLowerCase();
+      const finalEmbedUrl = processedLower.includes("youtube.com") 
+        ? (processedUrl.includes("?") ? `${processedUrl}&autoplay=1&rel=0` : `${processedUrl}?autoplay=1&rel=0`)
+        : processedUrl;
+
+      modalBody.innerHTML = `
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 60vh; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); display: flex; align-items: center; justify-content: center;">
+          <iframe src="${finalEmbedUrl}" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+        <button type="button" class="cyber-btn" onclick="toggleElementFullscreen(this.previousElementSibling)" style="margin-top: 12px; width: 100%; padding: 10px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: rgba(0, 243, 255, 0.15); border: 1.5px solid var(--neon-cyan); color: #fff; border-radius: 6px; cursor: pointer; text-shadow: 0 0 8px rgba(0,243,255,0.6);">
+          ⛶ ENTER FULL SCREEN VIDEO
+        </button>
+        ${description ? `<p style="color: var(--text-sub); margin-top: 12px; font-size: 0.9rem;">${description}</p>` : ''}
+      `;
     }
   } else {
-    const directImg = getDirectImageUrl(mediaUrl);
+    const directImg = getDirectImageUrl(rawUrl);
     modalBody.innerHTML = `
-      <div style="position: relative; width: 100%; max-height: 75vh; min-height: 300px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center;">
-        <img src="${directImg}" style="max-width: 100%; max-height: 75vh; object-fit: contain;" alt="${title || 'Poster'}">
+      <div style="position: relative; width: 100%; max-height: 65vh; min-height: 250px; background: #000; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center;">
+        <img src="${directImg}" style="max-width: 100%; max-height: 65vh; object-fit: contain;" alt="${title || 'Poster'}">
       </div>
       ${description ? `<p style="color: var(--text-sub); margin-top: 12px; font-size: 0.9rem;">${description}</p>` : ''}
     `;
@@ -1961,9 +1989,11 @@ window.openPromoMedia = function(title, contentType, mediaUrl, description) {
   modal.classList.add("active");
 };
 
-// Boot application
+// Initialize App
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initializeApp);
 } else {
   initializeApp();
 }
+
+

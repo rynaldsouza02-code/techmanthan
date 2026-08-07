@@ -1,5 +1,5 @@
-import { db } from "/firebase-config.js?v=3.1";
-import {
+import { db } from "/firebase-config.js";
+import { 
   doc,
   getDoc,
   updateDoc,
@@ -7,7 +7,7 @@ import {
   getDocs,
   query,
   where
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+ } from "./firebase-config.js";
 
 // Inject Excel Table Styles
 const excelStyles = document.createElement("style");

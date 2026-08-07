@@ -225,15 +225,14 @@ body::before {
 
 .hero-logo-wrapper {
     position: relative;
-    width: 320px; /* Increased container size */
-    height: 320px;
-    margin-bottom: 15px; /* Reduced margin */
+    width: clamp(260px, 42vw, 480px);
+    height: clamp(260px, 42vw, 480px);
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Light sweep effect to make circuits look alive */
 .hero-logo-wrapper::after {
     content: '';
     position: absolute;
@@ -251,35 +250,15 @@ body::before {
     100% { transform: translate(100%, 100%); }
 }
 
-/* Live power ripples pulsing outward through circuits */
-.circuit-ripple {
-    display: none !important;
-}
-
-/* Concentric tech gear/rings disabled per user request */
-.logo-glow-ring {
-    display: none !important;
-}
-
 .logo-pulse-circle {
     position: absolute;
-    width: 70%;
-    height: 70%;
+    width: 75%;
+    height: 75%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 243, 255, 0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0, 243, 255, 0.15) 0%, transparent 70%);
     animation: pulseGlow 3s infinite alternate;
     z-index: 1;
     pointer-events: none;
-}
-
-@keyframes spinClockwise {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-@keyframes spinCounterClockwise {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
 }
 
 @keyframes pulseGlow {
@@ -288,8 +267,8 @@ body::before {
 }
 
 .event-logo-hero {
-    width: 540px; /* Scaled up to be much larger and fit the gears */
-    height: 540px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     border-radius: 50%;
     z-index: 2;
@@ -304,9 +283,10 @@ body::before {
     }
     100% {
         transform: scale(1.04);
-        filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.7)) drop-shadow(0 0 15px rgba(188, 19, 254, 0.5));
+        filter: drop-shadow(0 0 30px rgba(0, 243, 255, 0.85)) drop-shadow(0 0 20px rgba(188, 19, 254, 0.6));
     }
 }
+
 
 .glitch-title {
     font-family: 'Orbitron', sans-serif;
@@ -922,16 +902,7 @@ body::before {
         min-height: auto;
     }
 
-    .hero-logo-wrapper {
-        width: 220px;
-        height: 220px;
-        margin-bottom: 25px;
-    }
-
-    .event-logo-hero {
-        width: 340px;
-        height: 340px;
-    }
+    
 
     .glitch-title {
         font-size: 2.2rem;
@@ -1524,16 +1495,16 @@ body::before {
 }
 
 .student-profile-dropdown {
-    position: absolute;
-    top: 65px;
-    right: 20px;
+    position: fixed !important;
+    top: 75px !important;
+    right: 20px !important;
     width: 350px;
     background: rgba(10, 15, 30, 0.96);
     border: 1.5px solid rgba(0, 243, 255, 0.35);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 243, 255, 0.2);
     border-radius: 12px;
     padding: 20px;
-    z-index: 2000;
+    z-index: 9999 !important;
     backdrop-filter: blur(15px);
     display: none;
     flex-direction: column;
@@ -1704,4 +1675,91 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
     transform: scale(1.25);
+}
+/* ================= PROMO CAROUSEL RESPONSIVENESS ================= */
+.promo-carousel-wrapper {
+    position: relative;
+    padding: 0 45px;
+    width: 100%;
+}
+
+.promo-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(10, 15, 30, 0.95);
+    border: 1.5px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    transition: all 0.2s ease;
+}
+
+.promo-nav-btn.prev {
+    left: 0;
+}
+
+.promo-nav-btn.next {
+    right: 0;
+}
+
+.promo-carousel-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 4px;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.promo-carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+.promo-card-item {
+    background: rgba(11, 15, 25, 0.95);
+    border: 1.5px solid rgba(0, 243, 255, 0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    width: clamp(230px, 75vw, 280px);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.promo-card-item:hover {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    transform: translateY(-3px);
+}
+
+@media (max-width: 768px) {
+    .promo-carousel-wrapper {
+        padding: 0 2px !important;
+    }
+
+    .promo-nav-btn {
+        display: none !important;
+    }
+
+    .promo-card-item {
+        width: clamp(210px, 75vw, 250px) !important;
+    }
+
+    #promoMediaModal .modal-content {
+        padding: 15px !important;
+        width: 95% !important;
+    }
 }
