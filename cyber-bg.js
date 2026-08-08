@@ -1,5 +1,10 @@
 // Live Cyberpunk Background - Binary Code Rain
 (function () {
+    // Disable falling binary code rain animation specifically on admin portal
+    if (window.location.pathname.toLowerCase().includes('admin')) {
+        return;
+    }
+
     const canvas = document.createElement('canvas');
     canvas.id = 'cyber-canvas';
     document.body.insertBefore(canvas, document.body.firstChild);
@@ -12,9 +17,9 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: -2;
+            z-index: 1;
             pointer-events: none;
-            opacity: 0.14; /* Subtle opacity to ensure dashboard readability */
+            opacity: 0.9;
         }
     `;
     document.head.appendChild(style);
@@ -35,45 +40,66 @@
     });
 
     const alphabet = "01";
-    const fontSize = 14;
-    let columns = Math.floor(width / fontSize);
+    const fontSize = 11;
+    const colSpacing = 14;
+    let columns = Math.floor(width / colSpacing);
     let drops = [];
+    let speeds = [];
 
     function initializeDrops() {
-        columns = Math.floor(width / fontSize);
+        columns = Math.floor(width / colSpacing);
         drops = [];
+        speeds = [];
+        const maxRows = Math.floor(height / fontSize);
         for (let x = 0; x < columns; x++) {
-            drops[x] = Math.random() * -100; // Random starting offsets
+            // Distribute starting drops across screen with staggered offsets
+            drops[x] = Math.floor(Math.random() * (maxRows + 30)) - 30;
+            // Variable speed creates realistic distant depth perspective
+            speeds[x] = 0.4 + Math.random() * 0.7;
         }
     }
 
     initializeDrops();
 
     function draw() {
-        // Draw trailing translucent black fill to create fade trace
-        ctx.fillStyle = 'rgba(3, 7, 18, 0.08)';
+        // Soft translucent clear to create elegant trailing trace
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.055)';
         ctx.fillRect(0, 0, width, height);
+        ctx.globalCompositeOperation = 'source-over';
 
-        ctx.font = fontSize + 'px monospace';
+        ctx.font = '11px "Courier New", "Fira Code", monospace';
+        ctx.shadowBlur = 0;
 
-        for (let i = 0; i < drops.length; i++) {
+        for (let i = 0; i < columns; i++) {
             const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+            const x = i * colSpacing;
+            const y = Math.floor(drops[i]) * fontSize;
             
-            // Alternating cyan and purple colours matching the Tech Manthan design system
-            ctx.fillStyle = (i % 2 === 0) ? '#00f3ff' : '#bc13fe';
-            
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            // Faint, translucent cyan/blue & subtle magenta tint for distant minimal look
+            const isHead = Math.random() > 0.88;
+            const isPurple = (i % 6 === 0);
 
-            // Reset drop to top randomly once it leaves the viewport
-            if (drops[i] * fontSize > height && Math.random() > 0.975) {
-                drops[i] = 0;
+            if (isHead) {
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.7)';
+            } else if (isPurple) {
+                ctx.fillStyle = 'rgba(188, 19, 254, 0.3)';
+            } else {
+                ctx.fillStyle = 'rgba(0, 210, 255, 0.3)';
+            }
+            
+            ctx.fillText(text, x, y);
+
+            // Reset drop to top once it leaves the viewport
+            if (y > height && Math.random() > 0.975) {
+                drops[i] = -Math.floor(Math.random() * 15);
             }
 
-            drops[i]++;
+            drops[i] += speeds[i] || 0.6;
         }
     }
 
-    // Run code rain at ~30 FPS
+    // Run code rain at smooth 30 FPS
     setInterval(draw, 33);
 
     // Connection Status Monitor Logic

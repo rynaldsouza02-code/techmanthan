@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TECH MANTHAN 6.0 | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="image" href="hacker-bg.jpg">
     <link rel="stylesheet" href="style.css?v=2.6">
     <link rel="icon" type="image/png" href="TC1.png">
     <link rel="shortcut icon" type="image/png" href="TC1.png">
 </head>
+
 <body>
     <div class="cyber-crt-overlay"></div>
     <div class="cyber-vignette"></div>
@@ -16,7 +21,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-brand">
-            <img src="TC1.png" alt="Tech Manthan Logo">
+            <img src="TC1.png" alt="Tech Manthan Logo" loading="eager" fetchpriority="high" decoding="async">
             <span>TECH MANTHAN 6.0</span>
         </div>
         <div style="display: flex; align-items: center; gap: 20px;">
@@ -30,31 +35,51 @@
     <div class="dashboard-container">
         <!-- CHAMPIONSHIP ANNOUNCEMENT BANNER -->
         <div id="championshipBanner" style="display: none; margin-bottom: 30px;">
-            <div class="form-panel cyber-corners" style="max-width: 100%; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); background: linear-gradient(135deg, rgba(10,10,15,0.95) 0%, rgba(20,20,35,0.95) 100%); text-align: center; padding: 40px 20px; overflow: hidden; position: relative;">
-                
-                <div class="circuit-ripple" style="opacity: 0.1; width: 600px; height: 600px; top: -50%; left: -20%;"></div>
-                <div class="circuit-ripple d2" style="opacity: 0.15; width: 400px; height: 400px; bottom: -30%; right: -10%;"></div>
+            <div class="form-panel cyber-corners"
+                style="max-width: 100%; border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); background: linear-gradient(135deg, rgba(10,10,15,0.95) 0%, rgba(20,20,35,0.95) 100%); text-align: center; padding: 40px 20px; overflow: hidden; position: relative;">
 
-                <h2 style="font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 0 15px rgba(0, 243, 255, 0.6); text-transform: uppercase;">
+                <div class="circuit-ripple" style="opacity: 0.1; width: 600px; height: 600px; top: -50%; left: -20%;">
+                </div>
+                <div class="circuit-ripple d2"
+                    style="opacity: 0.15; width: 400px; height: 400px; bottom: -30%; right: -10%;"></div>
+
+                <h2
+                    style="font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 0 15px rgba(0, 243, 255, 0.6); text-transform: uppercase;">
                     🏆 Overall Championship Standings 🏆
                 </h2>
 
-                <div style="display: flex; justify-content: center; align-items: stretch; gap: 30px; flex-wrap: wrap; margin: 20px 0;">
-                    
+                <div
+                    style="display: flex; justify-content: center; align-items: stretch; gap: 30px; flex-wrap: wrap; margin: 20px 0;">
+
                     <!-- Champion Box (Gold) -->
-                    <div style="flex: 1; min-width: 260px; max-width: 380px; background: rgba(255, 215, 0, 0.05); border: 2px solid #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.15); border-radius: 12px; padding: 25px 15px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <span style="position: absolute; top: -15px; background: #ffd700; color: #000; padding: 3px 12px; font-weight: 700; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 10px #ffd700;">CHAMPION</span>
-                        <div style="font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 8px #ffd700);">🥇</div>
-                        <h3 id="champClassTitle" style="color: #ffd700; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255,215,0,0.4);">Loading...</h3>
-                        <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0; text-transform: uppercase; letter-spacing: 1px;">Overall Champion Class</p>
+                    <div
+                        style="flex: 1; min-width: 260px; max-width: 380px; background: rgba(255, 215, 0, 0.05); border: 2px solid #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.15); border-radius: 12px; padding: 25px 15px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <span
+                            style="position: absolute; top: -15px; background: #ffd700; color: #000; padding: 3px 12px; font-weight: 700; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 10px #ffd700;">CHAMPION</span>
+                        <div style="font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 8px #ffd700);">🥇
+                        </div>
+                        <h3 id="champClassTitle"
+                            style="color: #ffd700; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255,215,0,0.4);">
+                            Loading...</h3>
+                        <p
+                            style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0; text-transform: uppercase; letter-spacing: 1px;">
+                            Overall Champion Class</p>
                     </div>
 
                     <!-- Runner-up Box (Silver) -->
-                    <div style="flex: 1; min-width: 260px; max-width: 380px; background: rgba(0, 243, 255, 0.05); border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 243, 255, 0.15); border-radius: 12px; padding: 25px 15px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <span style="position: absolute; top: -15px; background: var(--neon-cyan); color: #000; padding: 3px 12px; font-weight: 700; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 10px var(--neon-cyan);">RUNNER-UP</span>
-                        <div style="font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--neon-cyan));">🥈</div>
-                        <h3 id="runnerClassTitle" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 8px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);">Loading...</h3>
-                        <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0; text-transform: uppercase; letter-spacing: 1px;">Overall Runner-Up Class</p>
+                    <div
+                        style="flex: 1; min-width: 260px; max-width: 380px; background: rgba(0, 243, 255, 0.05); border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 243, 255, 0.15); border-radius: 12px; padding: 25px 15px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <span
+                            style="position: absolute; top: -15px; background: var(--neon-cyan); color: #000; padding: 3px 12px; font-weight: 700; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 10px var(--neon-cyan);">RUNNER-UP</span>
+                        <div
+                            style="font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--neon-cyan));">
+                            🥈</div>
+                        <h3 id="runnerClassTitle"
+                            style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 8px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);">
+                            Loading...</h3>
+                        <p
+                            style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 0; text-transform: uppercase; letter-spacing: 1px;">
+                            Overall Runner-Up Class</p>
                     </div>
                 </div>
 
@@ -68,12 +93,14 @@
         <header class="hero" id="heroSection">
             <div class="hero-card">
                 <div class="college-badge">
-                    <img src="Dr BBHC.png?v=2" class="college-logo-img" alt="College Logo">
-                    <span>Dr. B.B Hegde First Grade College Kundapura</span>
+                    <img src="Dr BBHC.png?v=2" class="college-logo-img" alt="College Logo" loading="eager"
+                        fetchpriority="high" decoding="async">
+                    <span class="college-name-text">Dr. B. B. Hegde First Grade College, Kundapura</span>
                 </div>
                 <div class="hero-logo-wrapper">
                     <div class="logo-pulse-circle"></div>
-                    <img src="TC1.png" class="event-logo-hero" alt="Tech Manthan Logo">
+                    <img src="TC1.png" class="event-logo-hero" alt="Tech Manthan Logo" loading="eager"
+                        fetchpriority="high" decoding="async">
                 </div>
                 <h1 class="glitch-title">TECH MANTHAN 6.0</h1>
                 <p class="hero-subtitle">DIVIDED BY ZERO, UNITED BY ONE</p>
@@ -109,8 +136,10 @@
         <!-- TECH MANTHANA 6.0 PROMO CAROUSEL SECTION (Under Events Directory) -->
         <section id="promoGallerySection" style="margin-top: 40px; margin-bottom: 50px; position: relative;">
             <!-- Header Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                <h2 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: clamp(1.05rem, 4vw, 1.4rem); font-weight: 700; letter-spacing: 1.5px; margin: 0; text-transform: uppercase;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h2
+                    style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: clamp(1.05rem, 4vw, 1.4rem); font-weight: 700; letter-spacing: 1.5px; margin: 0; text-transform: uppercase;">
                     🎬 TECH MANTHANA 6.0 PROMO & TEASERS
                 </h2>
             </div>
@@ -149,9 +178,12 @@
 
     <!-- Promo Media Lightbox Modal -->
     <div class="modal-overlay" id="promoMediaModal">
-        <div class="modal-content" style="max-width: 800px; width: 92%; padding: 25px; background: rgba(10, 15, 30, 0.96); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); border-radius: 16px;">
+        <div class="modal-content"
+            style="max-width: 800px; width: 92%; padding: 25px; background: rgba(10, 15, 30, 0.96); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); border-radius: 16px;">
             <button class="modal-close" id="promoMediaModalCloseBtn">&times;</button>
-            <h3 class="modal-title" id="promoMediaModalTitle" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.2rem;">TECH MANTHANA 6.0 PROMO</h3>
+            <h3 class="modal-title" id="promoMediaModalTitle"
+                style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.2rem;">TECH MANTHANA
+                6.0 PROMO</h3>
             <div id="promoMediaModalBody" style="margin-top: 15px; text-align: center;">
                 <!-- Video iframe or Image preview -->
             </div>
@@ -160,68 +192,93 @@
 
     <!-- Gaming Team Registration Modal -->
     <div class="modal-overlay" id="gamingTeamModal">
-        <div class="modal-content cyber-corners" style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px;">
+        <div class="modal-content cyber-corners"
+            style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px;">
             <button class="modal-close" id="gamingTeamModalCloseBtn">&times;</button>
-            
+
             <div style="text-align: center; margin-bottom: 18px;">
                 <div style="font-size: 2rem; margin-bottom: 4px;">🎮</div>
-                <h3 class="modal-title" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.25rem; margin: 0;">GAMING EVENT REGISTRATION</h3>
-                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register a 4-member squad. You will be registered as the <strong>Team Leader</strong>.</p>
+                <h3 class="modal-title"
+                    style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.25rem; margin: 0;">
+                    GAMING EVENT REGISTRATION</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register a 4-member squad. You
+                    will be registered as the <strong>Team Leader</strong>.</p>
             </div>
 
             <form id="gamingTeamForm">
                 <!-- 1. Game Selection -->
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">1. SELECT GAME (Choose One)</label>
+                    <label
+                        style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">1.
+                        SELECT GAME (Choose One)</label>
                     <div style="display: flex; gap: 12px;">
-                        <label style="flex: 1; background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: #fff;">
-                            <input type="radio" name="gameVariant" value="Free Fire" required style="accent-color: var(--neon-cyan);"> 🔥 Free Fire
+                        <label
+                            style="flex: 1; background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: #fff;">
+                            <input type="radio" name="gameVariant" value="Free Fire" required
+                                style="accent-color: var(--neon-cyan);"> 🔥 Free Fire
                         </label>
-                        <label style="flex: 1; background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: #fff;">
-                            <input type="radio" name="gameVariant" value="Mini Militia" required style="accent-color: var(--neon-cyan);"> 💣 Mini Militia
+                        <label
+                            style="flex: 1; background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: #fff;">
+                            <input type="radio" name="gameVariant" value="Mini Militia" required
+                                style="accent-color: var(--neon-cyan);"> 💣 Mini Militia
                         </label>
                     </div>
                 </div>
 
                 <!-- 2. Team Name -->
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="gamingTeamName" style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">2. TEAM NAME</label>
-                    <input type="text" id="gamingTeamName" required placeholder="e.g. Cyber Warriors" style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                    <label for="gamingTeamName"
+                        style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">2.
+                        TEAM NAME</label>
+                    <input type="text" id="gamingTeamName" required placeholder="e.g. Cyber Warriors"
+                        style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.9rem;">
                 </div>
 
                 <!-- 3. Squad Roster (4 Members) -->
                 <div style="margin-bottom: 18px;">
-                    <label style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">3. SQUAD ROSTER (4 Members)</label>
-                    
+                    <label
+                        style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">3.
+                        SQUAD ROSTER (4 Members)</label>
+
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <!-- Member 1 (Team Leader) -->
-                        <div style="background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <div
+                            style="background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
-                                <span style="font-size: 0.7rem; color: var(--neon-cyan); font-weight: 800; display: block;">MEMBER 1 (TEAM LEADER)</span>
-                                <strong id="gamingLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student Name</strong>
-                                <span id="gamingLeaderEmailDisplay" style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
+                                <span
+                                    style="font-size: 0.7rem; color: var(--neon-cyan); font-weight: 800; display: block;">MEMBER
+                                    1 (TEAM LEADER)</span>
+                                <strong id="gamingLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student
+                                    Name</strong>
+                                <span id="gamingLeaderEmailDisplay"
+                                    style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
                             </div>
-                            <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
+                            <span
+                                style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
                         </div>
 
                         <!-- Member 2 -->
                         <div>
-                            <input type="text" id="gamingMember2" required placeholder="Member 2 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                            <input type="text" id="gamingMember2" required placeholder="Member 2 Full Name"
+                                style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
                         </div>
 
                         <!-- Member 3 -->
                         <div>
-                            <input type="text" id="gamingMember3" required placeholder="Member 3 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                            <input type="text" id="gamingMember3" required placeholder="Member 3 Full Name"
+                                style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
                         </div>
 
                         <!-- Member 4 -->
                         <div>
-                            <input type="text" id="gamingMember4" required placeholder="Member 4 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                            <input type="text" id="gamingMember4" required placeholder="Member 4 Full Name"
+                                style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" id="btnSubmitGamingTeam" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+                <button type="submit" id="btnSubmitGamingTeam" class="cyber-btn"
+                    style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
                     SUBMIT GAMING SQUAD REGISTRATION
                 </button>
             </form>
@@ -230,62 +287,86 @@
 
     <!-- Cultural Team Registration Modal -->
     <div class="modal-overlay" id="culturalTeamModal">
-        <div class="modal-content cyber-corners" style="max-width: 540px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-purple); box-shadow: 0 0 35px rgba(168, 85, 247, 0.35); border-radius: 16px;">
+        <div class="modal-content cyber-corners"
+            style="max-width: 540px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-purple); box-shadow: 0 0 35px rgba(168, 85, 247, 0.35); border-radius: 16px;">
             <button class="modal-close" id="culturalTeamModalCloseBtn">&times;</button>
-            
+
             <div style="text-align: center; margin-bottom: 18px;">
                 <div style="font-size: 2rem; margin-bottom: 4px;">💃</div>
-                <h3 class="modal-title" style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; font-size: 1.25rem; margin: 0;">CULTURAL EVENT REGISTRATION</h3>
-                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register your class performance team. <strong>Min 5 to Max 10 participants allowed</strong>. Only <strong>1 team per class</strong>.</p>
+                <h3 class="modal-title"
+                    style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; font-size: 1.25rem; margin: 0;">
+                    CULTURAL EVENT REGISTRATION</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register your class performance
+                    team. <strong>Min 5 to Max 10 participants allowed</strong>. Only <strong>1 team per class</strong>.
+                </p>
             </div>
 
             <form id="culturalTeamForm">
                 <!-- 1. Team Name -->
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="culturalTeamName" style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1. PERFORMANCE TEAM NAME</label>
-                    <input type="text" id="culturalTeamName" required placeholder="e.g. Natya Taranga" style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                    <label for="culturalTeamName"
+                        style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1.
+                        PERFORMANCE TEAM NAME</label>
+                    <input type="text" id="culturalTeamName" required placeholder="e.g. Natya Taranga"
+                        style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; color: #fff; font-size: 0.9rem;">
                 </div>
 
                 <!-- 2. Team Roster (Min 5, Max 10) -->
                 <div style="margin-bottom: 18px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label style="color: #fff; font-weight: 700; font-size: 0.85rem; margin: 0;">2. TEAM PARTICIPANTS (<span id="culturalCountDisplay">5</span> / 10)</label>
-                        <span style="font-size: 0.72rem; color: var(--neon-purple); font-weight: bold; background: rgba(168, 85, 247, 0.15); border: 1px solid var(--neon-purple); padding: 2px 8px; border-radius: 12px;">Min 5 - Max 10</span>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="color: #fff; font-weight: 700; font-size: 0.85rem; margin: 0;">2. TEAM
+                            PARTICIPANTS (<span id="culturalCountDisplay">5</span> / 10)</label>
+                        <span
+                            style="font-size: 0.72rem; color: var(--neon-purple); font-weight: bold; background: rgba(168, 85, 247, 0.15); border: 1px solid var(--neon-purple); padding: 2px 8px; border-radius: 12px;">Min
+                            5 - Max 10</span>
                     </div>
-                    
+
                     <div id="culturalMembersContainer" style="display: flex; flex-direction: column; gap: 10px;">
                         <!-- Member 1 (Team Leader) -->
-                        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <div
+                            style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
-                                <span style="font-size: 0.7rem; color: var(--neon-purple); font-weight: 800; display: block;">MEMBER 1 (TEAM LEADER)</span>
-                                <strong id="culturalLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student Name</strong>
-                                <span id="culturalLeaderEmailDisplay" style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
+                                <span
+                                    style="font-size: 0.7rem; color: var(--neon-purple); font-weight: 800; display: block;">MEMBER
+                                    1 (TEAM LEADER)</span>
+                                <strong id="culturalLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student
+                                    Name</strong>
+                                <span id="culturalLeaderEmailDisplay"
+                                    style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
                             </div>
-                            <span style="background: var(--neon-purple); color: #fff; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
+                            <span
+                                style="background: var(--neon-purple); color: #fff; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
                         </div>
 
                         <!-- Member 2 -->
-                        <input type="text" class="cultural-member-input" required placeholder="Member 2 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        <input type="text" class="cultural-member-input" required placeholder="Member 2 Full Name"
+                            style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
 
                         <!-- Member 3 -->
-                        <input type="text" class="cultural-member-input" required placeholder="Member 3 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        <input type="text" class="cultural-member-input" required placeholder="Member 3 Full Name"
+                            style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
 
                         <!-- Member 4 -->
-                        <input type="text" class="cultural-member-input" required placeholder="Member 4 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        <input type="text" class="cultural-member-input" required placeholder="Member 4 Full Name"
+                            style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
 
                         <!-- Member 5 -->
-                        <input type="text" class="cultural-member-input" required placeholder="Member 5 Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                        <input type="text" class="cultural-member-input" required placeholder="Member 5 Full Name"
+                            style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
                     </div>
 
                     <!-- Add Participant Button -->
                     <div style="margin-top: 12px;">
-                        <button type="button" id="btnAddCulturalMember" class="cyber-btn" style="width: 100%; padding: 8px; font-size: 0.82rem; background: rgba(168, 85, 247, 0.15); border-color: var(--neon-purple); color: var(--neon-purple); font-weight: bold; border-radius: 8px;">
+                        <button type="button" id="btnAddCulturalMember" class="cyber-btn"
+                            style="width: 100%; padding: 8px; font-size: 0.82rem; background: rgba(168, 85, 247, 0.15); border-color: var(--neon-purple); color: var(--neon-purple); font-weight: bold; border-radius: 8px;">
                             ➕ Add Participant
                         </button>
                     </div>
                 </div>
 
-                <button type="submit" id="btnSubmitCulturalTeam" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-purple); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);">
+                <button type="submit" id="btnSubmitCulturalTeam" class="cyber-btn"
+                    style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-purple); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);">
                     SUBMIT CULTURAL TEAM REGISTRATION
                 </button>
             </form>
@@ -294,46 +375,65 @@
 
     <!-- Duo Team (2 Members) Registration Modal -->
     <div class="modal-overlay" id="duoTeamModal">
-        <div class="modal-content cyber-corners" style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px;">
+        <div class="modal-content cyber-corners"
+            style="max-width: 520px; width: 94%; padding: 25px 22px; background: rgba(10, 15, 30, 0.98); border: 1.5px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 243, 255, 0.35); border-radius: 16px;">
             <button class="modal-close" id="duoTeamModalCloseBtn">&times;</button>
-            
+
             <div style="text-align: center; margin-bottom: 18px;">
                 <div style="font-size: 2rem; margin-bottom: 4px;" id="duoEventIcon">👥</div>
-                <h3 class="modal-title" id="duoEventTitle" style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; margin: 0;">DUO TEAM REGISTRATION</h3>
-                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register a 2-member team for this event. You will be registered as the <strong>Team Leader</strong>.</p>
+                <h3 class="modal-title" id="duoEventTitle"
+                    style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; margin: 0;">
+                    DUO TEAM REGISTRATION</h3>
+                <p style="color: var(--text-sub); font-size: 0.8rem; margin-top: 4px;">Register a 2-member team for this
+                    event. You will be registered as the <strong>Team Leader</strong>.</p>
             </div>
 
             <form id="duoTeamForm">
                 <!-- 1. Team Name -->
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="duoTeamName" style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1. TEAM NAME</label>
-                    <input type="text" id="duoTeamName" required placeholder="e.g. Cyber Duo" style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                    <label for="duoTeamName"
+                        style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">1.
+                        TEAM NAME</label>
+                    <input type="text" id="duoTeamName" required placeholder="e.g. Cyber Duo"
+                        style="width: 100%; padding: 10px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; color: #fff; font-size: 0.9rem;">
                 </div>
 
                 <!-- 2. Duo Squad Roster (2 Members) -->
                 <div style="margin-bottom: 18px;">
-                    <label style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">2. TEAM MEMBERS (2 Members Required)</label>
-                    
+                    <label
+                        style="color: #fff; font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 8px;">2.
+                        TEAM MEMBERS (2 Members Required)</label>
+
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <!-- Member 1 (Team Leader) -->
-                        <div style="background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <div
+                            style="background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
-                                <span style="font-size: 0.7rem; color: var(--neon-cyan); font-weight: 800; display: block;">MEMBER 1 (TEAM LEADER)</span>
-                                <strong id="duoLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student Name</strong>
-                                <span id="duoLeaderEmailDisplay" style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
+                                <span
+                                    style="font-size: 0.7rem; color: var(--neon-cyan); font-weight: 800; display: block;">MEMBER
+                                    1 (TEAM LEADER)</span>
+                                <strong id="duoLeaderNameDisplay" style="color: #fff; font-size: 0.9rem;">Student
+                                    Name</strong>
+                                <span id="duoLeaderEmailDisplay"
+                                    style="display: block; font-size: 0.75rem; color: var(--text-sub);">email@example.com</span>
                             </div>
-                            <span style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
+                            <span
+                                style="background: var(--neon-cyan); color: #000; font-weight: 800; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">LEADER</span>
                         </div>
 
                         <!-- Member 2 -->
                         <div>
-                            <label for="duoMember2" style="font-size: 0.72rem; color: var(--text-sub); display: block; margin-bottom: 4px;">MEMBER 2 FULL NAME</label>
-                            <input type="text" id="duoMember2" required placeholder="Enter Teammate's Full Name" style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
+                            <label for="duoMember2"
+                                style="font-size: 0.72rem; color: var(--text-sub); display: block; margin-bottom: 4px;">MEMBER
+                                2 FULL NAME</label>
+                            <input type="text" id="duoMember2" required placeholder="Enter Teammate's Full Name"
+                                style="width: 100%; padding: 9px 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.85rem;">
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" id="btnSubmitDuoTeam" class="cyber-btn" style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+                <button type="submit" id="btnSubmitDuoTeam" class="cyber-btn"
+                    style="width: 100%; padding: 12px; font-weight: 800; font-family: 'Orbitron', sans-serif; background: var(--neon-cyan); color: #000; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
                     SUBMIT DUO TEAM REGISTRATION
                 </button>
             </form>
@@ -342,6 +442,7 @@
 
     <!-- Main JavaScript Logic -->
     <script type="module" src="home.js?v=6.8"></script>
-    <script src="cyber-bg.js"></script>
+    <script src="/cyber-bg.js"></script>
 </body>
+
 </html>

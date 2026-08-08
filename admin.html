@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Manthan 6.0 | Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css?v=2.9">
     <script>
         // Inline auth check before page load to prevent flash of content
@@ -22,7 +24,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-brand">
-            <img src="TC1.png" alt="Tech Manthan Logo">
+            <img src="TC1.png" alt="Tech Manthan Logo" loading="eager" fetchpriority="high" decoding="async">
             <span>TECH MANTHAN 6.0 | ADMIN</span>
         </div>
         <div class="nav-user" style="display: flex; gap: 10px; align-items: center;">
@@ -218,8 +220,9 @@
 
                 <!-- Students Directory Table -->
                 <div style="flex: 1.5; min-width: 280px;">
-                    <div class="filter-bar" style="margin-bottom: 20px;">
-                        <input type="text" id="studentSearchInput" class="search-input" placeholder="Search student by Name or Reg No...">
+                    <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="studentSearchInput" class="search-input" placeholder="Search student by Name or Reg No..." style="flex: 1;">
+                        <button type="button" class="cyber-btn" id="btnExportStudentsExcel" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700; white-space: nowrap;">📊 Export Students Excel</button>
                     </div>
                     <div class="table-container">
                         <table class="cyber-table">
@@ -274,6 +277,9 @@
 
                 <!-- Organizers Directory Table -->
                 <div style="flex: 1.5; min-width: 280px;">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                        <button type="button" class="cyber-btn" id="btnExportOrganizersExcel" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700;">📊 Export Organizers Excel</button>
+                    </div>
                     <div class="table-container">
                         <table class="cyber-table">
                             <thead>
@@ -298,14 +304,17 @@
 
         <!-- REGISTRATIONS PANEL -->
         <div class="tab-panel" id="panelRegistrations">
-            <div class="filter-bar" style="margin-bottom: 25px;">
+            <div class="filter-bar" style="margin-bottom: 25px; display: flex; gap: 12px; align-items: flex-end;">
                 <div class="form-group" style="margin-bottom: 0; min-width: 250px;">
                     <label for="regEventFilter">Filter Registrations By Event</label>
                     <select id="regEventFilter" style="margin-bottom: 0;">
                         <option value="">-- Select Event --</option>
                     </select>
                 </div>
-                <button class="cyber-btn cyber-btn-purple" id="btnPrintRegistrations" style="padding: 10px 20px; font-size: 0.85rem;">Print List</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="cyber-btn cyber-btn-purple" id="btnPrintRegistrations" style="padding: 10px 20px; font-size: 0.85rem;">Print List</button>
+                    <button class="cyber-btn" id="btnExportRegistrationsExcel" style="padding: 10px 20px; font-size: 0.85rem; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700;">📊 Download Excel Sheet</button>
+                </div>
             </div>
 
             <div class="table-container" id="printableArea">
@@ -356,25 +365,47 @@
 
         <!-- RESULTS APPROVAL PANEL -->
         <div class="tab-panel" id="panelResultsApproval">
-            <div style="margin-bottom: 25px;">
-                <h3 class="form-title" style="margin-bottom: 5px;">Event Results Approval Portal</h3>
-                <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 0;">Review and approve winner results submitted by event coordinators before publishing them to students.</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+                <div>
+                    <h3 class="form-title" style="margin-bottom: 5px;">Event Results Approval Portal</h3>
+                    <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 0;">Review, verify, and publish winner results submitted by event coordinators.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="cyber-btn" id="btnExportAllResultsPDF" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700;">📄 Export All Approved PDF</button>
+                    <button type="button" class="cyber-btn" id="btnRefreshResultsApproval" style="padding: 8px 14px; font-size: 0.85rem;">🔄 Refresh</button>
+                </div>
             </div>
+
+            <!-- Stats Bar -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(0, 243, 255, 0.3); text-align: center; margin-bottom: 0;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #fff; font-family: monospace;" id="statApprovalTotal">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">TOTAL SUBMITTED</div>
+                </div>
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(234, 179, 8, 0.3); text-align: center; margin-bottom: 0;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #facc15; font-family: monospace;" id="statApprovalPending">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">PENDING APPROVAL</div>
+                </div>
+                <div class="form-panel cyber-corners" style="padding: 15px 20px; border: 1px solid rgba(34, 197, 94, 0.3); text-align: center; margin-bottom: 0;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--neon-green); font-family: monospace;" id="statApprovalApproved">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">APPROVED & PUBLISHED</div>
+                </div>
+            </div>
+
             <div class="table-container">
                 <table class="cyber-table">
                     <thead>
                         <tr>
-                            <th>Event ID</th>
-                            <th>Event Title</th>
-                            <th>Coordinators</th>
-                            <th>Submitted Winners</th>
-                            <th style="text-align: center;">Status</th>
-                            <th style="text-align: center;">Actions</th>
+                            <th style="width: 18%;">Event ID & Title</th>
+                            <th style="width: 22%;">Coordinators</th>
+                            <th style="width: 32%;">Submitted Winners</th>
+                            <th style="width: 14%; text-align: center;">Status</th>
+                            <th style="width: 14%; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="resultsApprovalTableBody">
                         <tr>
-                            <td colspan="6" style="text-align: center; color: var(--text-sub);">Loading submitted results...</td>
+                            <td colspan="5" style="text-align: center; color: var(--text-sub); padding: 30px;">Loading submitted results...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -392,6 +423,7 @@
                     </label>
                 </div>
                 <div style="display: flex; gap: 10px;">
+                    <button type="button" class="cyber-btn" id="btnExportChampionshipExcel" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700;">📊 Export Standings Excel</button>
                     <button type="button" class="cyber-btn cyber-btn-purple" id="btnPublishChampionship" style="padding: 8px 16px; font-size: 0.85rem;">Publish Championship Results</button>
                     <button type="button" class="cyber-btn" id="btnUnpublishChampionship" style="background: rgba(220, 38, 38, 0.1); border-color: var(--neon-red); color: var(--neon-red); padding: 8px 16px; font-size: 0.85rem; display: none;">Reset / Unpublish</button>
                 </div>
@@ -733,6 +765,5 @@
 
     <!-- Firebase SDK Imports and Admin Dashboard Logic -->
     <script type="module" src="admin.js?v=5.8"></script>
-    <script src="cyber-bg.js"></script>
 </body>
 </html>

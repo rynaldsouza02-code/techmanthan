@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Manthan 6.0 | Organizer Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css?v=2.9">
     <link rel="stylesheet" href="organizer-white.css?v=1.0">
     <script>
@@ -20,7 +22,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-brand">
-            <img src="TC1.png" alt="Tech Manthan Logo">
+            <img src="TC1.png" alt="Tech Manthan Logo" loading="eager" fetchpriority="high" decoding="async">
             <span>TECH MANTHAN 6.0 | ORGANIZER</span>
         </div>
         <div class="nav-user" style="display: flex; gap: 10px; align-items: center;">
@@ -366,7 +368,10 @@
                 <div class="form-panel cyber-corners" style="max-width: 100%; margin-bottom: 0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                         <h3 class="form-title" style="margin-bottom: 0;">Registrants Directory</h3>
-                        <button id="btnDownloadAttendance" class="cyber-btn" style="font-size: 0.8rem; padding: 6px 12px; background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan);">Download Attendance PDF</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btnDownloadAttendance" class="cyber-btn" style="font-size: 0.8rem; padding: 6px 12px; background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan);">Download Attendance PDF</button>
+                            <button id="btnDownloadAttendanceExcel" class="cyber-btn" style="font-size: 0.8rem; padding: 6px 12px; background: rgba(16, 185, 129, 0.15); border-color: var(--neon-green); color: var(--neon-green);">📊 Download Excel Sheet</button>
+                        </div>
                     </div>
                     <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px;">Track registrations and mark student check-in status at the venue.</p>
                     

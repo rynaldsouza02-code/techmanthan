@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
@@ -6,6 +7,7 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, setDoc, deleteDoc } = require('firebase/firestore');
 
 const app = express();
+app.use(compression());
 const PORT = process.env.PORT || 4002;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/tech_manthana';
 
@@ -480,20 +482,49 @@ app.all('/api/send-email', async (req, res) => {
   }
 });
 
+// Handle /api/generate-pdf endpoint
+app.all('/api/generate-pdf', async (req, res) => {
+  try {
+    const generatePdfHandler = require('./api/generate-pdf.js');
+    await generatePdfHandler(req, res);
+  } catch (err) {
+    console.error('Error handling /api/generate-pdf:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error', details: err.message });
+    }
+  }
+});
+
 // Rewrites from vercel.json: /j/:event -> judge.html
-app.get('/j/:event', (req, res) => {
+app.get('/j/:event', (req, res, next) => {
+  if (path.extname(req.params.event)) {
+    return next();
+  }
   res.setHeader('Content-Type', 'text/html; charset=UTF-8');
   res.sendFile(path.join(__dirname, 'judge.html'));
 });
 
-// Serve static files with explicit Content-Type headers
+// Serve static files with explicit Content-Type and optimized Cache-Control headers
 app.use(express.static(__dirname, {
+  maxAge: '1d',
+  etag: true,
   setHeaders: (res, filePath) => {
     const ext = path.extname(filePath).toLowerCase();
     if (mimeMap[ext]) {
       res.setHeader('Content-Type', mimeMap[ext]);
     }
     res.removeHeader('Content-Disposition');
+
+    // Smart Caching Policies for speed and smooth loading
+    if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webm', '.mp4'].includes(ext)) {
+      res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    } else if (['.woff', '.woff2', '.ttf'].includes(ext)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (['.css', '.js'].includes(ext)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400, must-revalidate');
+    } else if (['.html', '.htm'].includes(ext)) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
   }
 }));
 

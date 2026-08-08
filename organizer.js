@@ -22,6 +22,95 @@ if (!organizerUsername) {
   window.location.href = "login.html";
 }
 
+// Global Styled Excel Exporter Utility
+window.downloadStyledExcel = function(filename, reportTitle, subHeader, headers, rows) {
+  const colCount = Math.max(headers.length, 1);
+  
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  const headerCells = headers.map(h => 
+    `<th style="background-color: #000000; color: #FFFFFF; font-weight: bold; font-family: Arial, sans-serif; font-size: 11pt; padding: 10px 14px; border: 1px solid #000000; text-align: center; vertical-align: middle;">${escapeHtml(h)}</th>`
+  ).join('');
+
+  const bodyRows = rows.map((row, rIdx) => {
+    const bg = rIdx % 2 === 0 ? '#FFFFFF' : '#F8FAFC';
+    const cells = row.map(cell => {
+      const val = cell !== null && cell !== undefined ? String(cell) : '';
+      const isNum = typeof cell === 'number' || (/^\d+(\.\d+)?$/.test(val) && val.length < 10);
+      const isCenter = val === 'N/A' || /^\d{2}-\d{2}-\d{4}$/.test(val) || val.length <= 6;
+      const align = isNum ? 'right' : (isCenter ? 'center' : 'left');
+      return `<td style="background-color: ${bg}; color: #0F172A; font-family: Arial, sans-serif; font-size: 10pt; padding: 8px 12px; border: 1px solid #CBD5E1; text-align: ${align}; vertical-align: middle; mso-number-format:'\\@';">${escapeHtml(val)}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<!--[if gte mso 9]>
+<xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>${escapeHtml(reportTitle.slice(0, 30))}</x:Name>
+    <x:WorksheetOptions>
+     <x:DisplayGridlines/>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+ </x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+  br { mso-data-placement: same-cell; }
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<table border="1" cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+  <thead>
+    <tr>
+      <th colspan="${colCount}" style="background-color: #000000; color: #FFFFFF; font-size: 16pt; font-weight: bold; font-family: Arial, sans-serif; text-align: center; vertical-align: middle; padding: 14px; border: 1px solid #000000; letter-spacing: 1px;">
+        TECH MANTHAN 6.0
+      </th>
+    </tr>
+    <tr>
+      <th colspan="${colCount}" style="background-color: #1E293B; color: #FFFFFF; font-size: 11pt; font-weight: bold; font-family: Arial, sans-serif; text-align: center; vertical-align: middle; padding: 8px; border: 1px solid #1E293B;">
+        Dr. B.B Hegde First Grade College, Kundapura &nbsp;|&nbsp; ${escapeHtml(subHeader || reportTitle)}
+      </th>
+    </tr>
+    <tr style="height: 12px; background-color: #FFFFFF;">
+      <td colspan="${colCount}" style="border: none; background-color: #FFFFFF; height: 12px;"></td>
+    </tr>
+    <tr>
+      ${headerCells}
+    </tr>
+  </thead>
+  <tbody>
+    ${bodyRows}
+  </tbody>
+</table>
+</body>
+</html>`;
+
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const safeFilename = filename.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/_+/g, '_');
+  link.download = safeFilename.endsWith('.xls') ? safeFilename : `${safeFilename}.xls`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 function formatToDDMMYYYY(dStr) {
   if (!dStr) return "N/A";
   let s = String(dStr).trim();
@@ -774,6 +863,25 @@ function setupEventListeners() {
     });
   }
 
+  const btnDownloadAttendanceExcel = document.getElementById("btnDownloadAttendanceExcel");
+  if (btnDownloadAttendanceExcel) {
+    btnDownloadAttendanceExcel.addEventListener("click", () => {
+      if (!eventData) return;
+      const headers = ["Sl No", "Reg No", "Student Name", "Class", "Email Address", "Check-in Status"];
+      const rows = registeredStudents.map((st, idx) => [
+        idx + 1,
+        st.regNo,
+        st.name || "N/A",
+        st.class || "N/A",
+        st.email || "N/A",
+        checkedInStudentIds.includes(st.regNo) ? "Checked In" : "Not Checked In"
+      ]);
+      const subHeader = `${eventData.title || "Event"} - Attendance & Registrations Directory`;
+      const filename = `attendance_${(eventData.title || "event").toLowerCase().replace(/ /g, "_")}`;
+      window.downloadStyledExcel(filename, "Attendance Report", subHeader, headers, rows);
+    });
+  }
+
   // Populate & Handle View Round / View Judge Select change
   const viewRoundSelect = document.getElementById("viewRoundSelect");
   const viewJudgeSelect = document.getElementById("viewJudgeSelect");
@@ -881,7 +989,7 @@ function setupEventListeners() {
     });
   }
 
-  // Export Excel CSV Sheet per Round & Per Judge
+  // Export Excel Sheet per Round & Per Judge
   const btnExportExcel = document.getElementById("btnExportExcel");
   if (btnExportExcel) {
     btnExportExcel.addEventListener("click", () => {
@@ -918,25 +1026,17 @@ function setupEventListeners() {
       }
 
       const headers = ["Sl No", "Reg No", "Student Name", "Class", ...criteria, "Total Score"];
-      let csvContent = "\uFEFF" + headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
-
-      targetStudents.forEach((st, idx) => {
+      const rows = targetStudents.map((st, idx) => {
         const studentEntry = roundMarksSheet[st.regNo] || {};
         const { critVals, finalTotal } = getStudentScoresForRoundAndJudge(studentEntry, criteria, selectedJudge);
-        const row = [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, finalTotal];
-        csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
+        return [idx + 1, st.regNo, st.name || "N/A", st.class || "N/A", ...critVals, finalTotal];
       });
 
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      const judgeFileSuffix = selectedJudge !== "all" ? `_${selectedJudge}` : "";
-      link.setAttribute("download", `${eventData.title.toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}${judgeFileSuffix}_marksheet.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const judgeLabel = selectedJudge !== "all" ? ` (Judge: ${selectedJudge})` : " (Consolidated)";
+      const subHeader = `${eventData.title || "Event"} - Marksheet [${selectedRound}${judgeLabel}]`;
+      const filename = `${(eventData.title || "event").toLowerCase().replace(/ /g, "_")}_${selectedRound.toLowerCase().replace(/ /g, "_")}_marksheet`;
+
+      window.downloadStyledExcel(filename, "Marksheet Report", subHeader, headers, rows);
     });
   }
 
@@ -1425,7 +1525,7 @@ function populateJudgeSelect() {
   }
 
   const allSheets = [eventData?.marksSheet || {}];
-  if (eventData?.rounds) {
+  if (eventData?.rounds && typeof eventData.rounds === "object" && !Array.isArray(eventData.rounds)) {
     Object.keys(eventData.rounds).forEach(rKey => {
       if (eventData.rounds[rKey]?.marksSheet) {
         allSheets.push(eventData.rounds[rKey].marksSheet);
@@ -1855,23 +1955,19 @@ window.downloadPromotedStudentsExcel = function(targetRound) {
   }
 
   const promotedDetails = promo.promotedDetails || [];
-  const headers = ["Sl No", "Reg No / Roll No", "Student Name", "Class", `Average Score in ${promo.fromRound}`];
-  let csvContent = "\uFEFF" + headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
+  const headers = ["Sl No", "Reg No / Roll No", "Student Name", "Class", `Average Score in ${promo.fromRound || 'Previous Round'}`];
+  const rows = promotedDetails.map((d, idx) => [
+    idx + 1,
+    d.regNo,
+    d.name || "N/A",
+    d.class || "N/A",
+    d.avgScore !== undefined && d.avgScore !== null ? d.avgScore : "N/A"
+  ]);
 
-  promotedDetails.forEach((d, idx) => {
-    const row = [idx + 1, d.regNo, d.name || "N/A", d.class || "N/A", d.avgScore || "N/A"];
-    csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",") + "\n";
-  });
+  const subHeader = `${eventData.title || "Event"} - Promoted Students List for ${targetRound}`;
+  const filename = `${(eventData.title || "event").toLowerCase().replace(/ /g, "_")}_${targetRound.toLowerCase().replace(/ /g, "_")}_promoted_students`;
 
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `${eventData.title.toLowerCase().replace(/ /g, "_")}_${targetRound.toLowerCase().replace(/ /g, "_")}_promoted_students.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  window.downloadStyledExcel(filename, "Promoted Students Report", subHeader, headers, rows);
 };
 
 window.downloadPromotedStudentsPDF = async function(targetRound, btnElement) {
@@ -2948,18 +3044,27 @@ function setupGamingTabsAndExport() {
         return;
       }
 
-      let csv = "Team Name,Game Variant,Class,Leader Name,Leader Email,Member 1,Member 2,Member 3,Member 4,Registration Date\n";
-      gamingTeamsList.forEach(t => {
+      const headers = ["Sl No", "Team Name", "Game Variant", "Class", "Leader Name", "Leader Email", "Member 1", "Member 2", "Member 3", "Member 4", "Registration Date"];
+      const rows = gamingTeamsList.map((t, idx) => {
         const m = t.members || [];
-        csv += `"${t.teamName || ''}","${t.gameVariant || ''}","${t.studentClass || ''}","${t.leaderName || ''}","${t.leaderEmail || ''}","${m[0] || ''}","${m[1] || ''}","${m[2] || ''}","${m[3] || ''}","${t.registeredAt || ''}"\n`;
+        return [
+          idx + 1,
+          t.teamName || '',
+          t.gameVariant || '',
+          t.studentClass || '',
+          t.leaderName || '',
+          t.leaderEmail || '',
+          m[0] || '',
+          m[1] || '',
+          m[2] || '',
+          m[3] || '',
+          t.registeredAt || ''
+        ];
       });
 
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Gaming_Squad_Rosters_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
+      const subHeader = "Gaming Event Squad Rosters (Free Fire / Mini Militia)";
+      const filename = `gaming_squad_rosters_${new Date().toISOString().slice(0,10)}`;
+      window.downloadStyledExcel(filename, "Gaming Squad Rosters", subHeader, headers, rows);
     });
   }
 }
@@ -3055,18 +3160,24 @@ function setupCulturalExport() {
         return;
       }
 
-      let csv = "Team Name,Class,Leader Name,Leader Email,Total Members,Participants Roster,Registration Date\n";
-      culturalTeamsList.forEach(t => {
+      const headers = ["Sl No", "Team Name", "Class", "Leader Name", "Leader Email", "Total Members", "Participants Roster", "Registration Date"];
+      const rows = culturalTeamsList.map((t, idx) => {
         const m = (t.members || []).join(" | ");
-        csv += `"${t.teamName || ''}","${t.studentClass || ''}","${t.leaderName || ''}","${t.leaderEmail || ''}","${(t.members || []).length}","${m}","${t.registeredAt || ''}"\n`;
+        return [
+          idx + 1,
+          t.teamName || '',
+          t.studentClass || '',
+          t.leaderName || '',
+          t.leaderEmail || '',
+          (t.members || []).length,
+          m,
+          t.registeredAt || ''
+        ];
       });
 
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Cultural_Team_Rosters_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
+      const subHeader = "Cultural Event Team Rosters";
+      const filename = `cultural_team_rosters_${new Date().toISOString().slice(0,10)}`;
+      window.downloadStyledExcel(filename, "Cultural Team Rosters", subHeader, headers, rows);
     });
   }
 }
@@ -3153,18 +3264,23 @@ function setupDuoExport() {
         return;
       }
 
-      let csv = "Team Name,Class,Leader Name (Member 1),Leader Email,Member 2 Name,Registration Date\n";
-      duoTeamsList.forEach(t => {
+      const headers = ["Sl No", "Team Name", "Class", "Leader Name (Member 1)", "Leader Email", "Member 2 Name", "Registration Date"];
+      const rows = duoTeamsList.map((t, idx) => {
         const m = t.members || [];
-        csv += `"${t.teamName || ''}","${t.studentClass || ''}","${t.leaderName || ''}","${t.leaderEmail || ''}","${m[1] || ''}","${t.registeredAt || ''}"\n`;
+        return [
+          idx + 1,
+          t.teamName || '',
+          t.studentClass || '',
+          t.leaderName || '',
+          t.leaderEmail || '',
+          m[1] || '',
+          t.registeredAt || ''
+        ];
       });
 
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Duo_Team_Rosters_${assignedEventId}_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
+      const subHeader = `Duo Team Rosters - ${assignedEventId || 'Event'}`;
+      const filename = `duo_team_rosters_${assignedEventId}_${new Date().toISOString().slice(0,10)}`;
+      window.downloadStyledExcel(filename, "Duo Team Rosters", subHeader, headers, rows);
     });
   }
 }

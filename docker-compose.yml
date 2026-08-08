@@ -23,6 +23,11 @@ services:
     environment:
       - PORT=8080
       - MONGO_URI=mongodb://mongo:27017/tech_manthana
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=465
+      - SMTP_USER=techmanthan6.0@gmail.com
+      - SMTP_PASS=cncoqabqykbuvemd
+      - SMTP_FROM="Tech Manthan 6.0" <techmanthan6.0@gmail.com>
     depends_on:
       - mongo
     networks:

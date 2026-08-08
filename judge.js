@@ -363,10 +363,14 @@ async function saveAllScores() {
     }
     
     const freshEventData = eventSnap.data();
-    const updatedMarksSheet = freshEventData.marksSheet || {};
-    const rounds = freshEventData.rounds || {};
+    const updatedMarksSheet = (freshEventData.marksSheet && typeof freshEventData.marksSheet === "object") ? freshEventData.marksSheet : {};
+    
+    const isRoundsObject = freshEventData.rounds && typeof freshEventData.rounds === "object" && !Array.isArray(freshEventData.rounds);
+    const rounds = isRoundsObject ? freshEventData.rounds : {};
     if (!rounds[currentRound]) rounds[currentRound] = {};
-    const roundMarksSheet = rounds[currentRound].marksSheet || {};
+    const roundMarksSheet = (rounds[currentRound] && typeof rounds[currentRound] === "object" && rounds[currentRound].marksSheet) 
+      ? rounds[currentRound].marksSheet 
+      : {};
 
     const judgeKey = (currentJudgeName || "Default Judge").trim();
     
@@ -385,15 +389,21 @@ async function saveAllScores() {
 
     rounds[currentRound].marksSheet = roundMarksSheet;
 
-    await updateDoc(eventRef, {
-      marksSheet: updatedMarksSheet,
-      rounds: rounds
-    });
+    const updatePayload = {
+      marksSheet: updatedMarksSheet
+    };
+    if (isRoundsObject) {
+      updatePayload.rounds = rounds;
+    }
+
+    await updateDoc(eventRef, updatePayload);
 
     // Update local copy
     eventData.marksSheet = updatedMarksSheet;
-    if (!eventData.rounds) eventData.rounds = {};
-    eventData.rounds[currentRound] = rounds[currentRound];
+    if (isRoundsObject) {
+      if (!eventData.rounds || typeof eventData.rounds !== "object") eventData.rounds = {};
+      eventData.rounds[currentRound] = rounds[currentRound];
+    }
 
     btnSaveAll.innerText = "SAVED SUCCESSFULLY ✓";
     btnSaveAll.style.borderColor = "var(--neon-green)";

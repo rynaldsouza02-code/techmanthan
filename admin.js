@@ -131,6 +131,7 @@ async function init() {
   setupRegistrationsTab();
   setupJudgingForm();
   setupChampionshipTab();
+  setupAdminExcelExports();
   if (panelPromos || tabBtnPromos) {
     setupPromoStudio();
     loadPromosData();
@@ -1326,21 +1327,64 @@ async function unpublishChampionship() {
 
 async function renderResultsApproval() {
   if (!resultsApprovalTableBody) return;
-  resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">Loading submitted results...</td></tr>`;
+  resultsApprovalTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub); padding: 30px;">Loading submitted results...</td></tr>`;
 
   try {
     await loadAllData();
 
+    // Map student ID/Reg to student object for quick lookup
+    const studentMap = {};
+    (allStudents || []).forEach(st => {
+      if (st.regNo) studentMap[st.regNo.trim().toUpperCase()] = st;
+    });
+
+    const getDetails = (rawStr) => {
+      if (!rawStr) return { name: "N/A", regNo: "N/A", class: "Unassigned", raw: "" };
+      let trimmed = rawStr.trim();
+      let extractedReg = trimmed;
+      const match = trimmed.match(/\(([^)]+)\)/);
+      if (match && match[1]) extractedReg = match[1].trim();
+      
+      const student = studentMap[extractedReg.toUpperCase()] || studentMap[trimmed.toUpperCase()];
+      if (student) {
+        return {
+          name: student.name || trimmed,
+          regNo: student.regNo || extractedReg,
+          class: student.class || "Unassigned",
+          raw: trimmed
+        };
+      }
+      return {
+        name: trimmed,
+        regNo: extractedReg !== trimmed ? extractedReg : "N/A",
+        class: "Unassigned",
+        raw: trimmed
+      };
+    };
+
     if (allEvents.length === 0) {
-      resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No events found in database.</td></tr>`;
+      resultsApprovalTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub); padding: 30px;">No events found in database.</td></tr>`;
       return;
     }
 
     // Filter events that have some results entered
     const eventsWithResults = allEvents.filter(ev => ev.results && (ev.results.first || ev.results.second || ev.results.third));
 
+    // Update stats counters
+    const totalSubmitted = eventsWithResults.length;
+    const totalApproved = eventsWithResults.filter(ev => ev.resultsApproved === true).length;
+    const totalPending = totalSubmitted - totalApproved;
+
+    const statApprovalTotal = document.getElementById("statApprovalTotal");
+    const statApprovalPending = document.getElementById("statApprovalPending");
+    const statApprovalApproved = document.getElementById("statApprovalApproved");
+
+    if (statApprovalTotal) statApprovalTotal.innerText = totalSubmitted;
+    if (statApprovalPending) statApprovalPending.innerText = totalPending;
+    if (statApprovalApproved) statApprovalApproved.innerText = totalApproved;
+
     if (eventsWithResults.length === 0) {
-      resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-sub);">No results have been submitted by coordinators yet.</td></tr>`;
+      resultsApprovalTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub); padding: 30px;">No results have been submitted by coordinators yet.</td></tr>`;
       return;
     }
 
@@ -1348,31 +1392,56 @@ async function renderResultsApproval() {
       const isApproved = ev.resultsApproved === true;
       
       const statusBadge = isApproved 
-        ? `<span class="user-badge" style="border-color: var(--neon-green); color: var(--neon-green); background: rgba(34, 197, 94, 0.1); padding: 4px 8px; border-radius: 4px;">Approved & Published</span>`
-        : `<span class="user-badge" style="border-color: var(--neon-yellow); color: var(--neon-yellow); background: rgba(234, 179, 8, 0.1); padding: 4px 8px; border-radius: 4px;">Pending Approval</span>`;
+        ? `<span class="status-pill status-approved">✓ APPROVED & PUBLISHED</span>`
+        : `<span class="status-pill status-pending">⏳ PENDING APPROVAL</span>`;
+
+      const p1 = getDetails(ev.results.first);
+      const p2 = getDetails(ev.results.second);
+      const p3 = getDetails(ev.results.third);
 
       const winnersHTML = `
-        <div style="font-size: 0.85rem; line-height: 1.4;">
-          ${ev.results.first ? `<div>🥇 1st: <strong>${ev.results.first}</strong></div>` : ""}
-          ${ev.results.second ? `<div>🥈 2nd: <strong>${ev.results.second}</strong></div>` : ""}
-          ${ev.results.third ? `<div>🥉 3rd: <strong>${ev.results.third}</strong></div>` : ""}
+        <div class="winner-pill-list">
+          ${ev.results.first ? `
+            <div class="winner-pill gold">
+              <div><span class="winner-place">🥇 1st:</span> <span class="winner-name">${p1.name}</span> ${p1.regNo !== 'N/A' && p1.regNo !== p1.name ? `<span style="font-size:0.75rem; color:#fef08a;">(${p1.regNo})</span>` : ''}</div>
+              <span class="winner-class">${p1.class}</span>
+            </div>
+          ` : ""}
+          ${ev.results.second ? `
+            <div class="winner-pill silver">
+              <div><span class="winner-place">🥈 2nd:</span> <span class="winner-name">${p2.name}</span> ${p2.regNo !== 'N/A' && p2.regNo !== p2.name ? `<span style="font-size:0.75rem; color:#e2e8f0;">(${p2.regNo})</span>` : ''}</div>
+              <span class="winner-class">${p2.class}</span>
+            </div>
+          ` : ""}
+          ${ev.results.third ? `
+            <div class="winner-pill bronze">
+              <div><span class="winner-place">🥉 3rd:</span> <span class="winner-name">${p3.name}</span> ${p3.regNo !== 'N/A' && p3.regNo !== p3.name ? `<span style="font-size:0.75rem; color:#fed7aa;">(${p3.regNo})</span>` : ''}</div>
+              <span class="winner-class">${p3.class}</span>
+            </div>
+          ` : ""}
         </div>
       `;
 
-      const actionsHTML = isApproved
-        ? `<button class="btn-action btn-danger" onclick="rejectEventResults('${ev.id}')">Unpublish / Recall</button>`
-        : `
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <button class="btn-action btn-success" onclick="approveEventResults('${ev.id}')">Approve & Publish</button>
-            <button class="btn-action btn-danger" onclick="rejectEventResults('${ev.id}')">Reject / Reset</button>
-          </div>
-        `;
+      const actionsHTML = `
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; min-width: 140px;">
+          ${isApproved
+            ? `<button class="btn-action btn-danger" style="width: 100%; font-size: 0.78rem; padding: 6px 10px;" onclick="rejectEventResults('${ev.id}')">Unpublish / Recall</button>`
+            : `
+              <button class="btn-action btn-success" style="width: 100%; font-size: 0.78rem; padding: 6px 10px;" onclick="approveEventResults('${ev.id}')">✓ Approve & Publish</button>
+              <button class="btn-action btn-danger" style="width: 100%; font-size: 0.78rem; padding: 6px 10px;" onclick="rejectEventResults('${ev.id}')">✕ Reject / Reset</button>
+            `
+          }
+          <button class="cyber-btn" style="width: 100%; font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan); font-weight: 700;" onclick="downloadEventResultsPDF('${ev.id}')">📄 Download PDF</button>
+        </div>
+      `;
 
       return `
         <tr>
-          <td><strong>${ev.id}</strong></td>
-          <td>${ev.title}</td>
-          <td>${ev.coordinator || "N/A"}</td>
+          <td>
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 2px;">#${ev.id}</div>
+            <strong style="color: #fff; font-size: 0.95rem;">${ev.title}</strong>
+          </td>
+          <td><span style="font-size: 0.85rem; color: var(--text-main); line-height: 1.4; display: block;">${ev.coordinator || "Unassigned"}</span></td>
           <td>${winnersHTML}</td>
           <td style="text-align: center;">${statusBadge}</td>
           <td style="text-align: center;">${actionsHTML}</td>
@@ -1381,7 +1450,148 @@ async function renderResultsApproval() {
     }).join("");
   } catch (err) {
     console.error("Error loading results approval table:", err);
-    resultsApprovalTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--neon-red);">Error loading results list.</td></tr>`;
+    resultsApprovalTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--neon-red); padding: 30px;">Error loading results list.</td></tr>`;
+  }
+}
+
+async function downloadEventResultsPDF(eventId) {
+  const ev = allEvents.find(e => e.id === eventId);
+  if (!ev || !ev.results) {
+    alert("No results found for this event.");
+    return;
+  }
+
+  const studentMap = {};
+  (allStudents || []).forEach(st => {
+    if (st.regNo) studentMap[st.regNo.trim().toUpperCase()] = st;
+  });
+
+  const getDetails = (rawStr) => {
+    if (!rawStr) return { name: "N/A", regNo: "N/A", class: "N/A" };
+    let trimmed = rawStr.trim();
+    let extractedReg = trimmed;
+    const match = trimmed.match(/\(([^)]+)\)/);
+    if (match && match[1]) extractedReg = match[1].trim();
+    const student = studentMap[extractedReg.toUpperCase()] || studentMap[trimmed.toUpperCase()];
+    if (student) {
+      return {
+        name: student.name || trimmed,
+        regNo: student.regNo || extractedReg,
+        class: student.class || "N/A"
+      };
+    }
+    return { name: trimmed, regNo: extractedReg !== trimmed ? extractedReg : "N/A", class: "N/A" };
+  };
+
+  const p1 = getDetails(ev.results.first);
+  const p2 = getDetails(ev.results.second);
+  const p3 = getDetails(ev.results.third);
+
+  const rows = [];
+  if (ev.results.first) {
+    rows.push(["1st Place (Gold)", `${p1.name} (${p1.regNo})`, p1.class, "WINNER (5 Pts)"]);
+  }
+  if (ev.results.second) {
+    rows.push(["2nd Place (Silver)", `${p2.name} (${p2.regNo})`, p2.class, "RUNNER-UP (3 Pts)"]);
+  }
+  if (ev.results.third) {
+    rows.push(["3rd Place (Bronze)", `${p3.name} (${p3.regNo})`, p3.class, "3RD PLACE (1 Pt)"]);
+  }
+
+  try {
+    const response = await fetch("/api/generate-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "results",
+        title: ev.title || eventId,
+        coordinator: ev.coordinator || "N/A",
+        date: ev.date || "N/A",
+        time: ev.time || "N/A",
+        venue: ev.venue || "N/A",
+        headers: ["Position / Medal", "Student Name & Reg No", "Class Section", "Award Standing"],
+        rows: rows
+      })
+    });
+
+    if (!response.ok) throw new Error("Server failed to generate PDF");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `official_results_${(ev.title || eventId).toLowerCase().replace(/[^a-z0-9]/g, "_")}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (err) {
+    console.error("Error downloading event PDF:", err);
+    alert("Failed to download PDF report. Please try again.");
+  }
+}
+
+async function downloadAllResultsPDF() {
+  const eventsWithApproved = allEvents.filter(ev => ev.resultsApproved === true && ev.results && (ev.results.first || ev.results.second || ev.results.third));
+  
+  if (eventsWithApproved.length === 0) {
+    alert("No approved event results found to export.");
+    return;
+  }
+
+  const studentMap = {};
+  (allStudents || []).forEach(st => {
+    if (st.regNo) studentMap[st.regNo.trim().toUpperCase()] = st;
+  });
+
+  const getDetails = (rawStr) => {
+    if (!rawStr) return "N/A";
+    let trimmed = rawStr.trim();
+    let extractedReg = trimmed;
+    const match = trimmed.match(/\(([^)]+)\)/);
+    if (match && match[1]) extractedReg = match[1].trim();
+    const student = studentMap[extractedReg.toUpperCase()] || studentMap[trimmed.toUpperCase()];
+    if (student) {
+      return `${student.name} (${student.regNo}) - ${student.class || ''}`;
+    }
+    return trimmed;
+  };
+
+  const rows = eventsWithApproved.map((ev, idx) => [
+    idx + 1,
+    ev.title,
+    getDetails(ev.results.first),
+    getDetails(ev.results.second),
+    getDetails(ev.results.third)
+  ]);
+
+  try {
+    const response = await fetch("/api/generate-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "results",
+        title: "OFFICIAL FEST WINNERS DIRECTORY",
+        coordinator: "Tech Manthan 6.0 Admin Team",
+        headers: ["Sl No", "Event Title", "1st Place Winner", "2nd Place Runner-Up", "3rd Place"],
+        rows: rows
+      })
+    });
+
+    if (!response.ok) throw new Error("Failed to generate PDF");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tech_manthan_all_approved_results.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (err) {
+    console.error("Error downloading all results PDF:", err);
+    alert("Failed to generate combined PDF report.");
   }
 }
 
@@ -1433,6 +1643,8 @@ async function rejectEventResults(eventId) {
 
 window.approveEventResults = approveEventResults;
 window.rejectEventResults = rejectEventResults;
+window.downloadEventResultsPDF = downloadEventResultsPDF;
+window.downloadAllResultsPDF = downloadAllResultsPDF;
 
 function setupChampionshipTab() {
   btnPublishChampionship.addEventListener("click", publishChampionship);
@@ -1831,6 +2043,202 @@ function setupAdminCredentialsModal() {
         console.error("Error saving admin credentials:", err);
         alert("Failed to save admin credentials.");
       }
+    });
+  }
+}
+
+function setupAdminExcelExports() {
+  // Ensure downloadStyledExcel exists
+  if (!window.downloadStyledExcel) {
+    window.downloadStyledExcel = function(filename, reportTitle, subHeader, headers, rows) {
+      const colCount = Math.max(headers.length, 1);
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+      const headerCells = headers.map(h => 
+        `<th style="background-color: #000000; color: #FFFFFF; font-weight: bold; font-family: Arial, sans-serif; font-size: 11pt; padding: 10px 14px; border: 1px solid #000000; text-align: center; vertical-align: middle;">${escapeHtml(h)}</th>`
+      ).join('');
+      const bodyRows = rows.map((row, rIdx) => {
+        const bg = rIdx % 2 === 0 ? '#FFFFFF' : '#F8FAFC';
+        const cells = row.map(cell => {
+          const val = cell !== null && cell !== undefined ? String(cell) : '';
+          const isNum = typeof cell === 'number' || (/^\d+(\.\d+)?$/.test(val) && val.length < 10);
+          const isCenter = val === 'N/A' || /^\d{2}-\d{2}-\d{4}$/.test(val) || val.length <= 6;
+          const align = isNum ? 'right' : (isCenter ? 'center' : 'left');
+          return `<td style="background-color: ${bg}; color: #0F172A; font-family: Arial, sans-serif; font-size: 10pt; padding: 8px 12px; border: 1px solid #CBD5E1; text-align: ${align}; vertical-align: middle; mso-number-format:'\\@';">${escapeHtml(val)}</td>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+
+      const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8">
+<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>${escapeHtml(reportTitle.slice(0, 30))}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+<style>br { mso-data-placement: same-cell; }</style>
+</head><body style="margin:0; padding:0;">
+<table border="1" cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+  <thead>
+    <tr>
+      <th colspan="${colCount}" style="background-color: #000000; color: #FFFFFF; font-size: 16pt; font-weight: bold; font-family: Arial, sans-serif; text-align: center; vertical-align: middle; padding: 14px; border: 1px solid #000000; letter-spacing: 1px;">
+        TECH MANTHAN 6.0
+      </th>
+    </tr>
+    <tr>
+      <th colspan="${colCount}" style="background-color: #1E293B; color: #FFFFFF; font-size: 11pt; font-weight: bold; font-family: Arial, sans-serif; text-align: center; vertical-align: middle; padding: 8px; border: 1px solid #1E293B;">
+        Dr. B.B Hegde First Grade College, Kundapura &nbsp;|&nbsp; ${escapeHtml(subHeader || reportTitle)}
+      </th>
+    </tr>
+    <tr style="height: 12px; background-color: #FFFFFF;">
+      <td colspan="${colCount}" style="border: none; background-color: #FFFFFF; height: 12px;"></td>
+    </tr>
+    <tr>${headerCells}</tr>
+  </thead>
+  <tbody>${bodyRows}</tbody>
+</table>
+</body></html>`;
+
+      const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const safeFilename = filename.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/_+/g, '_');
+      link.download = safeFilename.endsWith('.xls') ? safeFilename : `${safeFilename}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+  }
+
+  // 1. Export Registrations Excel
+  const btnExportRegistrationsExcel = document.getElementById("btnExportRegistrationsExcel");
+  if (btnExportRegistrationsExcel) {
+    btnExportRegistrationsExcel.addEventListener("click", () => {
+      const regEventFilter = document.getElementById("regEventFilter");
+      const eventId = regEventFilter ? regEventFilter.value : "";
+      if (!eventId) {
+        alert("Please select an event first.");
+        return;
+      }
+      const ev = allEvents.find(e => e.id === eventId);
+      if (!ev) return;
+
+      const headers = ["Sl No", "Reg No", "Student Name", "Class", "Email Address"];
+      const rows = (currentEventRegistrants || []).map((st, idx) => [
+        idx + 1,
+        st.regNo,
+        st.name || "N/A",
+        st.class || "N/A",
+        st.email || "N/A"
+      ]);
+
+      const subHeader = `Event Registration List - ${ev.title}`;
+      const filename = `registrations_${ev.title.toLowerCase().replace(/ /g, "_")}`;
+      window.downloadStyledExcel(filename, "Event Registrations", subHeader, headers, rows);
+    });
+  }
+
+  // 2. Export Students Excel
+  const btnExportStudentsExcel = document.getElementById("btnExportStudentsExcel");
+  if (btnExportStudentsExcel) {
+    btnExportStudentsExcel.addEventListener("click", () => {
+      const studentSearchInput = document.getElementById("studentSearchInput");
+      let queryText = studentSearchInput ? studentSearchInput.value.toLowerCase().trim() : "";
+      let filtered = (allStudents || []).filter(st => 
+        st.regNo.toLowerCase().includes(queryText) || 
+        (st.name || "").toLowerCase().includes(queryText)
+      );
+
+      if (filtered.length === 0) {
+        alert("No student records found to export.");
+        return;
+      }
+
+      const headers = ["Sl No", "Registration No", "Student Name", "Class", "Date of Birth (DOB)"];
+      const rows = filtered.map((st, idx) => [
+        idx + 1,
+        st.regNo,
+        st.name || "N/A",
+        st.class || "N/A",
+        st.dob || "N/A"
+      ]);
+
+      const subHeader = "Master Student Directory";
+      const filename = `student_directory_${new Date().toISOString().slice(0,10)}`;
+      window.downloadStyledExcel(filename, "Student Directory", subHeader, headers, rows);
+    });
+  }
+
+  // 3. Export Organizers Excel
+  const btnExportOrganizersExcel = document.getElementById("btnExportOrganizersExcel");
+  if (btnExportOrganizersExcel) {
+    btnExportOrganizersExcel.addEventListener("click", () => {
+      if (!allOrganizers || allOrganizers.length === 0) {
+        alert("No organizers registered yet.");
+        return;
+      }
+
+      const headers = ["Sl No", "Username", "Organizer Display Name", "Assigned Event Title", "Password"];
+      const rows = allOrganizers.map((o, idx) => {
+        const ev = (allEvents || []).find(e => e.id === o.assignedEventId);
+        return [
+          idx + 1,
+          o.username || "N/A",
+          o.name || "N/A",
+          ev ? ev.title : (o.assignedEventId || "None"),
+          o.password || "••••••"
+        ];
+      });
+
+      const subHeader = "Event Organizers & Coordinators Directory";
+      const filename = `organizers_directory_${new Date().toISOString().slice(0,10)}`;
+      window.downloadStyledExcel(filename, "Organizers Directory", subHeader, headers, rows);
+    });
+  }
+
+  // 4. Export Championship Excel
+  const btnExportChampionshipExcel = document.getElementById("btnExportChampionshipExcel");
+  if (btnExportChampionshipExcel) {
+    btnExportChampionshipExcel.addEventListener("click", () => {
+      const scoreboard = (calculatedChampionship && calculatedChampionship.scoreboard) ? calculatedChampionship.scoreboard : [];
+      if (scoreboard.length === 0) {
+        alert("No championship standings calculated yet.");
+        return;
+      }
+
+      const headers = ["Rank", "Class Name", "Gold (1st)", "Silver (2nd)", "Bronze (3rd)", "Total Wins", "Total Points"];
+      const rows = scoreboard.map((item, idx) => [
+        idx + 1,
+        item.className,
+        item.gold || 0,
+        item.silver || 0,
+        item.bronze || 0,
+        item.totalWins || 0,
+        item.total || 0
+      ]);
+
+      const subHeader = "Overall Championship Trophy Standings & Point Breakdown";
+      const filename = `championship_standings_${new Date().toISOString().slice(0,10)}`;
+      window.downloadStyledExcel(filename, "Championship Leaderboard", subHeader, headers, rows);
+    });
+  }
+
+  // 5. Results Approval PDF Export & Refresh
+  const btnExportAllResultsPDF = document.getElementById("btnExportAllResultsPDF");
+  if (btnExportAllResultsPDF) {
+    btnExportAllResultsPDF.addEventListener("click", () => {
+      downloadAllResultsPDF();
+    });
+  }
+
+  const btnRefreshResultsApproval = document.getElementById("btnRefreshResultsApproval");
+  if (btnRefreshResultsApproval) {
+    btnRefreshResultsApproval.addEventListener("click", () => {
+      renderResultsApproval();
     });
   }
 }

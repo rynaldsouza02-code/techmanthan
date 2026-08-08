@@ -530,7 +530,7 @@ function renderEvents() {
     const isClosed = isRegistrationClosed(ev);
 
     const regCloseHTML = ev.registrationCloseDate
-      ? `<div class="detail-item" style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'};">⏳ <strong>Reg Closes:</strong> 12 AM Midnight (${formatToDDMMYYYY(ev.registrationCloseDate)}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}</div>`
+      ? `<div class="detail-item detail-full" style="color: ${isClosed ? 'var(--neon-red)' : 'var(--text-sub)'}; font-size: 0.8rem;"><span>⌛</span> <strong>Reg Closes:</strong> <span class="detail-val">12 AM Midnight (${formatToDDMMYYYY(ev.registrationCloseDate)}) ${isClosed ? '🔴 (Closed)' : '🟢 (OPEN)'}</span></div>`
       : "";
 
 window.openPosterLightbox = function(src, title) {
@@ -583,7 +583,7 @@ window.openPosterLightbox = function(src, title) {
     let posterHTML = `<div class="event-card-poster-fallback"><span>No Poster</span></div>`;
     if (ev.poster) {
       const safeTitle = (ev.title || "Event").replace(/'/g, "\\'");
-      posterHTML = `<img src="${ev.poster}" class="event-card-poster" alt="${ev.title} poster" onclick="openPosterLightbox('${ev.poster}', '${safeTitle}')" style="cursor: pointer;" title="Click to view full poster">`;
+      posterHTML = `<img src="${ev.poster}" class="event-card-poster" alt="${ev.title} poster" loading="eager" decoding="async" onclick="openPosterLightbox('${ev.poster}', '${safeTitle}')" style="cursor: pointer; background-color: #0b1120;" title="Click to view full poster">`;
     }
 
     let promotionBadgeHTML = "";
@@ -634,9 +634,9 @@ window.openPosterLightbox = function(src, title) {
         
         <div>
           <div class="event-details">
-            <div class="detail-item">📅 <strong>Date:</strong> ${formatToDDMMYYYY(ev.date)}</div>
-            <div class="detail-item">🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
-            <div class="detail-item" style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
+            <div class="detail-item"><span>📅</span> <strong>Date:</strong> <span class="detail-val">${formatToDDMMYYYY(ev.date)}</span></div>
+            <div class="detail-item"><span>🕒</span> <strong>Time:</strong> <span class="detail-val">${ev.time || "N/A"}</span></div>
+            <div class="detail-item detail-full"><span>📍</span> <strong>Venue:</strong> <span class="detail-val">${ev.venue || "N/A"}</span></div>
             ${regCloseHTML}
           </div>
           
@@ -747,13 +747,13 @@ window.showEventDetails = function(eventId) {
             <div style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.5;">${ev.description || 'No description available.'}</div>
           </div>
 
-          <div class="event-details" style="margin: 0; grid-template-columns: 1fr 1fr; display: grid; gap: 10px; background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 10px; padding: 14px 16px; font-size: 0.85rem;">
-            <div>📅 <strong>Date:</strong> ${formatToDDMMYYYY(ev.date)}</div>
-            <div>🕒 <strong>Time:</strong> ${ev.time || "N/A"}</div>
-            <div style="grid-column: 1/-1;">📍 <strong>Venue:</strong> ${ev.venue || "N/A"}</div>
-            <div style="grid-column: 1/-1;">👤 <strong>Faculty Coordinator:</strong> ${ev.coordinator || "N/A"}</div>
+          <div class="event-details" style="margin: 0;">
+            <div class="detail-item"><span>📅</span> <strong>Date:</strong> <span class="detail-val">${formatToDDMMYYYY(ev.date)}</span></div>
+            <div class="detail-item"><span>🕒</span> <strong>Time:</strong> <span class="detail-val">${ev.time || "N/A"}</span></div>
+            <div class="detail-item detail-full"><span>📍</span> <strong>Venue:</strong> <span class="detail-val">${ev.venue || "N/A"}</span></div>
+            <div class="detail-item detail-full"><span>👤</span> <strong>Faculty Coordinator:</strong> <span class="detail-val">${ev.coordinator || "N/A"}</span></div>
             ${studentCoordinatorsHTML}
-            <div style="grid-column: 1/-1; color: ${isClosed ? 'var(--neon-red)' : 'var(--neon-green)'};">⏳ <strong>Registration Close:</strong> ${regCloseText}</div>
+            <div class="detail-item detail-full" style="color: ${isClosed ? 'var(--neon-red)' : 'var(--neon-green)'};"><span>⏳</span> <strong>Registration Close:</strong> <span class="detail-val">${regCloseText}</span></div>
           </div>
 
           ${roundsHTML}
@@ -1858,14 +1858,14 @@ async function loadPromosForHome() {
 
     let mediaPreviewHTML = "";
     if (isDirectMp4 && !p.thumbnail) {
-      mediaPreviewHTML = `<video src="${rawMediaUrl}#t=0.5" preload="metadata" muted playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.9;"></video>`;
+      mediaPreviewHTML = `<video src="${rawMediaUrl}#t=0.5" preload="metadata" muted playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.9; background-color: #0b1120;"></video>`;
     } else if (p.thumbnail) {
-      mediaPreviewHTML = `<img src="${p.thumbnail}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">`;
+      mediaPreviewHTML = `<img src="${p.thumbnail}" loading="eager" decoding="async" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease; background-color: #0b1120;" alt="${p.title || 'Promo'}">`;
     } else {
       const thumbUrl = getDirectVideoThumbnailUrl(rawMediaUrl);
       const lowerThumb = (thumbUrl || "").toLowerCase();
       if (thumbUrl && (lowerThumb.includes("img.youtube.com") || lowerThumb.includes("googleusercontent.com") || lowerThumb.endsWith(".jpg") || lowerThumb.endsWith(".png") || lowerThumb.endsWith(".webp") || lowerThumb.endsWith(".jpeg"))) {
-        mediaPreviewHTML = `<img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease;" alt="${p.title || 'Promo'}">`;
+        mediaPreviewHTML = `<img src="${thumbUrl}" loading="eager" decoding="async" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: transform 0.4s ease; background-color: #0b1120;" alt="${p.title || 'Promo'}">`;
       } else {
         mediaPreviewHTML = `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, rgba(10,15,30,0.95) 0%, rgba(20,30,60,0.95) 100%); display: flex; align-items: center; justify-content: center; color: var(--neon-cyan); font-size: 2.2rem;">🎬</div>`;
       }

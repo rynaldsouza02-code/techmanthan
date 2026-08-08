@@ -61,8 +61,9 @@
 
         /* Tech canvas override */
         #cyber-canvas {
-            z-index: -1 !important;
-            opacity: 0.25 !important; /* high visibility tech effect */
+            z-index: 1 !important;
+            opacity: 0.9 !important;
+            pointer-events: none !important;
         }
 
         /* 3D animated cyber grid */
@@ -547,6 +548,8 @@
             color: #fff !important;
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="icon" type="image/png" href="TC1.png">
   <link rel="shortcut icon" type="image/png" href="TC1.png">
 </head>
@@ -570,7 +573,7 @@
         
         <div class="login-logo-wrapper">
             <div class="logo-pulse-circle"></div>
-            <img src="TC1.png" class="event-logo-login" alt="Tech Manthan Logo">
+            <img src="TC1.png" class="event-logo-login" alt="Tech Manthan Logo" loading="eager" fetchpriority="high" decoding="async">
         </div>
         
         <div class="login-header">
@@ -804,7 +807,7 @@
    </script>
 
     <script type="module" src="login.js?v=3.6"></script>
-    <script src="cyber-bg.js"></script>
+    <script src="/cyber-bg.js"></script>
 
 </body>
 </html>

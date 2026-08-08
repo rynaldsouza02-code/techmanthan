@@ -37,10 +37,12 @@ module.exports = async (req, res) => {
 
   // Read SMTP settings from environment variables with fallbacks
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = parseInt(process.env.SMTP_PORT || '587');
   const user = process.env.SMTP_USER || 'techmanthan6.0@gmail.com';
-  const pass = process.env.SMTP_PASS; 
+  let rawPass = process.env.SMTP_PASS || 'cncoqabqykbuvemd'; 
+  const pass = rawPass.replace(/\s+/g, '');
   const from = process.env.SMTP_FROM || '"Tech Manthan 6.0" <techmanthan6.0@gmail.com>';
+  const port = parseInt(process.env.SMTP_PORT || '465');
+  const isSecure = port === 465;
 
   if (!pass) {
     console.warn('SMTP App Password (SMTP_PASS) not configured in environment. Skipping email dispatch.');
@@ -54,8 +56,11 @@ module.exports = async (req, res) => {
     const transporter = nodemailer.createTransport({
       host,
       port,
-      secure: false, // 587 uses TLS/STARTTLS
-      auth: { user, pass }
+      secure: isSecure,
+      auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000
     });
 
     const info = await transporter.sendMail({
